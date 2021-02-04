@@ -1,8 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard1.0</TargetFramework>
     <RootNamespace>Crestron_Library</RootNamespace>
+    <OutputType>Exe</OutputType>
+    <StartupObject>Crestron_Library.test</StartupObject>
   </PropertyGroup>
 
 </Project>
