@@ -10,13 +10,13 @@ using System.Threading;
  */
 
 namespace Crestron_Library {
-	class SerialPortInterface {
+	public class SerialPortInterface {
 
 		private static SerialPort serialPort;
 
-
 		public SerialPortInterface() {
 			serialPort = new SerialPort();
+			Console.WriteLine(serialPort.WriteBufferSize);
 		}
 
 		/*
@@ -38,23 +38,37 @@ namespace Crestron_Library {
 
 
 		/*
-		 * Sends byte array of bites to serial port.
-		 * !Unreliable!
+		 * Sends byte array of bytes to serial port.
+		 * Unreliable when sending more than 2 bytes!!!
+		 * Use "sendBytesSafe" when sending more than 1 byte.
 		 */
 		public void sendBytes(byte[] bytes) {
-			//TODO make key/byte transmition reliable. (current method has ~50% success rate).
-
-
 			serialPort.Open();
-			serialPort.Write(new byte[] {0x38}, 0, 1);              //0x38: USB buffer clear command (release all keys).
-
 			serialPort.Write(bytes, 0, bytes.Length);
 			serialPort.Close();
-
 		}
 
+		/*
+		 * Reliably transmit multiple bytes.
+		 * @param keySafety enable or disable release key command.
+		 */
+		public void sendBytesSafe(byte[] bytes) {
+			sendBytesSafe(bytes, true);
+		}
+		public void sendBytesSafe(byte[] bytes, bool keySafety) {
+			//Iterate over all bytes in array and send them one at a time.
+			//(Done for reliable transmission. Sending more than 2 bytes = unreliable transmission)
+			foreach (byte b in bytes) {
+				sendBytes(new byte[] {b});
+			}
 
-
+			//Send buffer clear command releasing any potentially stuck key.
+			if (keySafety) {
+				serialPort.Open();
+				serialPort.Write(new byte[] { 0x38 }, 0, 1);              //0x38: USB buffer clear command (release all keys).
+				serialPort.Close();
+			}
+		}
 
 	}
 }
