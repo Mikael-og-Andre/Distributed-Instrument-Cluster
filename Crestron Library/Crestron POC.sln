@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30503.244
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron Demo Project", "Crestron Demo Project\Crestron Demo Project.csproj", "{1F9A1968-B758-41A1-9D94-ABB04C1AB5CE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron Library", "Crestron Library2\Crestron Library.csproj", "{9F859F4D-61AF-4C31-AD98-A834CECC81FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron Library", "Crestron Library\Crestron Library.csproj", "{180BF30C-8249-4B27-876D-CFFD3E78593A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{1F9A1968-B758-41A1-9D94-ABB04C1AB5CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F9A1968-B758-41A1-9D94-ABB04C1AB5CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F9A1968-B758-41A1-9D94-ABB04C1AB5CE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9F859F4D-61AF-4C31-AD98-A834CECC81FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9F859F4D-61AF-4C31-AD98-A834CECC81FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9F859F4D-61AF-4C31-AD98-A834CECC81FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9F859F4D-61AF-4C31-AD98-A834CECC81FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{180BF30C-8249-4B27-876D-CFFD3E78593A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{180BF30C-8249-4B27-876D-CFFD3E78593A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{180BF30C-8249-4B27-876D-CFFD3E78593A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{180BF30C-8249-4B27-876D-CFFD3E78593A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
