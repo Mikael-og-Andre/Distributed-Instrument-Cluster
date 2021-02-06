@@ -1,13 +1,25 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.IO.Ports;
 using System.Threading;
 using Crestron_Library;
-
+using Microsoft.VisualBasic.FileIO;
 
 namespace Crestron_Library {
 	class test {
 
 		public static void Main(string[] args) {
+			Commands c = new Commands();
+
+
+
+			Console.WriteLine(c.getMakeByte("1"));
+
+
+		}
+
+		private static void testSerialInterface() {
 			SerialPortInterface serialPortInterface = new SerialPortInterface();
 			serialPortInterface.setSerialPort("COM5");
 
@@ -17,7 +29,7 @@ namespace Crestron_Library {
 				Console.WriteLine(s);
 			}
 
-			while(true) {
+			while (true) {
 				Console.ReadKey();
 				Console.WriteLine("sent");
 				//serialPortInterface.sendBytes(new byte[] { 0x32, 0xB2 });
@@ -26,6 +38,6 @@ namespace Crestron_Library {
 
 			}
 
-			}
 		}
 	}
+}
