@@ -11,5 +11,8 @@ using System.Text;
 
 namespace HardwareCommunicator {
     class Command {
+        internal void sendToCrestron(string command) {
+            throw new NotImplementedException();
+        }
     }
 }

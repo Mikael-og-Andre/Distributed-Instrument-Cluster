@@ -8,7 +8,7 @@ using System.Collections.Concurrent;
 
 
 /// <summary>
-/// Server to be run for lsitnening to incoming device connections and sending commadns and data to them
+/// Server to be run for listening to incoming device connections and sending commands and data to them
 /// @Author Mikael Nilssen
 /// </summary>
 
@@ -19,7 +19,6 @@ namespace HardwareCommunicator {
         private int maxPendingConnections;  //Backlog size of Listening socket
         private int numConnections = 0; //Connected Sockets
         public bool isServerRunning { get; private set; } //Should the server listen for more connection
-
         private Socket listenSocket;    //Socket for accepting incoming connections
         private IPEndPoint ipEndPoint { get; set; }     //Host Info
 
@@ -54,7 +53,7 @@ namespace HardwareCommunicator {
             listenSocket.Listen(maxPendingConnections);
             //Accepts Connections async
             StartAccepting(listenSocket);
-            Console.WriteLine("Thread {0} Says: Socket Setup Complete, Started Accepting", Thread.CurrentThread.ManagedThreadId);
+            Console.WriteLine("Thread {0} Says: Socket Setup Complete, Started Accepting connections", Thread.CurrentThread.ManagedThreadId);
             
         }
 
@@ -68,10 +67,6 @@ namespace HardwareCommunicator {
             while (isServerRunning) {
 
                 //Accept an incoming connection
-                for (int i = 0; i<100;i++) {
-                    Console.WriteLine("Thread {0} Says: Waiting For new Connection...", Thread.CurrentThread.ManagedThreadId);
-                    Thread.Sleep(1000);
-                }
                 Console.WriteLine("Thread {0} Says: Waiting For new Connection...", Thread.CurrentThread.ManagedThreadId);
                 Socket newSocket = await listenSocket.AcceptAsync();
                 //Increment Current Connections
@@ -83,6 +78,7 @@ namespace HardwareCommunicator {
                 //Create a client connection object representing the connection
                 ClientConnection newClientConnection = new ClientConnection(listenSocket, newClientThread);
 
+                //TODO: Add Client to list of clients
                 //Add connection to active connections
                 //AddClientConnection(newClientConnection);
 
@@ -91,8 +87,11 @@ namespace HardwareCommunicator {
                     newClientThread.Start(newClientConnection);
                 } catch (Exception e) {
 
+                    //TODO: Remove client from list of clients if failed
+
                     RemoveClientConnection(newClientConnection);
                     decrementConnectionNumber();
+                    newSocket.Disconnect(false);
                     newSocket.Dispose();
                     newSocket.Close();
                 }
