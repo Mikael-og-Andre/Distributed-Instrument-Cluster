@@ -52,6 +52,10 @@ namespace Crestron_Library {
 		/// Sends byte array of bytes to serial port.
 		/// Unreliable when sending more than 2 bytes!!!
 		/// Use "sendBytesSafe" when sending more than 1 byte.
+		/// TODO: Potential fix (investigate).
+		/// After each command is sent to the CBL-USB-RS232KM-6,
+		/// the CBL-USB-RS232KM-6 returns a response code, which is the 1’s complement of the command received.
+		/// Use this response byte to indicate when the next command may be sent to the  CBL-USB-RS232KM-6. 
 		/// </summary>
 		/// <param name="bytes">Array of bytes to send.</param>
 		public void sendBytes(byte[] bytes) {
