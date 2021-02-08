@@ -61,19 +61,12 @@ namespace Crestron_Library {
 		}
 
 		/// <summary>
-		/// Function for calling "sendBytesSafe()" without specifying "keySafety" bool (default true).
-		/// </summary>
-		/// <param name="bytes">Array of bytes to send.</param>
-		public void sendBytesSafe(byte[] bytes) {
-			sendBytesSafe(bytes, true);
-		}
-		/// <summary>
 		/// Reliably transmit multiple bytes.
 		/// (Function is kinda slow due to serial port limitation/baud rate)
 		/// </summary>
 		/// <param name="bytes">Array of bytes to send.</param>
 		/// <param name="keySafety">If function will send clear key buffer command to release all keys to prevent having keys accidentally stuck.</param>
-		public void sendBytesSafe(byte[] bytes, bool keySafety) {
+		public void sendBytesSafe(byte[] bytes, bool keySafety=true) {
 			//Iterate over all bytes in array and send them one at a time.
 			//(Done for reliable transmission. Sending more than 2 bytes = unreliable transmission)
 			foreach (byte b in bytes) {
