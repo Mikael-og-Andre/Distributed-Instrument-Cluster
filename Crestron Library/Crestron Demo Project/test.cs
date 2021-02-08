@@ -21,13 +21,6 @@ namespace Crestron_Library {
 				Console.WriteLine(s);
 			}
 
-			List<List<string>> miceC = c.getCSV("MiceCommands(edited).csv");
-
-			Console.WriteLine("mice commands:");
-			foreach(string s in miceC[1]) {
-				Console.WriteLine(s);
-			}
-
 			Console.WriteLine(c.getMiceByte("middle button off"));
 
 		}

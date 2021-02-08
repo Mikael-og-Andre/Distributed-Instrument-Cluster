@@ -14,7 +14,6 @@ namespace Crestron_Library {
 
 		public SerialPortInterface() {
 			serialPort = new SerialPort();
-			Console.WriteLine(serialPort.WriteBufferSize);
 		}
 
 		/// <summary>

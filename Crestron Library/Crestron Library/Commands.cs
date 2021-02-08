@@ -136,7 +136,7 @@ namespace Crestron_Library {
 		/// </summary>
 		/// <param name="file">CSV file the function will convert into a string matrix</param>
 		/// <returns>CSV as a 2d string matrix</returns>
-		public List<List<String>> getCSV(String file) {
+		private List<List<String>> getCSV(String file) {
 			TextFieldParser parser = new TextFieldParser(new StreamReader(file));
 			List<List<String>> matrix = new List<List<String>>();
 
