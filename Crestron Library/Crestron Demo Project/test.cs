@@ -10,11 +10,18 @@ namespace Crestron_Library {
 	class test {
 
 		public static void Main(string[] args) {
+			 //testSerialInterface();
 			Commands c = new Commands();
 
 
 
-			Console.WriteLine(c.getMakeByte("1"));
+			Console.WriteLine(c.getMakeByte("hamburger"));
+
+			List<string> commands = c.getAllKeyCommands();
+
+			foreach(string s in commands) {
+				Console.WriteLine(s);
+			}
 
 
 		}

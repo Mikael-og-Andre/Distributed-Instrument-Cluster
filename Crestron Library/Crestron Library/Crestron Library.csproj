@@ -12,6 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Commands(edited).csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Commands.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

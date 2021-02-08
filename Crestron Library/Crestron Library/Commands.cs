@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Crestron_Library {
 	/// <summary>
-	/// Class for getting keyboard emulation commands/ execute keyboard and mice commands.
+	/// Class for getting keyboard emulation commands/execute keyboard and mice commands.
 	/// Use "key" from crestron spec sheet as command and translate it to bytes for corresponding "key" command.
 	/// TODO: add mice commands.
 	/// </summary>
@@ -13,7 +13,7 @@ namespace Crestron_Library {
 	public class Commands {
 		List<List<String>> keyCommands;
 		public Commands() {
-			keyCommands = getCSV("Commands.csv");
+			keyCommands = getCSV("Commands(edited).csv");
 		}
 
 		/// <summary>
@@ -58,9 +58,8 @@ namespace Crestron_Library {
 			int index = -1;
 
 			//TODO: improve search using hashmap mby?
-			//TODO: FIX SEARCH. ("s" returns Caps byte values).
 			for(int i = 1; keyCommands[0].Count > i; i++) {
-				if(keyCommands[0][i].Contains(key)) {
+				if(keyCommands[0][i].ToLower().Equals(key.ToLower())) {
 					index = i;
 					break;
 				}
@@ -68,23 +67,29 @@ namespace Crestron_Library {
 
 			//Key was not found throw exception.
 			if (index == -1) {
-				//TODO: implement own exception mby?...
-				throw new KeyNotFoundException();
+				throw new ArgumentException("Key \"" + key + "\" was not found.");
 			}
 
 			return index;
 		}
 
+		/// <summary>
+		/// Lists all available key commands.
+		/// </summary>
+		/// <returns>String list of all key commands.</returns>
+		public List<string> getAllKeyCommands() {
+			return keyCommands[0].GetRange(1, keyCommands[0].Count - 1);
+		}
 
 		/// <summary>
 		/// Function reads and pars CSV files into a nested string list.
 		/// Function handles CSV formatted with comma delimitation and values enclosed in double quotes.
 		/// Function automatically detects CSV with and scales matrix to correct size.
-		/// TODO: handle other formats or throw exception. Add unit test. Make private!?
+		/// TODO: handle other formats or throw exception. Add unit test.
 		/// </summary>
 		/// <param name="file">CSV file the function will convert into a string matrix</param>
 		/// <returns>CSV as a 2d string matrix</returns>
-		public List<List<String>> getCSV(String file) {
+		private List<List<String>> getCSV(String file) {
 			TextFieldParser parser = new TextFieldParser(new StreamReader(file));
 			List<List<String>> matrix = new List<List<String>>();
 

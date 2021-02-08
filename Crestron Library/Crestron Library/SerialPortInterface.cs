@@ -2,14 +2,12 @@
 using System.IO.Ports;
 using System.Threading;
 
-// TODO: Redo comments/documentation.
-/* 
- * Class to interface with serial port and send bytes over serial connections.
- * 
- * @Author Andre Helland
- */
 
 namespace Crestron_Library {
+	/// <summary>
+	/// Class to interface with serial port and send bytes over serial connections.
+	/// </summary>
+	/// <author>Andre Helland</author>
 	public class SerialPortInterface {
 
 		private static SerialPort serialPort;
@@ -19,42 +17,62 @@ namespace Crestron_Library {
 			Console.WriteLine(serialPort.WriteBufferSize);
 		}
 
-		/*
-		 * Close connection with current port and
-		 * change what serial port the class is connected to.
-		 */
+		/// <summary>
+		///Close connection with current port and change what serial port the class is connected to.
+		/// </summary>
+		/// <param name="port">Serial port to connect to.</param>
 		public void setSerialPort(String port) {
-			//TODO: generate exception for invalid input.
+			//Check if port given is valid and throw exception if not.
+			String[] ports = getAvailablePorts();
+			bool portValid = false;
+			foreach (String s in ports) {
+				if (port.ToLower().Equals(s.ToLower())) {
+					portValid = true;
+					break;
+				}
+			}
+			if(!portValid) {
+				throw new ArgumentException("Invalid port: \"" + port + "\"");
+			}
+
 			serialPort.Close();
 			serialPort.PortName = port;
 		}
-		
-		/*
-		 * Function returns all available serial ports.
-		 */
+
+		/// <summary>
+		/// Function returns all available serial ports.
+		/// </summary>
+		/// <returns>String array of all available serial ports.</returns>
 		public String[] getAvailablePorts() {
 			return SerialPort.GetPortNames();
 		}
 
 
-		/*
-		 * Sends byte array of bytes to serial port.
-		 * Unreliable when sending more than 2 bytes!!!
-		 * Use "sendBytesSafe" when sending more than 1 byte.
-		 */
+		/// <summary>
+		/// Sends byte array of bytes to serial port.
+		/// Unreliable when sending more than 2 bytes!!!
+		/// Use "sendBytesSafe" when sending more than 1 byte.
+		/// </summary>
+		/// <param name="bytes">Array of bytes to send.</param>
 		public void sendBytes(byte[] bytes) {
 			serialPort.Open();
 			serialPort.Write(bytes, 0, bytes.Length);
 			serialPort.Close();
 		}
 
-		/*
-		 * Reliably transmit multiple bytes.
-		 * @param keySafety enable or disable release key command.
-		 */
+		/// <summary>
+		/// Function for calling "sendBytesSafe()" without specifying "keySafety" bool (default true).
+		/// </summary>
+		/// <param name="bytes">Array of bytes to send.</param>
 		public void sendBytesSafe(byte[] bytes) {
 			sendBytesSafe(bytes, true);
 		}
+		/// <summary>
+		/// Reliably transmit multiple bytes.
+		/// (Function is kinda slow due to serial port limitation/baud rate)
+		/// </summary>
+		/// <param name="bytes">Array of bytes to send.</param>
+		/// <param name="keySafety">If function will send clear key buffer command to release all keys to prevent having keys accidentally stuck.</param>
 		public void sendBytesSafe(byte[] bytes, bool keySafety) {
 			//Iterate over all bytes in array and send them one at a time.
 			//(Done for reliable transmission. Sending more than 2 bytes = unreliable transmission)
