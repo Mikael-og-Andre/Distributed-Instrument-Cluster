@@ -2,7 +2,7 @@
 using System.IO.Ports;
 using System.Threading;
 
-
+// TODO: Redo comments/documentation.
 /* 
  * Class to interface with serial port and send bytes over serial connections.
  * 
@@ -24,7 +24,7 @@ namespace Crestron_Library {
 		 * change what serial port the class is connected to.
 		 */
 		public void setSerialPort(String port) {
-			//TODO generate exception for invalid input.
+			//TODO: generate exception for invalid input.
 			serialPort.Close();
 			serialPort.PortName = port;
 		}
