@@ -14,7 +14,6 @@ namespace Crestron_Library {
 
 		public SerialPortInterface() {
 			serialPort = new SerialPort();
-			Console.WriteLine(serialPort.WriteBufferSize);
 		}
 
 		/// <summary>
@@ -52,6 +51,10 @@ namespace Crestron_Library {
 		/// Sends byte array of bytes to serial port.
 		/// Unreliable when sending more than 2 bytes!!!
 		/// Use "sendBytesSafe" when sending more than 1 byte.
+		/// TODO: Potential fix (investigate).
+		/// After each command is sent to the CBL-USB-RS232KM-6,
+		/// the CBL-USB-RS232KM-6 returns a response code, which is the 1’s complement of the command received.
+		/// Use this response byte to indicate when the next command may be sent to the  CBL-USB-RS232KM-6. 
 		/// </summary>
 		/// <param name="bytes">Array of bytes to send.</param>
 		public void sendBytes(byte[] bytes) {
@@ -61,19 +64,12 @@ namespace Crestron_Library {
 		}
 
 		/// <summary>
-		/// Function for calling "sendBytesSafe()" without specifying "keySafety" bool (default true).
-		/// </summary>
-		/// <param name="bytes">Array of bytes to send.</param>
-		public void sendBytesSafe(byte[] bytes) {
-			sendBytesSafe(bytes, true);
-		}
-		/// <summary>
 		/// Reliably transmit multiple bytes.
 		/// (Function is kinda slow due to serial port limitation/baud rate)
 		/// </summary>
 		/// <param name="bytes">Array of bytes to send.</param>
 		/// <param name="keySafety">If function will send clear key buffer command to release all keys to prevent having keys accidentally stuck.</param>
-		public void sendBytesSafe(byte[] bytes, bool keySafety) {
+		public void sendBytesSafe(byte[] bytes, bool keySafety=true) {
 			//Iterate over all bytes in array and send them one at a time.
 			//(Done for reliable transmission. Sending more than 2 bytes = unreliable transmission)
 			foreach (byte b in bytes) {

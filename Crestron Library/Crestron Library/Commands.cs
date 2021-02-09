@@ -5,15 +5,29 @@ using System.IO;
 
 namespace Crestron_Library {
 	/// <summary>
-	/// Class for getting keyboard emulation commands/execute keyboard and mice commands.
+	/// Class for getting keyboard and mice emulation commands.
 	/// Use "key" from crestron spec sheet as command and translate it to bytes for corresponding "key" command.
-	/// TODO: add mice commands.
+	/// Use "command" for mice commands, tables imported from spec sheet has inconsistent formatting (keys have value in column 1 and mice have it in column 0).
+	/// Making some functions seemingly janky but is because the imported data is inconsistent.
+	/// See function "commandIndexInList()"
 	/// </summary>
 	/// <author>Andre Helland</author>
 	public class Commands {
-		List<List<String>> keyCommands;
+		private List<List<String>> keyCommands;
+		private List<List<String>> miceCommands;
 		public Commands() {
-			keyCommands = getCSV("Commands(edited).csv");
+			keyCommands = getCSV("KeyCommands(edited).csv");
+			miceCommands = getCSV("MiceCommands(edited).csv");
+		}
+
+		/// <summary>
+		/// Finds byte value for given command.
+		/// </summary>
+		/// <param name="command">Command the function will find byte value of.</param>
+		/// <returns>Byte value for command.</returns>
+		public byte getMiceByte(String command) {
+			int index = commandIndexInList(command);
+			return Convert.ToByte(miceCommands[0][index], 16);
 		}
 
 		/// <summary>
@@ -54,7 +68,7 @@ namespace Crestron_Library {
 		/// </summary>
 		/// <param name="key">Key, function will try to find index of.</param>
 		/// <returns>Index of given key.</returns>
-		public int keyIndexInList(String key) {
+		private int keyIndexInList(String key) {
 			int index = -1;
 
 			//TODO: improve search using hashmap mby?
@@ -74,11 +88,44 @@ namespace Crestron_Library {
 		}
 
 		/// <summary>
+		/// Almost identical to the function "keyIndexInList()" but contains modifications for searching in mice command list.
+		/// Byproduct of inconsistent formatting of tables from crestron cable documentation.
+		/// </summary>
+		/// <param name="command">Command, function will try to find index of.</param>
+		/// <returns>Index of given command.</returns>
+		private int commandIndexInList(String command) {
+			int index = -1;
+
+			//TODO: improve search using hashmap mby?
+			for (int i = 1; keyCommands[1].Count > i; i++) {
+				if (miceCommands[1][i].ToLower().Equals(command.ToLower())) {
+					index = i;
+					break;
+				}
+			}
+
+			//Key was not found throw exception.
+			if (index == -1) {
+				throw new ArgumentException("Command \"" + command + "\" was not found.");
+			}
+
+			return index;
+		}
+
+		/// <summary>
 		/// Lists all available key commands.
 		/// </summary>
 		/// <returns>String list of all key commands.</returns>
 		public List<string> getAllKeyCommands() {
 			return keyCommands[0].GetRange(1, keyCommands[0].Count - 1);
+		}
+
+		/// <summary>
+		/// Lists all available mice commands.
+		/// </summary>
+		/// <returns>String list of all mice commands.</returns>
+		public List<string> getAllMiceCommands() {
+			return miceCommands[1].GetRange(1, miceCommands[0].Count - 1);
 		}
 
 		/// <summary>

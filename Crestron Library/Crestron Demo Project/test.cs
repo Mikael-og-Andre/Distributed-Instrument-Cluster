@@ -13,9 +13,7 @@ namespace Crestron_Library {
 			 //testSerialInterface();
 			Commands c = new Commands();
 
-
-
-			Console.WriteLine(c.getMakeByte("hamburger"));
+			
 
 			List<string> commands = c.getAllKeyCommands();
 
@@ -23,6 +21,7 @@ namespace Crestron_Library {
 				Console.WriteLine(s);
 			}
 
+			Console.WriteLine(c.getMiceByte("middle button off"));
 
 		}
 
