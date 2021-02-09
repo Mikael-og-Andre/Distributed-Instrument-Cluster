@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Threading;
+using System.Collections.Concurrent;
 
 /// <summary>
 /// Client for connecting and recieving commands from server unit
-/// @Author Mikael Nilssen
+/// <author>Mikael Nilssen</author>
 /// </summary>
 
 namespace HardwareCommunicator {
@@ -12,11 +13,10 @@ namespace HardwareCommunicator {
     public class InstrumentClient {
         public string ip { get; private set; } //Ip address of target server
         public int port { get; private set; } //Port of target server
-
         private Socket connectionSocket;    //Connection to server
         private bool isClientRunning = true;       //Should the client
-
         private string authorizationHash;   // Authorization code to send to the server
+        private ConcurrentQueue<string> commandOutputQueue; //Queue representing commands received by receive protocol
 
         public InstrumentClient(string ip, int port) {
             this.ip = ip;
@@ -33,9 +33,9 @@ namespace HardwareCommunicator {
                 connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             }
             catch (Exception e) {
-
+                //TODO: add logging create new socket
+                throw e;
             }
-
             // Loop whilst the client is supposed to run
             while (isClientRunning) {
 
@@ -47,15 +47,14 @@ namespace HardwareCommunicator {
                     handleConnected(connectionSocket);
 
                 }
-
             }
         }
 
         /// <summary>
-        /// 
+        /// Attempts to connect to the given host and ip
         /// </summary>
-        /// <param name="connectionSocket"></param>
-        /// <returns></returns>
+        /// <param name="connectionSocket"> unconnected Soccket</param>
+        /// <returns> boolean representing succesful conncetion</returns>
         private bool attemptConnection(Socket connectionSocket) {
 
             try {
@@ -64,10 +63,10 @@ namespace HardwareCommunicator {
                 return connectionSocket.Connected;
 
             } catch (Exception e) {
+                //TODO: add Logging attempt conncetion
                 //return false to represent failed connection
                 return false;
             }
-
         }
 
         /// <summary>
@@ -79,21 +78,23 @@ namespace HardwareCommunicator {
             //Do authorization process
             bool isAuthorized = protocolAuthorize(connectionSocket);
 
+            //Check if successfully authorized
             if (isAuthorized) {
                 //Run main protocol Loop
                 while (isClientRunning) {
                     //Read a protocol choice from the buffer and exceute it
-                    startAProtocol(connectionSocket, 32);
+                    startAProtocol(connectionSocket);
                 }
+
             }
         }
 
         /// <summary>
-        /// 
+        /// Listens for selected protocol sent by server and preforms correct response protocol
         /// </summary>
-        /// <param name="connectionSocket"></param>
-        /// <param name="bufferSize"></param>
-        private void startAProtocol(Socket connectionSocket, int bufferSize) {
+        /// <param name="connectionSocket"> Socket Connection to server</param>
+        /// <param name="bufferSize">Size of the receive buffer with deafult size 32 bytes. May need to be adjusted base on how big protocol names become</param>
+        private void startAProtocol(Socket connectionSocket, int bufferSize = 32) {
             //Recieve buffer
             byte[] receiveBuffer = new byte[bufferSize];
             //Recieve from server
@@ -112,7 +113,7 @@ namespace HardwareCommunicator {
                 case "status":
                     protocolStatus(connectionSocket);
                     break;
-                case "reauthorize":
+                case "authorize":
                     protocolAuthorize(connectionSocket);
                     break;
 
@@ -129,6 +130,7 @@ namespace HardwareCommunicator {
         /// <param name="connectionSocket"></param>
         /// <returns>Boolean representing if the authorization was successful or not</returns>
         private bool protocolAuthorize(Socket connectionSocket) {
+            //TODO: Implement Authorize protocol
             throw new NotImplementedException();
         }
 
@@ -155,9 +157,8 @@ namespace HardwareCommunicator {
             //convert to string
             string command = bufferReceive.ToString();
 
-            //Preform Command
-            Command newCommand = new Command();
-            newCommand.sendToCrestron(command);
+            //Add Command To Concurrent queue
+            commandOutputQueue.Enqueue(command);
         }
 
         /// <summary>
@@ -165,9 +166,17 @@ namespace HardwareCommunicator {
         /// </summary>
         /// <param name="connectionSocket">Authorized connection socket</param>
         private void protocolStatus(Socket connectionSocket) {
+            //TODO: Implement Status Protocol
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Returns a reference to queue of commands received by receive protocol in string format
+        /// </summary>
+        /// <returns>refrence to Concurrent queue of type string</returns>
+        public ref ConcurrentQueue<string> getCommandOutputQueue() {
+            return ref commandOutputQueue;
+        }
 
     }
 }

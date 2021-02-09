@@ -4,12 +4,13 @@ using System.Text;
 using System.Net.Sockets;
 using System.Net;
 using System.Threading;
+using System.Collections.Immutable;
 using System.Collections.Concurrent;
 
 
 /// <summary>
 /// Server to be run for listening to incoming device connections and sending commands and data to them
-/// @Author Mikael Nilssen
+/// <author>Mikael Nilssen</author>
 /// </summary>
 
 namespace HardwareCommunicator {
@@ -21,8 +22,7 @@ namespace HardwareCommunicator {
         public bool isServerRunning { get; private set; } //Should the server listen for more connection
         private Socket listenSocket;    //Socket for accepting incoming connections
         private IPEndPoint ipEndPoint { get; set; }     //Host Info
-
-        // TODO: Add Concurrent list for Client Connections
+        private ImmutableList<ClientConnection> clientConnections;   //All connected clients
 
         /// <summary>
         /// Constructor
@@ -36,6 +36,7 @@ namespace HardwareCommunicator {
             this.ipEndPoint = ipEndPoint;
             this.maxPendingConnections = maxPendingConnections;
             isServerRunning = true;
+            clientConnections = ImmutableList<ClientConnection>.Empty;  //Initialize empty list for tracking client connections
             
         }
 
@@ -52,9 +53,7 @@ namespace HardwareCommunicator {
             //Start listen with Backlog size of max connections
             listenSocket.Listen(maxPendingConnections);
             //Accepts Connections async
-            StartAccepting(listenSocket);
-            Console.WriteLine("Thread {0} Says: Socket Setup Complete, Started Accepting connections", Thread.CurrentThread.ManagedThreadId);
-            
+            StartAccepting(listenSocket);            
         }
 
         /// <summary>
@@ -62,34 +61,31 @@ namespace HardwareCommunicator {
         /// isServerRunning determines if the server will accept new clients
         /// </summary>
         /// <param name="listeningSocket"> Socket currently listenning for incoming connections</param>
-        private async void StartAccepting(Socket listeningSocket) {
+        private void StartAccepting(Socket listeningSocket) {
 
             while (isServerRunning) {
 
                 //Accept an incoming connection
                 Console.WriteLine("Thread {0} Says: Waiting For new Connection...", Thread.CurrentThread.ManagedThreadId);
-                Socket newSocket = await listenSocket.AcceptAsync();
+                Socket newSocket = listenSocket.Accept();
                 //Increment Current Connections
                 incrementConnectionNumber();
                 //Creates a new Thread to run a client communication on
-                Thread newClientThread = new Thread(ThreadProtocol);
+                Thread newClientThread = new Thread(ThreadRunProtocols);
                 newClientThread.IsBackground = true;
 
                 //Create a client connection object representing the connection
                 ClientConnection newClientConnection = new ClientConnection(listenSocket, newClientThread);
-
-                //TODO: Add Client to list of clients
                 //Add connection to active connections
-                //AddClientConnection(newClientConnection);
+                AddClientConnection(newClientConnection);
 
                 try {
                     //Pass in ClientConnection and start ThreadProtocol
                     newClientThread.Start(newClientConnection);
                 } catch (Exception e) {
-
-                    //TODO: Remove client from list of clients if failed
-
+                    //Remove client from list of clients if failed
                     RemoveClientConnection(newClientConnection);
+                    //Lower Connection number
                     decrementConnectionNumber();
                     newSocket.Disconnect(false);
                     newSocket.Dispose();
@@ -103,15 +99,16 @@ namespace HardwareCommunicator {
         /// Represents a communication thread that handles all communication with a single connected client
         /// </summary>
         /// <param name="obj"> represents a ClientConnection object. in order to be used as a parameraizedThread, it needs to be casted</param>
-        public static void ThreadProtocol(object obj) {
+        public static void ThreadRunProtocols(object obj) {
 
             ClientConnection clientConnection;
             try {
+                //cast input object to Client Connection
                 clientConnection = (ClientConnection) obj;
             } catch (InvalidCastException) {
-                throw new Exception("Could not cast input object to ClientConnection in method ThreadPortocol");
+                throw new InvalidCastException("Could not cast input object to ClientConnection in method ThreadPortocol, Class InstrumentServer");
             }
-            Console.WriteLine("Thread: {0}, is running now");
+            Console.WriteLine("Thread: {0}, is running now", Thread.CurrentThread.ManagedThreadId);
 
         }
         /// <summary>
@@ -121,6 +118,8 @@ namespace HardwareCommunicator {
         private void incrementConnectionNumber() {
             numConnections++;
         }
+
+
         /// <summary>
         /// Removes 1 from numConnections var
         /// Represents the number of connected clients to the server
@@ -129,7 +128,6 @@ namespace HardwareCommunicator {
             if (numConnections>0) {
                 numConnections--;
             }
-
         }
 
         /// <summary>
@@ -139,16 +137,97 @@ namespace HardwareCommunicator {
             isServerRunning = false;
             listenSocket.Dispose();
         }
-
-
-        // TODO: Add Concurrent adding
-        private void AddClientConnection(ClientConnection connection) {
-            throw new NotImplementedException();
+        /// <summary>
+        /// Adds a client connection to the list of connections
+        /// </summary>
+        /// <param name="connection"> the ClientConnection to be added</param>
+        /// <returns> Boolean value representing wheter the adding was succesful</returns>
+        private bool AddClientConnection(ClientConnection connection) {
+            bool success = true;
+            try {
+                this.clientConnections.Add(connection);
+                return success;
+            } catch (Exception e) {
+                success = false;
+                return success;
+            }
         }
 
-        //TODO: Add Concurrent removing
+        /// <summary>
+        /// Removes a client connection from the list of connections
+        /// </summary>
+        /// <param name="connection">Connection to be removed</param>
+        /// <returns>Boolean representing succcessful removal</returns>
         private bool RemoveClientConnection(ClientConnection connection) {
-            throw new NotImplementedException();
+            bool success = true;
+            try {
+                this.clientConnections.Remove(connection);
+                return success;
+            } catch (Exception e) {
+                //TODO: add logging remove client connection
+                success = false;
+                return success;
+            }
+        }
+
+
+        //TODO: handle authorization Protocol server
+        private void serverProtocolAuthorization(ClientConnection clientConnection) {
+            //get socket
+            Socket connectionSocket = clientConnection.getSocket();
+            //Convert string to bytes
+            char[] chars = new string("authorize").ToCharArray();
+            byte[] bytesToSend = new byte[chars.Length];
+            for (int i = 0; i<chars.Length; i++) {
+                bytesToSend[i] = (byte) chars[i];
+            }
+            //Send protocol type to client
+            connectionSocket.Send(bytesToSend);
+            //receive token
+            byte[] receiveBuffer = new byte[32];
+            connectionSocket.Receive(receiveBuffer);
+            string receivedToken = receiveBuffer.ToString();
+
+            //TODO: Add Encryption to accessTokens
+
+            //Create Token
+            AccessToken token = new AccessToken(receivedToken);
+            //Validate token
+            bool validationResult = validateAccessToken(token);
+            //Send success/failure to client
+            if (validationResult) {
+                //Send char y for success
+                bytesToSend = new byte[] { (byte)'y' };
+                connectionSocket.Send(bytesToSend);
+            } else {
+                //Send char n for negative
+                bytesToSend = new byte[] { (byte)'n' };
+                connectionSocket.Send(bytesToSend);
+                //authorization failed, return
+                return;
+            }
+            // if success request more info
+            //TODO: Add extended profiling to authorization process
+        }
+
+        //TODO: handle ping protocol server
+        private void serverProtocolPingServer(ClientConnection connection) {
+
+        }
+
+        //TODO: handle status protocol server
+        private void serverProtocolStatus(ClientConnection connection) {
+
+        }
+
+        //TODO: handle sending commmand protocol
+        private void serverProtocolSendCommand(ClientConnection connection) {
+
+        }
+
+        //TODO: Validate AccessToken
+        private bool validateAccessToken(AccessToken token) {
+            return true;
         }
 
     }

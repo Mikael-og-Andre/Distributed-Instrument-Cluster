@@ -3,9 +3,17 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net;
 using System.Threading;
+using HardwareCommunicator;
 
-namespace HardwareCommunicator {
-    class testHardware {
+
+
+/// <summary>
+/// Class for testing server/client communication
+/// <author>Mikael Nilssen</author>
+/// </summary>
+
+namespace HardwareServer_Demo_Project {
+    class testServer {
 
         public static void Main(string[] args) {
 
