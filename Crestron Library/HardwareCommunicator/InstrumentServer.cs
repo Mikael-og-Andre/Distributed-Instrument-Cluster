@@ -52,17 +52,8 @@ namespace HardwareCommunicator {
 
             //Start listen with Backlog size of max connections
             listenSocket.Listen(maxPendingConnections);
-            //Accepts Connections async
-            StartAccepting(listenSocket);            
-        }
 
-        /// <summary>
-        /// Continuously accepts new incoming clients and ThreadProtocol on a new thread to handle communication.
-        /// isServerRunning determines if the server will accept new clients
-        /// </summary>
-        /// <param name="listeningSocket"> Socket currently listenning for incoming connections</param>
-        private void StartAccepting(Socket listeningSocket) {
-
+            //Accepts Connections
             while (isServerRunning) {
 
                 //Accept an incoming connection
@@ -75,7 +66,7 @@ namespace HardwareCommunicator {
                 newClientThread.IsBackground = true;
 
                 //Create a client connection object representing the connection
-                ClientConnection newClientConnection = new ClientConnection(listenSocket, newClientThread);
+                ClientConnection newClientConnection = new ClientConnection(newSocket, newClientThread);
                 //Add connection to active connections
                 AddClientConnection(newClientConnection);
 
@@ -93,13 +84,14 @@ namespace HardwareCommunicator {
                 }
             }
 
+
         }
 
         /// <summary>
         /// Represents a communication thread that handles all communication with a single connected client
         /// </summary>
         /// <param name="obj"> represents a ClientConnection object. in order to be used as a parameraizedThread, it needs to be casted</param>
-        public static void ThreadRunProtocols(object obj) {
+        public void ThreadRunProtocols(object obj) {
 
             ClientConnection clientConnection;
             try {
@@ -108,7 +100,10 @@ namespace HardwareCommunicator {
             } catch (InvalidCastException) {
                 throw new InvalidCastException("Could not cast input object to ClientConnection in method ThreadPortocol, Class InstrumentServer");
             }
-            Console.WriteLine("Thread: {0}, is running now", Thread.CurrentThread.ManagedThreadId);
+            Console.WriteLine("Thread: {0}, a new client thread is running now", Thread.CurrentThread.ManagedThreadId);
+
+            //Do authorization process
+            serverProtocolAuthorization(clientConnection);
 
         }
         /// <summary>
@@ -171,7 +166,10 @@ namespace HardwareCommunicator {
         }
 
 
-        //TODO: handle authorization Protocol server
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clientConnection">Client Connection representing The current Connection</param>
         private void serverProtocolAuthorization(ClientConnection clientConnection) {
             //get socket
             Socket connectionSocket = clientConnection.getSocket();
@@ -185,8 +183,8 @@ namespace HardwareCommunicator {
             connectionSocket.Send(bytesToSend);
             //receive token
             byte[] receiveBuffer = new byte[32];
-            connectionSocket.Receive(receiveBuffer);
-            string receivedToken = receiveBuffer.ToString();
+            int bytesReceived = connectionSocket.Receive(receiveBuffer);
+            string receivedToken = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
 
             //TODO: Add Encryption to accessTokens
 
@@ -199,6 +197,8 @@ namespace HardwareCommunicator {
                 //Send char y for success
                 bytesToSend = new byte[] { (byte)'y' };
                 connectionSocket.Send(bytesToSend);
+                //Add access Token to clientConnection
+                clientConnection.setAccessToken(token);
             } else {
                 //Send char n for negative
                 bytesToSend = new byte[] { (byte)'n' };
@@ -206,7 +206,7 @@ namespace HardwareCommunicator {
                 //authorization failed, return
                 return;
             }
-            // if success request more info
+            // If successful request more info
             //TODO: Add extended profiling to authorization process
         }
 
@@ -225,9 +225,19 @@ namespace HardwareCommunicator {
 
         }
 
-        //TODO: Validate AccessToken
+        /// <summary>
+        /// Validates an accessToken
+        /// </summary>
+        /// <param name="token">Access token</param>
+        /// <returns>boolean representing a valid access token</returns>
         private bool validateAccessToken(AccessToken token) {
-            return true;
+            //TODO: add Database checking
+            string hash = token.getAccessString();
+            Console.WriteLine("Checking Hash: "+hash);
+            if (hash.Equals("access")) {
+                return true;
+            }
+            return false;
         }
 
     }

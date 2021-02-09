@@ -15,12 +15,13 @@ namespace HardwareCommunicator {
         public int port { get; private set; } //Port of target server
         private Socket connectionSocket;    //Connection to server
         private bool isClientRunning = true;       //Should the client
-        private string authorizationHash;   // Authorization code to send to the server
+        private AccessToken accessToken;   // Authorization code to send to the server
         private ConcurrentQueue<string> commandOutputQueue; //Queue representing commands received by receive protocol
 
         public InstrumentClient(string ip, int port) {
             this.ip = ip;
             this.port = port;
+            this.accessToken = new AccessToken("access");
         }
 
         /// <summary>
@@ -60,6 +61,7 @@ namespace HardwareCommunicator {
             try {
                 //Try Connecting to server
                 connectionSocket.Connect(ip,port);
+                Console.WriteLine("Client Connected");
                 return connectionSocket.Connected;
 
             } catch (Exception e) {
@@ -74,18 +76,23 @@ namespace HardwareCommunicator {
         /// </summary>
         /// <param name="connectionSocket"></param>
         private void handleConnected(Socket connectionSocket) {
-
-            //Do authorization process
+            //receive the first authorization call from server
+            byte[] bufferReceive = new byte[32];
+            connectionSocket.Receive(bufferReceive);
+            //Start Authorization
             bool isAuthorized = protocolAuthorize(connectionSocket);
 
             //Check if successfully authorized
             if (isAuthorized) {
+                Console.WriteLine("Client Authorization complete");
                 //Run main protocol Loop
                 while (isClientRunning) {
                     //Read a protocol choice from the buffer and exceute it
                     startAProtocol(connectionSocket);
                 }
-
+            } else {
+                Console.WriteLine("Client Authorization failed");
+                //TODO: Handle failed autorization event when connection
             }
         }
 
@@ -101,6 +108,8 @@ namespace HardwareCommunicator {
             connectionSocket.Receive(receiveBuffer);
             //Extract string from buffer
             string extractedString = receiveBuffer.ToString();
+            Console.WriteLine("Extracted string from server: "+extractedString);
+
             //Select Protocol
             switch (extractedString) {
 
@@ -130,8 +139,36 @@ namespace HardwareCommunicator {
         /// <param name="connectionSocket"></param>
         /// <returns>Boolean representing if the authorization was successful or not</returns>
         private bool protocolAuthorize(Socket connectionSocket) {
-            //TODO: Implement Authorize protocol
-            throw new NotImplementedException();
+            //Create accessToken
+            AccessToken accessToken = this.accessToken;
+            string accessTokenHash = accessToken.getAccessString();
+            //Create byte array
+            char[] chars = accessTokenHash.ToCharArray();
+            byte[] bytesToSend = new byte[chars.Length];
+            for (int i = 0; i < chars.Length; i++) {
+                bytesToSend[i] = (byte)chars[i];
+            }
+
+            //TODO: Add Encryption to accessToken
+
+            //Send Token
+            connectionSocket.Send(bytesToSend);
+            //Receive Result
+            byte[] byteBuffer = new byte[1];
+            connectionSocket.Receive(byteBuffer);
+            //Translate to char
+            char result = (char) byteBuffer[0];
+            //Check result
+            if (result.Equals('y')) {
+                Console.WriteLine("Authorization Successful");
+                // return true, representing a successful authorization
+                return true;
+            } else {
+                Console.WriteLine("Authorization Failed");
+                // return false, representing a failed authorization
+                return false;
+            }
+
         }
 
         /// <summary>

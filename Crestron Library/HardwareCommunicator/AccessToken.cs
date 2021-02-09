@@ -17,5 +17,8 @@ namespace HardwareCommunicator {
             this.connectionHash = connectionHash;
         }
 
+        internal string getAccessString() {
+            return connectionHash;
+        }
     }
 }
