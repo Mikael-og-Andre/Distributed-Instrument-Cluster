@@ -25,20 +25,13 @@ namespace Crestron_Demo_Project {
                 if (consoleLine.ToLower().Equals("ls")) {
                     Console.WriteLine("Key commands:");
                     foreach (String s in commands.getAllKeyCommands()) { Console.WriteLine(s); }
-                    Console.WriteLine("Mice commands:");
-                    foreach (String s in commands.getAllMiceCommands()) { Console.WriteLine(s); }
                 }
                     try {
 					command = commands.getClickBytes(consoleLine);
                     serialPort.sendBytesSafe(command);
                 } catch {
-                    try {
-                        command = new byte[] { commands.getMiceByte(consoleLine) };
-                        serialPort.sendBytesSafe(command);
-                    } catch {
-                        Console.WriteLine("No command found");
-                    }
-				}
+                    Console.WriteLine("No command found");
+                }
 			}
         }
 

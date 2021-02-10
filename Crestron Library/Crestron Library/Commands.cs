@@ -27,11 +27,15 @@ namespace Crestron_Library {
 		/// <param name="key">Key the function will find the click byte value for.</param>
 		/// <returns>Byte value for click command of given key.</returns>
 		public byte[] getClickBytes(String key) {
+			try {
 			int index = keyIndexInList(key);
 			byte[] clickBytes = new byte[2];
 			clickBytes[0] = Convert.ToByte(commands[1][index], 16);
 			clickBytes[1] = Convert.ToByte(commands[2][index], 16);
 			return clickBytes;
+			} catch {
+				throw new ArgumentException("\"" + key + "\" does not have a break command");
+			}
 		}
 
 		/// <summary>
@@ -50,8 +54,8 @@ namespace Crestron_Library {
 		/// <param name="key">Key the function will find the break byte value for.</param>
 		/// <returns>Byte value for make command of given key.</returns>
 		public byte getBreakByte(String key) {
-			int index = keyIndexInList(key);
 			try {
+				int index = keyIndexInList(key);
 				return Convert.ToByte(commands[2][index], 16);
 			} catch {
 				throw new ArgumentException("\"" + key + "\" does not have a break command");

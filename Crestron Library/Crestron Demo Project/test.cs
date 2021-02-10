@@ -21,8 +21,6 @@ namespace Crestron_Library {
 				Console.WriteLine(s);
 			}
 
-			Console.WriteLine(c.getMiceByte("middle button off"));
-
 			Console.WriteLine(c.getBreakByte("k"));
 			//Console.WriteLine(c.getBreakByte("left"));
 
