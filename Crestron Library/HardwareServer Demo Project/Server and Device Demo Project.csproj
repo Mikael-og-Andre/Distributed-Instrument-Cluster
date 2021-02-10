@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HardwareCommunicator\HardwareCommunicator.csproj" />
+    <ProjectReference Include="..\HardwareCommunicator\InstrumentCommunicator.csproj" />
   </ItemGroup>
 
 </Project>

@@ -7,13 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron Demo Project", "Cr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron Library", "Crestron Library\Crestron Library.csproj", "{180BF30C-8249-4B27-876D-CFFD3E78593A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HardwareCommunicator", "HardwareCommunicator\HardwareCommunicator.csproj", "{4A90BCC3-E1CF-4CCA-AAE1-E00675DAADED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InstrumentCommunicator", "HardwareCommunicator\InstrumentCommunicator.csproj", "{4A90BCC3-E1CF-4CCA-AAE1-E00675DAADED}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Crestron POC", "Crestron POC", "{5938B500-D48F-41D7-9F84-1F6F8181E181}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hardware Server", "Hardware Server", "{6D20DEAB-92F0-400C-94EA-2DF5B6D74793}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HardwareServer Demo Project", "HardwareServer Demo Project\HardwareServer Demo Project.csproj", "{86ACBFB2-B5C0-4A1C-8791-B286CE1E860E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server and Device Demo Project", "HardwareServer Demo Project\Server and Device Demo Project.csproj", "{86ACBFB2-B5C0-4A1C-8791-B286CE1E860E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
