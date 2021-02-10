@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Crestron_Demo_Project</RootNamespace>
-    <StartupObject>Crestron_Demo_Project.Program</StartupObject>
+    <StartupObject>Crestron_Library.test</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
