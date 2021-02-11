@@ -7,7 +7,7 @@ using System.Text;
 /// <author>Mikael Nilssen</author>
 /// </summary>
 
-namespace HardwareCommunicator {
+namespace InstrumentCommunicator {
     public class AccessToken {
 
         //Intended for use when connecting to remote server. Generate on website and put manually in app settings

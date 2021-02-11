@@ -3,18 +3,21 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net;
 using System.Threading;
-using HardwareCommunicator;
+using InstrumentCommunicator;
 
 /// <summary>
 /// Class for testing server/client communication
 /// <author>Mikael Nilssen</author>
 /// </summary>
 
-namespace HardwareServer_Demo_Project {
+namespace Server_And_Demo_Project {
 
-    internal class testClient {
+    internal class Test {
 
         public static void Main(string[] args) {
+
+            Console.WriteLine(protocolOption.authorize.ToString());
+
 
             int port = 5050;
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), port);

@@ -2,13 +2,14 @@
 using System.Net.Sockets;
 using System.Threading;
 using System.Collections.Concurrent;
+using System.Text;
 
 /// <summary>
 /// Client for connecting and recieving commands from server unit
 /// <author>Mikael Nilssen</author>
 /// </summary>
 
-namespace HardwareCommunicator {
+namespace InstrumentCommunicator {
 
     public class InstrumentClient {
         public string ip { get; private set; } //Ip address of target server
@@ -21,11 +22,12 @@ namespace HardwareCommunicator {
         public InstrumentClient(string ip, int port) {
             this.ip = ip;
             this.port = port;
+            //TODO: add accessToken loading from setting file
             this.accessToken = new AccessToken("access");
         }
 
         /// <summary>
-        /// 
+        /// Starts the client and attempts to connect to the server
         /// </summary>
         public void start() {
 
@@ -102,27 +104,29 @@ namespace HardwareCommunicator {
         /// <param name="connectionSocket"> Socket Connection to server</param>
         /// <param name="bufferSize">Size of the receive buffer with deafult size 32 bytes. May need to be adjusted base on how big protocol names become</param>
         private void startAProtocol(Socket connectionSocket, int bufferSize = 32) {
-            //Recieve buffer
+            //Recieve protocol type from server
             byte[] receiveBuffer = new byte[bufferSize];
-            //Recieve from server
-            connectionSocket.Receive(receiveBuffer);
-            //Extract string from buffer
-            string extractedString = receiveBuffer.ToString();
-            Console.WriteLine("Extracted string from server: "+extractedString);
+            int bytesReceived = connectionSocket.Receive(receiveBuffer);
+            string extractedString = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
+            //Parse Enum
+            protocolOption option = (protocolOption)Enum.Parse(typeof(protocolOption),extractedString);
 
             //Select Protocol
-            switch (extractedString) {
+            switch (option) {
 
-                case "ping":
+                case protocolOption.ping:
                     protocolPing(connectionSocket);
                     break;
-                case "receive":
-                    protocolReceive(connectionSocket);
+                case protocolOption.message:
+                    protocolMessage(connectionSocket);
                     break;
-                case "status":
+                case protocolOption.messageMultiple:
+                    protocolMessageMultiple(connectionSocket);
+                    break;
+                case protocolOption.status:
                     protocolStatus(connectionSocket);
                     break;
-                case "authorize":
+                case protocolOption.authorize:
                     protocolAuthorize(connectionSocket);
                     break;
 
@@ -177,7 +181,7 @@ namespace HardwareCommunicator {
         /// <param name="connectionSocket"> Authorized connection socket</param>
         private void protocolPing(Socket connectionSocket) {
             //Send simple byte to server
-            byte[] sendBuffer = new byte[] { (byte)'y'};
+            byte[] sendBuffer = Encoding.ASCII.GetBytes(new char[] { 'y' });
             connectionSocket.Send(sendBuffer);
         }
 
@@ -185,17 +189,19 @@ namespace HardwareCommunicator {
         /// Activates predetermined sequence of socket operations for receiving a command and then execute it.
         /// </summary>
         /// <param name="connectionSocket">Authorized connection socket</param>
-        private void protocolReceive(Socket connectionSocket) {
+        private void protocolMessage(Socket connectionSocket) {
 
             //Receive buffer
-            byte[] bufferReceive = new byte[32];
-            //Receive from socket
-            connectionSocket.Receive(bufferReceive);
-            //convert to string
-            string command = bufferReceive.ToString();
-
+            byte[] receiveBuffer = new byte[32];
+            int bytesReceived = connectionSocket.Receive(receiveBuffer);
+            string command = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
+            
             //Add Command To Concurrent queue
             commandOutputQueue.Enqueue(command);
+        }
+
+        private void protocolMessageMultiple(Socket connectionSocket) {
+
         }
 
         /// <summary>
