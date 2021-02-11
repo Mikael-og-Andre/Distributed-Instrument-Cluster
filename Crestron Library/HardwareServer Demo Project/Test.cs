@@ -38,15 +38,6 @@ namespace Server_And_Demo_Project {
             clientThread3.Start();
             Thread.Sleep(20000);
             List<ClientConnection> connections = instumentServer.getClientConnections();
-            Console.WriteLine("populating messages");
-            for (int i = 0; i<connections.Count;i++) {
-                ClientConnection connection = connections[i];
-                ConcurrentQueue<Message> queue = connection.getInputQueue();
-                string[] strings = new string[] { "Hello","this", "is","a","test"};
-                Message newMessage = new Message(protocolOption.message,strings);
-
-                queue.Enqueue(newMessage);
-            }
             Thread.Sleep(1000);
             Console.WriteLine("populating messages");
             for (int i = 0; i < connections.Count; i++) {

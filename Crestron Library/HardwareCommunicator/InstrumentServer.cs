@@ -23,6 +23,9 @@ namespace InstrumentCommunicator {
         private IPEndPoint ipEndPoint { get; set; }     //Host Info
         private List<ClientConnection> clientConnectionList;   //All connected clients
 
+        private int timeToWait = 10000;         //Time to wait between Pings in millis in the main loop
+        private int timeTosleep = 1000;         //Time to sleep before checking for new commands in the main loop
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -51,7 +54,7 @@ namespace InstrumentCommunicator {
             //Accepts Connections
             while (isServerRunning) {
                 //Accept an incoming connection
-                Console.WriteLine("Main Thread {0} Says: Waiting For new Socket Connection...", Thread.CurrentThread.ManagedThreadId);
+                Console.WriteLine("SERVER - Main Thread {0} Says: Waiting For new Socket Connection...", Thread.CurrentThread.ManagedThreadId);
                 Socket newSocket = listenSocket.Accept();
                 //Increment Current Connections
                 incrementConnectionNumber();
@@ -95,7 +98,7 @@ namespace InstrumentCommunicator {
             } catch (InvalidCastException) {
                 throw new InvalidCastException("Could not cast input object to ClientConnection in method ThreadPortocol, Class InstrumentServer");
             }
-            Console.WriteLine("Client Connection Thread: {0}, a new client thread is running now", Thread.CurrentThread.ManagedThreadId);
+            Console.WriteLine("SERVER - a Client Has Connected to Thread: {0}, thread {0} is running now", Thread.CurrentThread.ManagedThreadId);
 
             AddClientConnection(clientConnection);
 
@@ -110,11 +113,6 @@ namespace InstrumentCommunicator {
 
             //Setup stopwatch
             Stopwatch stopwatch = new Stopwatch();
-
-            //Time to wait between Pings in millis
-            int timeToWait = 10000;
-            //Time to sleep before checking for new commands
-            int timeTosleep = 1000;
             //Start stopwatch
             stopwatch.Start();
 
@@ -135,24 +133,16 @@ namespace InstrumentCommunicator {
                 //If queue has message check what type it is, and parse protcol type
                 else if (hasValue) {
                     // check first message in queue, set protocol to use to the protocol of that message
-                    Console.WriteLine("Thread {0} says: " + "peek result was {1}", Thread.CurrentThread.ManagedThreadId, hasValue);
-
-                    if (hasValue) {
-                        protocolOption messageOption = msg.getProtocol();
-                        currentMode = messageOption;
-                    } else {
-                        continue;
-                    }
+                    protocolOption messageOption = msg.getProtocol();
+                    currentMode = messageOption;
                 }
                 //if queue is empty and time since last ping isnt big, sleep for an amount of time
                 else if (!hasValue) {
-                    Thread.Sleep(timeTosleep);
                     //Was empty and didnt need ping, so restart loop
-                    Console.WriteLine("Thread {0} says: " + "Queue is empty, sleeping", Thread.CurrentThread.ManagedThreadId);
+                    Thread.Sleep(timeTosleep);
                     continue;
                 } else {
                     //none of the above counted, just continue
-                    Console.WriteLine("Thread {0} says: " + "Do nothing has been chosen", Thread.CurrentThread.ManagedThreadId);
                     continue;
                 }
 
@@ -302,7 +292,7 @@ namespace InstrumentCommunicator {
             //Check if correct Response
             if (receiveChars[0].Equals('y')) {
                 //Succesful ping
-                Console.WriteLine("Client Connection Thread {0} says: Ping successful", Thread.CurrentThread.ManagedThreadId);
+                Console.WriteLine("SERVER - Client Thread {0} says: Ping successful", Thread.CurrentThread.ManagedThreadId);
                 return;
             } else {
                 //failed ping, maybe do something
@@ -349,18 +339,20 @@ namespace InstrumentCommunicator {
                         if (s.Equals("end")) {
                             continue;
                         }
-                        //Add bytes to byte buffer
+                        //clear byte buffer
                         encodingTarget = s;
                         bytesToSend = new byte[32];
+                        //Write bytes to the bytes to send buffer
                         writtenBytes = Encoding.ASCII.GetBytes(encodingTarget, 0, encodingTarget.Length, bytesToSend, 0);
-                        //Send message string to client
+                        //Send the 32 bytes in the bytesToSend buffer to the client
                         connectionSocket.Send(bytesToSend,32,SocketFlags.None);
                     }
-
+                    //Send end signal to client, singling no more strings are coming
                     encodingTarget = "end";
                     bytesToSend = new byte[32];
+                    //Write bytes to the bytes to send buffer
                     writtenBytes = Encoding.ASCII.GetBytes(encodingTarget, 0, encodingTarget.Length, bytesToSend, 0);
-                    //Send message string to client
+                    //Send 32 bytes to client
                     connectionSocket.Send(bytesToSend, 32, SocketFlags.None);
                 }
             } catch (Exception e) {
@@ -379,7 +371,7 @@ namespace InstrumentCommunicator {
         private bool validateAccessToken(AccessToken token) {
             //TODO: add Database checking
             string hash = token.getAccessString();
-            Console.WriteLine("Checking Hash: " + hash);
+            Console.WriteLine("SERVER - Thread {0} is now checking hash. Hash: " + hash, Thread.CurrentThread.ManagedThreadId);
             if (hash.Equals("access")) {
                 return true;
             }

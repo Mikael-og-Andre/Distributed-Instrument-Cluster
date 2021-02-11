@@ -59,7 +59,6 @@ namespace InstrumentCommunicator {
             try {
                 //Try Connecting to server
                 connectionSocket.Connect(ip, port);
-                Console.WriteLine("Client Connected");
                 return connectionSocket.Connected;
             } catch (Exception e) {
                 //TODO: add Logging attempt conncetion
@@ -106,7 +105,7 @@ namespace InstrumentCommunicator {
             extractedString = extractedString.Trim('\0');
             //Parse Enum
             protocolOption option = (protocolOption)Enum.Parse(typeof(protocolOption), extractedString,true);
-            Console.WriteLine("Client says: "+"Received option "+option);
+            Console.WriteLine("thread {0} Client says: "+"Received option "+option, Thread.CurrentThread.ManagedThreadId);
             //Select Protocol
             switch (option) {
                 case protocolOption.ping:
@@ -190,21 +189,21 @@ namespace InstrumentCommunicator {
             byte[] receiveBuffer;
             //Loop until end signal received by server
             while (isAccepting) {
+                //receive buffer of 32 bytes
                 receiveBuffer = new byte[32];
-                //Receive buffer
+                //Receive into the receive buffer from slot 0 to 32
                 int bytesReceived = connectionSocket.Receive(receiveBuffer,0,32,SocketFlags.None);
                 string received = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
+                //trim null bytes that were sent by the socket
                 received = received.Trim('\0');
                 //Check if end in messages
                 if (received.Equals("end")) {
-                    Console.WriteLine("Thread {0} Client says: " + "Received ending", Thread.CurrentThread.ManagedThreadId);
+                    //Set protocol to be over
                     isAccepting = false;
-                    return;
+                    break; ;
                 }
                 //Add Command To Concurrent queue
                 commandOutputQueue.Enqueue(received);
-                Console.WriteLine("Thread {0} Client says: " + "Received command: " + received, Thread.CurrentThread.ManagedThreadId);
-                
             }
         }
 
