@@ -24,7 +24,7 @@ namespace Crestron_Demo_Project {
                 //List all available crestron commands.
                 if (consoleLine.ToLower().Equals("ls")) {
                     Console.WriteLine("Key commands:");
-                    foreach (String s in commands.getAllKeyCommands()) { Console.WriteLine(s); }
+                    foreach (String s in commands.getAllCommands()) { Console.WriteLine(s); }
                 }
                     try {
 					command = commands.getClickBytes(consoleLine);

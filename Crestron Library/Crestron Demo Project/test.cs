@@ -15,7 +15,7 @@ namespace Crestron_Library {
 
 			
 
-			List<string> commands = c.getAllKeyCommands();
+			List<string> commands = c.getAllCommands();
 
 			foreach(string s in commands) {
 				Console.WriteLine(s);

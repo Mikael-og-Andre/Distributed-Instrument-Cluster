@@ -89,8 +89,8 @@ namespace Crestron_Library {
 		/// <summary>
 		/// Lists all available commands.
 		/// </summary>
-		/// <returns>String list of all key commands.</returns>
-		public List<string> getAllKeyCommands() {
+		/// <returns>String list of all commands.</returns>
+		public List<string> getAllCommands() {
 			return commands[0].GetRange(1, commands[0].Count - 1);
 		}
 
