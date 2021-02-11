@@ -15,8 +15,8 @@ namespace InstrumentCommunicator {
     public class ClientConnection {
 
         private Socket socket { get; set; }     //Socket of the client Connection
-        ConcurrentQueue<string> concurrentQueueInput;  // Concurrent queue for commands to send to the client
-        ConcurrentQueue<string> concurrentQueueOutput;  //Concurrent queue for commands recieved by the client
+        ConcurrentQueue<Message> concurrentQueueInput;  // Concurrent queue for Messages to send to the client
+        ConcurrentQueue<Message> concurrentQueueOutput;  //Concurrent queue for Messages recieved by the client
         private Thread myThread; // The thread the connection is running on
         private AccessToken accessToken = null; // Token representing a valid connection to the server
         private bool isActive = true; //Is the connection running
@@ -25,8 +25,8 @@ namespace InstrumentCommunicator {
             this.socket = socket;
             this.myThread = thread;
             //Init queues
-            concurrentQueueInput = new ConcurrentQueue<string>();
-            concurrentQueueOutput = new ConcurrentQueue<string>();
+            concurrentQueueInput = new ConcurrentQueue<Message>();
+            concurrentQueueOutput = new ConcurrentQueue<Message>();
 
         }
 
@@ -78,7 +78,7 @@ namespace InstrumentCommunicator {
         /// Get a refrence to the queue used to send commands to the client
         /// </summary>
         /// <returns></returns>
-        public ref ConcurrentQueue<string> getRefInputQueue() {
+        public ref ConcurrentQueue<Message> getRefInputQueue() {
             return ref this.concurrentQueueInput;
         }
 
@@ -86,7 +86,7 @@ namespace InstrumentCommunicator {
         /// Get a refrence to the queue used for receiving from the client
         /// </summary>
         /// <returns></returns>
-        public ref ConcurrentQueue<string> getRefOutputQueue() {
+        public ref ConcurrentQueue<Message> getRefOutputQueue() {
             return ref this.concurrentQueueOutput;
         }
 

@@ -16,22 +16,27 @@ namespace Server_And_Demo_Project {
 
         public static void Main(string[] args) {
 
-            Console.WriteLine(protocolOption.authorize.ToString());
-
 
             int port = 5050;
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), port);
             InstrumentServer instumentServer = new InstrumentServer(endPoint);
-            Thread thread = new Thread(() => instumentServer.StartListening());
-            thread.IsBackground = false;
-            thread.Start();
+            Thread serverThread = new Thread(() => instumentServer.StartListening());
+            serverThread.IsBackground = false;
+            serverThread.Start();
             Thread.Sleep(1000);
             //instumentServer.StopServer();
             string ip = "127.0.0.1";
             InstrumentClient client = new InstrumentClient(ip,port);
-            client.start();
+            Thread clientThread = new Thread(() => client.start());
+            clientThread.Start();
+            InstrumentClient client2 = new InstrumentClient(ip, port);
+            Thread clientThread2 = new Thread(() => client2.start());
+            clientThread2.Start();
+            InstrumentClient client3 = new InstrumentClient(ip, port);
+            Thread clientThread3 = new Thread(() => client3.start());
+            clientThread3.Start();
 
-            //Console.ReadLine();
+            Console.ReadLine();
 
         }
     }

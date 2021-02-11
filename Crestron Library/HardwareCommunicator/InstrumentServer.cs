@@ -57,7 +57,7 @@ namespace InstrumentCommunicator {
             while (isServerRunning) {
 
                 //Accept an incoming connection
-                Console.WriteLine("Thread {0} Says: Waiting For new Connection...", Thread.CurrentThread.ManagedThreadId);
+                Console.WriteLine("Main Thread {0} Says: Waiting For new Socket Connection...", Thread.CurrentThread.ManagedThreadId);
                 Socket newSocket = listenSocket.Accept();
                 //Increment Current Connections
                 incrementConnectionNumber();
@@ -108,7 +108,7 @@ namespace InstrumentCommunicator {
             } catch (InvalidCastException) {
                 throw new InvalidCastException("Could not cast input object to ClientConnection in method ThreadPortocol, Class InstrumentServer");
             }
-            Console.WriteLine("Thread: {0}, a new client thread is running now", Thread.CurrentThread.ManagedThreadId);
+            Console.WriteLine("Client Connection Thread: {0}, a new client thread is running now", Thread.CurrentThread.ManagedThreadId);
 
             //Do authorization process
             serverProtocolAuthorization(clientConnection);
@@ -116,8 +116,8 @@ namespace InstrumentCommunicator {
             //Check if connection is active
             bool isActive = clientConnection.isConnectionActive();
 
-            ConcurrentQueue<string> inputQueue = clientConnection.getRefInputQueue();   //Get refrence to the queue of inputs indtended to send to the client
-            ConcurrentQueue<string> outputQueue = clientConnection.getRefOutputQueue();     //Get refrence to the queue of thigns received by the client
+            ConcurrentQueue<Message> inputQueue = clientConnection.getRefInputQueue();   //Get refrence to the queue of inputs indtended to send to the client
+            ConcurrentQueue<Message> outputQueue = clientConnection.getRefOutputQueue();     //Get refrence to the queue of thigns received by the client
 
             while (isActive) {
 
@@ -155,10 +155,6 @@ namespace InstrumentCommunicator {
             }
         }
 
-        /// <summary>
-        /// Enum representing options for the protocols to send to the client in the switch statement
-        /// </summary>
-        
 
         #region Helper Functions
 
@@ -275,6 +271,7 @@ namespace InstrumentCommunicator {
             //Check if correct Response
             if (receiveChars[0].Equals('y')) {
                 //Succesful ping
+                Console.WriteLine("Thread {0} says: Ping successful", Thread.CurrentThread.ManagedThreadId);
                 return;
             } else {
                 //failed ping, maybe do something
