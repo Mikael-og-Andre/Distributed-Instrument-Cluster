@@ -15,6 +15,5 @@ namespace InstrumentCommunicator {
             this.location = location;
             this.type = type;
         }
-
     }
 }

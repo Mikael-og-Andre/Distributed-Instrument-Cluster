@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net;
-using System.Net.Sockets;
 using System.Collections.Concurrent;
+using System.Net.Sockets;
 using System.Threading;
 
 /// <summary>
@@ -12,11 +9,11 @@ using System.Threading;
 /// </summary>
 
 namespace InstrumentCommunicator {
-    public class ClientConnection {
 
+    public class ClientConnection {
         private Socket socket { get; set; }     //Socket of the client Connection
-        ConcurrentQueue<Message> concurrentQueueInput;  // Concurrent queue for Messages to send to the client
-        ConcurrentQueue<Message> concurrentQueueOutput;  //Concurrent queue for Messages recieved by the client
+        private ConcurrentQueue<Message> concurrentQueueInput;  // Concurrent queue for Messages to send to the client
+        private ConcurrentQueue<Message> concurrentQueueOutput;  //Concurrent queue for Messages recieved by the client
         private Thread myThread; // The thread the connection is running on
         private AccessToken accessToken = null; // Token representing a valid connection to the server
         private bool isActive = true; //Is the connection running
@@ -27,7 +24,6 @@ namespace InstrumentCommunicator {
             //Init queues
             concurrentQueueInput = new ConcurrentQueue<Message>();
             concurrentQueueOutput = new ConcurrentQueue<Message>();
-
         }
 
         /// <summary>
@@ -75,20 +71,19 @@ namespace InstrumentCommunicator {
         }
 
         /// <summary>
-        /// Get a refrence to the queue used to send commands to the client
+        /// Get the queue used to send commands to the client
         /// </summary>
         /// <returns></returns>
-        public ref ConcurrentQueue<Message> getRefInputQueue() {
-            return ref this.concurrentQueueInput;
+        public ConcurrentQueue<Message> getInputQueue() {
+            return this.concurrentQueueInput;
         }
 
         /// <summary>
-        /// Get a refrence to the queue used for receiving from the client
+        /// Get the queue used for receiving from the client
         /// </summary>
         /// <returns></returns>
-        public ref ConcurrentQueue<Message> getRefOutputQueue() {
-            return ref this.concurrentQueueOutput;
+        public ConcurrentQueue<Message> getOutputQueue() {
+            return this.concurrentQueueOutput;
         }
-
     }
 }

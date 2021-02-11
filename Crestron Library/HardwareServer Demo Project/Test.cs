@@ -4,7 +4,8 @@ using System.Text;
 using System.Net;
 using System.Threading;
 using InstrumentCommunicator;
-
+using System.Collections.Immutable;
+using System.Collections.Concurrent;
 /// <summary>
 /// Class for testing server/client communication
 /// <author>Mikael Nilssen</author>
@@ -23,7 +24,7 @@ namespace Server_And_Demo_Project {
             Thread serverThread = new Thread(() => instumentServer.StartListening());
             serverThread.IsBackground = false;
             serverThread.Start();
-            Thread.Sleep(1000);
+            Thread.Sleep(10000);
             //instumentServer.StopServer();
             string ip = "127.0.0.1";
             InstrumentClient client = new InstrumentClient(ip,port);
@@ -35,6 +36,36 @@ namespace Server_And_Demo_Project {
             InstrumentClient client3 = new InstrumentClient(ip, port);
             Thread clientThread3 = new Thread(() => client3.start());
             clientThread3.Start();
+            Thread.Sleep(20000);
+            List<ClientConnection> connections = instumentServer.getClientConnections();
+            Console.WriteLine("populating messages");
+            for (int i = 0; i<connections.Count;i++) {
+                ClientConnection connection = connections[i];
+                ConcurrentQueue<Message> queue = connection.getInputQueue();
+                string[] strings = new string[] { "Hello","this", "is","a","test"};
+                Message newMessage = new Message(protocolOption.message,strings);
+
+                queue.Enqueue(newMessage);
+            }
+            Thread.Sleep(1000);
+            Console.WriteLine("populating messages");
+            for (int i = 0; i < connections.Count; i++) {
+                ClientConnection connection = connections[i];
+                ConcurrentQueue<Message> queue = connection.getInputQueue();
+                string[] strings = new string[] { "Hello", "this", "is", "a", "test" };
+                Message newMessage = new Message(protocolOption.message, strings);
+
+                queue.Enqueue(newMessage);
+            }
+            Console.WriteLine("populating messages");
+            for (int i = 0; i < connections.Count; i++) {
+                ClientConnection connection = connections[i];
+                ConcurrentQueue<Message> queue = connection.getInputQueue();
+                string[] strings = new string[] { "Hello", "this", "is", "a", "test" };
+                Message newMessage = new Message(protocolOption.message, strings);
+
+                queue.Enqueue(newMessage);
+            }
 
             Console.ReadLine();
 

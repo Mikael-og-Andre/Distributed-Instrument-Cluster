@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Net.Sockets;
-using System.Threading;
 using System.Collections.Concurrent;
+using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 
 /// <summary>
 /// Client for connecting and recieving commands from server unit
@@ -22,6 +22,7 @@ namespace InstrumentCommunicator {
         public InstrumentClient(string ip, int port) {
             this.ip = ip;
             this.port = port;
+            this.commandOutputQueue = new ConcurrentQueue<string>();    //Init queue
             //TODO: add accessToken loading from setting file
             this.accessToken = new AccessToken("access");
         }
@@ -30,25 +31,21 @@ namespace InstrumentCommunicator {
         /// Starts the client and attempts to connect to the server
         /// </summary>
         public void start() {
-
             try {
                 // Create new socket
                 connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 //TODO: add logging create new socket
                 throw e;
             }
             // Loop whilst the client is supposed to run
             while (isClientRunning) {
-
                 // Try to connect
                 bool isConneceted = attemptConnection(connectionSocket);
 
                 if (isConneceted) {
                     //handle the connection
                     handleConnected(connectionSocket);
-
                 }
             }
         }
@@ -59,13 +56,11 @@ namespace InstrumentCommunicator {
         /// <param name="connectionSocket"> unconnected Soccket</param>
         /// <returns> boolean representing succesful conncetion</returns>
         private bool attemptConnection(Socket connectionSocket) {
-
             try {
                 //Try Connecting to server
-                connectionSocket.Connect(ip,port);
+                connectionSocket.Connect(ip, port);
                 Console.WriteLine("Client Connected");
                 return connectionSocket.Connected;
-
             } catch (Exception e) {
                 //TODO: add Logging attempt conncetion
                 //return false to represent failed connection
@@ -74,7 +69,7 @@ namespace InstrumentCommunicator {
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="connectionSocket"></param>
         private void handleConnected(Socket connectionSocket) {
@@ -103,29 +98,29 @@ namespace InstrumentCommunicator {
         /// </summary>
         /// <param name="connectionSocket"> Socket Connection to server</param>
         /// <param name="bufferSize">Size of the receive buffer with deafult size 32 bytes. May need to be adjusted base on how big protocol names become</param>
-        private void startAProtocol(Socket connectionSocket, int bufferSize = 32) {
+        private void startAProtocol(Socket connectionSocket) {
             //Recieve protocol type from server
-            byte[] receiveBuffer = new byte[bufferSize];
-            int bytesReceived = connectionSocket.Receive(receiveBuffer);
-            string extractedString = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
+            byte[] receiveBuffer = new byte[32];
+            int bytesReceived = connectionSocket.Receive(receiveBuffer,32,SocketFlags.None);
+            string extractedString = Encoding.ASCII.GetString(receiveBuffer, 0, 32);
+            extractedString = extractedString.Trim('\0');
             //Parse Enum
-            protocolOption option = (protocolOption)Enum.Parse(typeof(protocolOption),extractedString);
-
+            protocolOption option = (protocolOption)Enum.Parse(typeof(protocolOption), extractedString,true);
+            Console.WriteLine("Client says: "+"Received option "+option);
             //Select Protocol
             switch (option) {
-
                 case protocolOption.ping:
                     protocolPing(connectionSocket);
                     break;
+
                 case protocolOption.message:
                     protocolMessage(connectionSocket);
                     break;
-                case protocolOption.messageMultiple:
-                    protocolMessageMultiple(connectionSocket);
-                    break;
+
                 case protocolOption.status:
                     protocolStatus(connectionSocket);
                     break;
+
                 case protocolOption.authorize:
                     protocolAuthorize(connectionSocket);
                     break;
@@ -133,9 +128,9 @@ namespace InstrumentCommunicator {
                 default:
                     break;
             }
-
-
         }
+
+        #region Protocols
 
         /// <summary>
         /// Activates predetermined sequence of socket operations for authorizing the client device as trusted
@@ -161,7 +156,7 @@ namespace InstrumentCommunicator {
             byte[] byteBuffer = new byte[1];
             connectionSocket.Receive(byteBuffer);
             //Translate to char
-            char result = (char) byteBuffer[0];
+            char result = (char)byteBuffer[0];
             //Check result
             if (result.Equals('y')) {
                 Console.WriteLine("Authorization Successful");
@@ -172,7 +167,6 @@ namespace InstrumentCommunicator {
                 // return false, representing a failed authorization
                 return false;
             }
-
         }
 
         /// <summary>
@@ -186,22 +180,32 @@ namespace InstrumentCommunicator {
         }
 
         /// <summary>
-        /// Activates predetermined sequence of socket operations for receiving a command and then execute it.
+        /// Activates predetermined sequence of socket operation for receiving an array of string from the server
         /// </summary>
-        /// <param name="connectionSocket">Authorized connection socket</param>
+        /// <param name="connectionSocket">Connected and authorized socket</param>
         private void protocolMessage(Socket connectionSocket) {
-
-            //Receive buffer
-            byte[] receiveBuffer = new byte[32];
-            int bytesReceived = connectionSocket.Receive(receiveBuffer);
-            string command = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
-            
-            //Add Command To Concurrent queue
-            commandOutputQueue.Enqueue(command);
-        }
-
-        private void protocolMessageMultiple(Socket connectionSocket) {
-
+            //Loop boolean
+            bool isAccepting = true;
+            //Socket buffer
+            byte[] receiveBuffer;
+            //Loop until end signal received by server
+            while (isAccepting) {
+                receiveBuffer = new byte[32];
+                //Receive buffer
+                int bytesReceived = connectionSocket.Receive(receiveBuffer,0,32,SocketFlags.None);
+                string received = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
+                received = received.Trim('\0');
+                //Check if end in messages
+                if (received.Equals("end")) {
+                    Console.WriteLine("Thread {0} Client says: " + "Received ending", Thread.CurrentThread.ManagedThreadId);
+                    isAccepting = false;
+                    return;
+                }
+                //Add Command To Concurrent queue
+                commandOutputQueue.Enqueue(received);
+                Console.WriteLine("Thread {0} Client says: " + "Received command: " + received, Thread.CurrentThread.ManagedThreadId);
+                
+            }
         }
 
         /// <summary>
@@ -213,6 +217,8 @@ namespace InstrumentCommunicator {
             throw new NotImplementedException();
         }
 
+        #endregion Protocols
+
         /// <summary>
         /// Returns a reference to queue of commands received by receive protocol in string format
         /// </summary>
@@ -220,6 +226,5 @@ namespace InstrumentCommunicator {
         public ref ConcurrentQueue<string> getCommandOutputQueue() {
             return ref commandOutputQueue;
         }
-
     }
 }
