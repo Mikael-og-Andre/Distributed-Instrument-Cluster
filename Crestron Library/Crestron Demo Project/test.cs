@@ -15,13 +15,14 @@ namespace Crestron_Library {
 
 			
 
-			List<string> commands = c.getAllKeyCommands();
+			List<string> commands = c.getAllCommands();
 
 			foreach(string s in commands) {
 				Console.WriteLine(s);
 			}
 
-			Console.WriteLine(c.getMiceByte("middle button off"));
+			Console.WriteLine(c.getBreakByte("k"));
+			//Console.WriteLine(c.getBreakByte("left"));
 
 		}
 

@@ -7,27 +7,18 @@ namespace Crestron_Library {
 	/// <summary>
 	/// Class for getting keyboard and mice emulation commands.
 	/// Use "key" from crestron spec sheet as command and translate it to bytes for corresponding "key" command.
-	/// Use "command" for mice commands, tables imported from spec sheet has inconsistent formatting (keys have value in column 1 and mice have it in column 0).
-	/// Making some functions seemingly janky but is because the imported data is inconsistent.
-	/// See function "commandIndexInList()"
+	/// Tables imported from spec sheet has inconsistent formatting (keys have value in column 1 and mice have it in column 0).
 	/// </summary>
 	/// <author>Andre Helland</author>
 	public class Commands {
-		private List<List<String>> keyCommands;
-		private List<List<String>> miceCommands;
+		private List<List<String>> commands;
 		public Commands() {
-			keyCommands = getCSV("KeyCommands(edited).csv");
-			miceCommands = getCSV("MiceCommands(edited).csv");
-		}
-
-		/// <summary>
-		/// Finds byte value for given command.
-		/// </summary>
-		/// <param name="command">Command the function will find byte value of.</param>
-		/// <returns>Byte value for command.</returns>
-		public byte getMiceByte(String command) {
-			int index = commandIndexInList(command);
-			return Convert.ToByte(miceCommands[0][index], 16);
+			commands = getCSV("KeyCommands(edited).csv");
+			
+			//Adds mice commands to command list (without break command).
+			List<List<String>> miceCommands = getCSV("MiceCommands(edited).csv");
+			commands[0].AddRange(miceCommands[1].GetRange(1, miceCommands[1].Count - 1));
+			commands[1].AddRange(miceCommands[0].GetRange(1, miceCommands[0].Count - 1));
 		}
 
 		/// <summary>
@@ -36,11 +27,15 @@ namespace Crestron_Library {
 		/// <param name="key">Key the function will find the click byte value for.</param>
 		/// <returns>Byte value for click command of given key.</returns>
 		public byte[] getClickBytes(String key) {
+			try {
 			int index = keyIndexInList(key);
 			byte[] clickBytes = new byte[2];
-			clickBytes[0] = Convert.ToByte(keyCommands[1][index], 16);
-			clickBytes[1] = Convert.ToByte(keyCommands[2][index], 16);
+			clickBytes[0] = Convert.ToByte(commands[1][index], 16);
+			clickBytes[1] = Convert.ToByte(commands[2][index], 16);
 			return clickBytes;
+			} catch {
+				throw new ArgumentException("\"" + key + "\" does not have a break command");
+			}
 		}
 
 		/// <summary>
@@ -50,17 +45,21 @@ namespace Crestron_Library {
 		/// <returns>Byte value for make command of given key.</returns>
 		public byte getMakeByte(String key) {
 			int index = keyIndexInList(key);
-			return Convert.ToByte(keyCommands[1][index], 16);
+			return Convert.ToByte(commands[1][index], 16);
 		}
 
 		/// <summary>
-		/// Looks for key in key command list and returns byte value for break command.
+		/// Looks for key in command list and returns byte value for break command.
 		/// </summary>
 		/// <param name="key">Key the function will find the break byte value for.</param>
 		/// <returns>Byte value for make command of given key.</returns>
 		public byte getBreakByte(String key) {
-			int index = keyIndexInList(key);
-			return Convert.ToByte(keyCommands[2][index], 16);
+			try {
+				int index = keyIndexInList(key);
+				return Convert.ToByte(commands[2][index], 16);
+			} catch {
+				throw new ArgumentException("\"" + key + "\" does not have a break command");
+			}
 		}
 
 		/// <summary>
@@ -72,8 +71,8 @@ namespace Crestron_Library {
 			int index = -1;
 
 			//TODO: improve search using hashmap mby?
-			for(int i = 1; keyCommands[0].Count > i; i++) {
-				if(keyCommands[0][i].ToLower().Equals(key.ToLower())) {
+			for(int i = 1; commands[0].Count > i; i++) {
+				if(commands[0][i].ToLower().Equals(key.ToLower())) {
 					index = i;
 					break;
 				}
@@ -88,44 +87,11 @@ namespace Crestron_Library {
 		}
 
 		/// <summary>
-		/// Almost identical to the function "keyIndexInList()" but contains modifications for searching in mice command list.
-		/// Byproduct of inconsistent formatting of tables from crestron cable documentation.
+		/// Lists all available commands.
 		/// </summary>
-		/// <param name="command">Command, function will try to find index of.</param>
-		/// <returns>Index of given command.</returns>
-		private int commandIndexInList(String command) {
-			int index = -1;
-
-			//TODO: improve search using hashmap mby?
-			for (int i = 1; keyCommands[1].Count > i; i++) {
-				if (miceCommands[1][i].ToLower().Equals(command.ToLower())) {
-					index = i;
-					break;
-				}
-			}
-
-			//Key was not found throw exception.
-			if (index == -1) {
-				throw new ArgumentException("Command \"" + command + "\" was not found.");
-			}
-
-			return index;
-		}
-
-		/// <summary>
-		/// Lists all available key commands.
-		/// </summary>
-		/// <returns>String list of all key commands.</returns>
-		public List<string> getAllKeyCommands() {
-			return keyCommands[0].GetRange(1, keyCommands[0].Count - 1);
-		}
-
-		/// <summary>
-		/// Lists all available mice commands.
-		/// </summary>
-		/// <returns>String list of all mice commands.</returns>
-		public List<string> getAllMiceCommands() {
-			return miceCommands[1].GetRange(1, miceCommands[0].Count - 1);
+		/// <returns>String list of all commands.</returns>
+		public List<string> getAllCommands() {
+			return commands[0].GetRange(1, commands[0].Count - 1);
 		}
 
 		/// <summary>
