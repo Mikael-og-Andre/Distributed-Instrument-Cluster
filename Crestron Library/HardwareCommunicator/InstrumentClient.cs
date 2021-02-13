@@ -19,12 +19,19 @@ namespace InstrumentCommunicator {
         private AccessToken accessToken;   // Authorization code to send to the server
         private ConcurrentQueue<string> commandOutputQueue; //Queue representing commands received by receive protocol
 
+        //Values for state control
+        private bool isAuthorized;  //Boolean for wheter the authorization process is complete
+
+        private bool isSocketConnected; //Is the socket connected to the server
+
         public InstrumentClient(string ip, int port) {
             this.ip = ip;
             this.port = port;
             this.commandOutputQueue = new ConcurrentQueue<string>();    //Init queue
+            this.isSocketConnected = false;
+            this.isAuthorized = false;
             //TODO: add accessToken loading from setting file
-            this.accessToken = new AccessToken("access");
+            this.accessToken = new AccessToken("acess");
         }
 
         /// <summary>
@@ -38,14 +45,22 @@ namespace InstrumentCommunicator {
                 //TODO: add logging create new socket
                 throw e;
             }
+            //connection state
+            isSocketConnected = false;
+
             // Loop whilst the client is supposed to run
             while (isClientRunning) {
-                // Try to connect
-                bool isConneceted = attemptConnection(connectionSocket);
-
-                if (isConneceted) {
+                //check if client is connected, if not connect
+                if (!isSocketConnected) {
+                    // Try to connect
+                    isSocketConnected = attemptConnection(connectionSocket);
+                }
+                //check if client is connected, if it is handle the connection
+                if (isSocketConnected) {
                     //handle the connection
                     handleConnected(connectionSocket);
+                } else {
+                    Console.WriteLine("Thread {0} says: " + "Connection failed", Thread.CurrentThread.ManagedThreadId);
                 }
             }
         }
@@ -59,8 +74,8 @@ namespace InstrumentCommunicator {
             try {
                 //Try Connecting to server
                 connectionSocket.Connect(ip, port);
-                return connectionSocket.Connected;
-            } catch (Exception e) {
+                return true;
+            } catch (SocketException e) {
                 //TODO: add Logging attempt conncetion
                 //return false to represent failed connection
                 return false;
@@ -72,23 +87,30 @@ namespace InstrumentCommunicator {
         /// </summary>
         /// <param name="connectionSocket"></param>
         private void handleConnected(Socket connectionSocket) {
-            //receive the first authorization call from server
-            byte[] bufferReceive = new byte[32];
-            connectionSocket.Receive(bufferReceive);
-            //Start Authorization
-            bool isAuthorized = protocolAuthorize(connectionSocket);
-
-            //Check if successfully authorized
-            if (isAuthorized) {
-                Console.WriteLine("Client Authorization complete");
-                //Run main protocol Loop
-                while (isClientRunning) {
-                    //Read a protocol choice from the buffer and exceute it
-                    startAProtocol(connectionSocket);
+            try {
+                //check if the client is authorized,
+                if (!isAuthorized) {
+                    //receive the first authorization call from server
+                    byte[] bufferReceive = new byte[32];
+                    connectionSocket.Receive(bufferReceive);
+                    //Start Authorization
+                    isAuthorized = protocolAuthorize(connectionSocket);
                 }
-            } else {
-                Console.WriteLine("Client Authorization failed");
-                //TODO: Handle failed autorization event when connection
+                //Check if successfully authorized
+                if (isAuthorized) {
+                    Console.WriteLine("Thread {0} Client Authorization complete", Thread.CurrentThread.ManagedThreadId);
+                    //Run main protocol Loop
+                    while (isClientRunning) {
+                        //Read a protocol choice from the buffer and exceute it
+                        startAProtocol(connectionSocket);
+                    }
+                } else {
+                    Console.WriteLine("Thread {0} Client Authorization failed", Thread.CurrentThread.ManagedThreadId);
+                    Thread.Sleep(1000);
+                }
+            } catch (Exception ex) {
+                //TODO: Exception logging
+                return;
             }
         }
 
@@ -100,12 +122,12 @@ namespace InstrumentCommunicator {
         private void startAProtocol(Socket connectionSocket) {
             //Recieve protocol type from server
             byte[] receiveBuffer = new byte[32];
-            int bytesReceived = connectionSocket.Receive(receiveBuffer,32,SocketFlags.None);
+            int bytesReceived = connectionSocket.Receive(receiveBuffer, 32, SocketFlags.None);
             string extractedString = Encoding.ASCII.GetString(receiveBuffer, 0, 32);
             extractedString = extractedString.Trim('\0');
             //Parse Enum
-            protocolOption option = (protocolOption)Enum.Parse(typeof(protocolOption), extractedString,true);
-            Console.WriteLine("thread {0} Client says: "+"Received option "+option, Thread.CurrentThread.ManagedThreadId);
+            protocolOption option = (protocolOption)Enum.Parse(typeof(protocolOption), extractedString, true);
+            Console.WriteLine("thread {0} Client says: " + "Received option " + option, Thread.CurrentThread.ManagedThreadId);
             //Select Protocol
             switch (option) {
                 case protocolOption.ping:
@@ -137,33 +159,38 @@ namespace InstrumentCommunicator {
         /// <param name="connectionSocket"></param>
         /// <returns>Boolean representing if the authorization was successful or not</returns>
         private bool protocolAuthorize(Socket connectionSocket) {
-            //Create accessToken
-            AccessToken accessToken = this.accessToken;
-            string accessTokenHash = accessToken.getAccessString();
-            //Create byte array
-            char[] chars = accessTokenHash.ToCharArray();
-            byte[] bytesToSend = new byte[chars.Length];
-            for (int i = 0; i < chars.Length; i++) {
-                bytesToSend[i] = (byte)chars[i];
-            }
+            try {
+                //Create accessToken
+                AccessToken accessToken = this.accessToken;
+                string accessTokenHash = accessToken.getAccessString();
+                //Create byte array
+                char[] chars = accessTokenHash.ToCharArray();
+                byte[] bytesToSend = new byte[chars.Length];
+                for (int i = 0; i < chars.Length; i++) {
+                    bytesToSend[i] = (byte)chars[i];
+                }
 
-            //TODO: Add Encryption to accessToken
+                //TODO: Add Encryption to accessToken
 
-            //Send Token
-            connectionSocket.Send(bytesToSend);
-            //Receive Result
-            byte[] byteBuffer = new byte[1];
-            connectionSocket.Receive(byteBuffer);
-            //Translate to char
-            char result = (char)byteBuffer[0];
-            //Check result
-            if (result.Equals('y')) {
-                Console.WriteLine("Authorization Successful");
-                // return true, representing a successful authorization
-                return true;
-            } else {
-                Console.WriteLine("Authorization Failed");
-                // return false, representing a failed authorization
+                //Send Token
+                connectionSocket.Send(bytesToSend);
+                //Receive Result
+                byte[] byteBuffer = new byte[32];
+                connectionSocket.Receive(byteBuffer, SocketFlags.None);
+                //Translate to char
+                char result = (char)byteBuffer[0];
+                //Check result
+                if ((char)'y' == result) {
+                    Console.WriteLine("Thread {0} Authorization Successful", Thread.CurrentThread.ManagedThreadId);
+                    // return true, representing a successful authorization
+                    return true;
+                } else {
+                    Console.WriteLine("Thread {0} Authorization Failed", Thread.CurrentThread.ManagedThreadId);
+                    // return false, representing a failed authorization
+                    return false;
+                }
+            } catch (Exception ex) {
+                //TODO: Exception logging
                 return false;
             }
         }
@@ -174,7 +201,7 @@ namespace InstrumentCommunicator {
         /// <param name="connectionSocket"> Authorized connection socket</param>
         private void protocolPing(Socket connectionSocket) {
             //Send simple byte to server
-            byte[] sendBuffer = Encoding.ASCII.GetBytes(new char[] { 'y' });
+            byte[] sendBuffer = new byte[] { (byte)'y' };
             connectionSocket.Send(sendBuffer);
         }
 
@@ -192,7 +219,7 @@ namespace InstrumentCommunicator {
                 //receive buffer of 32 bytes
                 receiveBuffer = new byte[32];
                 //Receive into the receive buffer from slot 0 to 32
-                int bytesReceived = connectionSocket.Receive(receiveBuffer,0,32,SocketFlags.None);
+                int bytesReceived = connectionSocket.Receive(receiveBuffer, 0, 32, SocketFlags.None);
                 string received = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
                 //trim null bytes that were sent by the socket
                 received = received.Trim('\0');

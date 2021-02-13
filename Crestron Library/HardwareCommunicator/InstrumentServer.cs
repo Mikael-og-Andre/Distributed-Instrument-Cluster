@@ -74,7 +74,6 @@ namespace InstrumentCommunicator {
                     //Lower Connection number
                     decrementConnectionNumber();
                     newSocket.Disconnect(false);
-                    newSocket.Dispose();
                     newSocket.Close();
                 }
             }
@@ -103,13 +102,11 @@ namespace InstrumentCommunicator {
             }
             Console.WriteLine("SERVER - a Client Has Connected to Thread: {0}, thread {0} is running now", Thread.CurrentThread.ManagedThreadId);
 
+            //add a connection to the list of connections
             AddClientConnection(clientConnection);
 
             //Do authorization process
             serverProtocolAuthorization(clientConnection);
-
-            //Check if connection is active
-            bool isActive = clientConnection.isConnectionActive();
 
             ConcurrentQueue<Message> inputQueue = clientConnection.getInputQueue();   //Get reference to the queue of inputs intended to send to the client
             ConcurrentQueue<Message> outputQueue = clientConnection.getOutputQueue();     //Get reference to the queue of things received by the client
@@ -119,7 +116,7 @@ namespace InstrumentCommunicator {
             //Start stopwatch
             stopwatch.Start();
 
-            while (isActive) {
+            while (clientConnection.isConnectionActive()) {
                 //Variable representing protocol to use;
                 protocolOption currentMode;
                 Message message;
@@ -173,10 +170,13 @@ namespace InstrumentCommunicator {
                         break;
                 }
             }
+            RemoveClientConnection(clientConnection);
             //Stop stopwatch if ending i guess
             stopwatch.Stop();
-            //Remove client from list of clients
-            RemoveClientConnection(clientConnection);
+            //get socket and disconnect
+            Socket socket = clientConnection.getSocket();
+            socket.Disconnect(false);
+            //remove client from connections
         }
 
         #region Helper Functions
@@ -205,13 +205,14 @@ namespace InstrumentCommunicator {
         /// <param name="connection"> the ClientConnection to be added</param>
         /// <returns> Boolean value representing wheter the adding was succesful</returns>
         private bool AddClientConnection(ClientConnection connection) {
-            bool success = true;
             try {
-                this.clientConnectionList.Add(connection);
-                return success;
-            } catch (Exception e) {
-                success = false;
-                return success;
+                //Lock the non threadsafe list, and then add object
+                lock (clientConnectionList) {
+                    this.clientConnectionList.Add(connection);
+                }
+                return true;
+            } catch (Exception ex) {
+                return false;
             }
         }
 
@@ -221,14 +222,14 @@ namespace InstrumentCommunicator {
         /// <param name="connection">Connection to be removed</param>
         /// <returns>Boolean representing succcessful removal</returns>
         private bool RemoveClientConnection(ClientConnection connection) {
-            bool success = true;
             try {
-                this.clientConnectionList.Remove(connection);
-                return success;
-            } catch (Exception e) {
+                //lock the non threadsafe list and then remove object
+                lock (clientConnectionList) {
+                    return this.clientConnectionList.Remove(connection);
+                }
+            } catch (Exception ex) {
                 //TODO: add logging remove client connection
-                success = false;
-                return success;
+                return false;
             }
         }
 
@@ -269,7 +270,8 @@ namespace InstrumentCommunicator {
                 //Send char n for negative
                 bytesToSend = new byte[] { (byte)'n' };
                 connectionSocket.Send(bytesToSend);
-                //authorization failed, return
+                //authorization failed, set not clientConnection to not active and return
+                clientConnection.setIsConnectionActive(false);
                 return;
             }
             // If successful request more info
@@ -293,12 +295,21 @@ namespace InstrumentCommunicator {
             int bytesReceived = connectionSocket.Receive(receiveBuffer);
             char[] receiveChars = Encoding.ASCII.GetChars(receiveBuffer, 0, bytesReceived);
             //Check if correct Response
-            if (receiveChars[0].Equals('y')) {
-                //Succesful ping
-                Console.WriteLine("SERVER - Client Thread {0} says: Ping successful", Thread.CurrentThread.ManagedThreadId);
-                return;
+            if (receiveChars.Length>0) {
+                if ('y'==(char)receiveChars[0]) {
+                    //Succesful ping
+                    Console.WriteLine("SERVER - Client Thread {0} says: Ping successful", Thread.CurrentThread.ManagedThreadId);
+                    return;
+                } else {
+                    //failed ping, stop connection
+                    Console.WriteLine("SERVER - Client Thread {0} says: Ping failed, received wrong response", Thread.CurrentThread.ManagedThreadId);
+                    clientConnection.setIsConnectionActive(false);
+                    return;
+                } 
             } else {
-                //failed ping, maybe do something
+                //failed ping, stop connection
+                Console.WriteLine("SERVER - Client Thread {0} says: Ping failed, received empty response", Thread.CurrentThread.ManagedThreadId);
+                clientConnection.setIsConnectionActive(false);
                 return;
             }
         }
@@ -377,8 +388,10 @@ namespace InstrumentCommunicator {
             string hash = token.getAccessString();
             Console.WriteLine("SERVER - Thread {0} is now checking hash. Hash: " + hash, Thread.CurrentThread.ManagedThreadId);
             if (hash.Equals("access")) {
+                Console.WriteLine("SERVER - Thread {0} is now authorized", Thread.CurrentThread.ManagedThreadId);
                 return true;
             }
+            Console.WriteLine("SERVER - Thread {0} Authorization Failed ", Thread.CurrentThread.ManagedThreadId);
             return false;
         }
 
