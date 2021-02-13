@@ -15,6 +15,7 @@ using System.Threading;
 namespace InstrumentCommunicator {
 
     public class InstrumentServer {
+
         private int maxConnections; //Maximum number of connections for the Pool
         private int maxPendingConnections;  //Backlog size of Listening socket
         private int numConnections = 0; //Connected Sockets
@@ -38,6 +39,7 @@ namespace InstrumentCommunicator {
             this.maxPendingConnections = maxPendingConnections;
             isServerRunning = true;
             clientConnectionList = new List<ClientConnection>();  //Initialize empty list for tracking client connections
+
         }
 
         /// <summary>
@@ -90,12 +92,13 @@ namespace InstrumentCommunicator {
         /// Represents a communication thread that handles all communication with a single connected client
         /// </summary>
         /// <param name="obj"> represents a ClientConnection object. in order to be used as a parameraizedThread, it needs to be casted</param>
-        public void ThreadRunProtocols(object obj) {
+        private void ThreadRunProtocols(object obj) {
             ClientConnection clientConnection;
             try {
                 //cast input object to Client Connection
                 clientConnection = (ClientConnection)obj;
-            } catch (InvalidCastException) {
+            } catch (InvalidCastException e) {
+                
                 throw new InvalidCastException("Could not cast input object to ClientConnection in method ThreadPortocol, Class InstrumentServer");
             }
             Console.WriteLine("SERVER - a Client Has Connected to Thread: {0}, thread {0} is running now", Thread.CurrentThread.ManagedThreadId);
@@ -302,6 +305,7 @@ namespace InstrumentCommunicator {
 
         //TODO: handle status protocol server
         private void serverProtocolStatus(ClientConnection clientConnection) {
+
             throw new NotImplementedException();
         }
 

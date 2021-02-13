@@ -11,13 +11,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InstrumentCommunicator", "H
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Crestron POC", "Crestron POC", "{5938B500-D48F-41D7-9F84-1F6F8181E181}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hardware Server", "Hardware Server", "{6D20DEAB-92F0-400C-94EA-2DF5B6D74793}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Instrument", "Instrument", "{6D20DEAB-92F0-400C-94EA-2DF5B6D74793}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server and Device Demo Project", "HardwareServer Demo Project\Server and Device Demo Project.csproj", "{86ACBFB2-B5C0-4A1C-8791-B286CE1E860E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Video Library", "Video Library\Video Library.csproj", "{1B3808BE-84CB-4D8C-8CE5-A6E8B6F245CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crestron Test", "Crestron Test\Crestron Test.csproj", "{30AB89E6-9DEF-4865-83B2-72632C500C3C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron Test", "Crestron Test\Crestron Test.csproj", "{30AB89E6-9DEF-4865-83B2-72632C500C3C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
