@@ -52,7 +52,7 @@ namespace Server_And_Demo_Project {
             for (int i = 0; i < connections.Count; i++) {
                 ClientConnection connection = connections[i];
                 ConcurrentQueue<Message> queue = connection.getInputQueue();
-                string[] strings = new string[] { "Hello", "this", "is", "a", "test" };
+                string[] strings = new string[] { "wow", "i", "dont", "like", "greens" };
                 Message newMessage = new Message(protocolOption.message, strings);
 
                 queue.Enqueue(newMessage);

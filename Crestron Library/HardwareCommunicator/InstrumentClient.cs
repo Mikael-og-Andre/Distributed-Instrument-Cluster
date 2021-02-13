@@ -31,7 +31,7 @@ namespace InstrumentCommunicator {
             this.isSocketConnected = false;
             this.isAuthorized = false;
             //TODO: add accessToken loading from setting file
-            this.accessToken = new AccessToken("acess");
+            this.accessToken = new AccessToken("access");
         }
 
         /// <summary>
@@ -223,6 +223,7 @@ namespace InstrumentCommunicator {
                 string received = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
                 //trim null bytes that were sent by the socket
                 received = received.Trim('\0');
+                Console.WriteLine("message received "+ received);
                 //Check if end in messages
                 if (received.Equals("end")) {
                     //Set protocol to be over

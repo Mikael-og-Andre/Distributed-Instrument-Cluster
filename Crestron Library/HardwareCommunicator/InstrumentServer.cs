@@ -24,7 +24,7 @@ namespace InstrumentCommunicator {
         private IPEndPoint ipEndPoint { get; set; }     //Host Info
         private List<ClientConnection> clientConnectionList;   //All connected clients
 
-        private int timeToWait = 10000;         //Time to wait between Pings in millis in the main loop
+        private int timeToWait = 1000*60;         //Time to wait between Pings in millis in the main loop
         private int timeTosleep = 1000;         //Time to sleep before checking for new commands in the main loop
 
         /// <summary>
@@ -124,9 +124,9 @@ namespace InstrumentCommunicator {
                 Message msg = message;
                 //Check what action to take
                 //If queue is empty and time since last ping is greater than timeToWait, ping
-                if ((hasValue) && (stopwatch.ElapsedMilliseconds > timeToWait)) {
-                    //restart stopwatch
-                    stopwatch.Restart();
+                if ((!hasValue) && (stopwatch.ElapsedMilliseconds > timeToWait)) {
+                    //stop stopwatch
+                    stopwatch.Stop();
                     //Set mode to ping
                     currentMode = protocolOption.ping;
                 }
@@ -138,7 +138,7 @@ namespace InstrumentCommunicator {
                 }
                 //if queue is empty and time since last ping isnt big, sleep for an amount of time
                 else if (!hasValue) {
-                    //Was empty and didnt need ping, so restart loop
+                    //Was empty and didnt need ping, so restart loop after short sleep
                     Thread.Sleep(timeTosleep);
                     continue;
                 } else {
@@ -169,6 +169,9 @@ namespace InstrumentCommunicator {
                     default:
                         break;
                 }
+                //Reset stopwatch
+                stopwatch.Reset();
+                stopwatch.Start();
             }
             RemoveClientConnection(clientConnection);
             //Stop stopwatch if ending i guess
