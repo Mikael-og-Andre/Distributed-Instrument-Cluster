@@ -223,7 +223,7 @@ namespace InstrumentCommunicator {
                 string received = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
                 //trim null bytes that were sent by the socket
                 received = received.Trim('\0');
-                Console.WriteLine("message received "+ received);
+                Console.WriteLine("Thread {0} message received "+ received, Thread.CurrentThread.ManagedThreadId);
                 //Check if end in messages
                 if (received.Equals("end")) {
                     //Set protocol to be over
@@ -250,8 +250,8 @@ namespace InstrumentCommunicator {
         /// Returns a reference to queue of commands received by receive protocol in string format
         /// </summary>
         /// <returns>refrence to Concurrent queue of type string</returns>
-        public ref ConcurrentQueue<string> getCommandOutputQueue() {
-            return ref commandOutputQueue;
+        public ConcurrentQueue<string> getCommandOutputQueue() {
+            return commandOutputQueue;
         }
     }
 }
