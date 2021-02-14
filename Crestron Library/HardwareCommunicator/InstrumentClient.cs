@@ -9,7 +9,7 @@ using System.Threading;
 /// <author>Mikael Nilssen</author>
 /// </summary>
 
-namespace InstrumentCommunicator {
+namespace Instrument_Communicator_Library {
 
     public class InstrumentClient {
         public string ip { get; private set; } //Ip address of target server

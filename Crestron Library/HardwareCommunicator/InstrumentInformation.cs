@@ -3,7 +3,7 @@
 /// <author>Mikael Nilssen</author>
 /// </summary>
 
-namespace InstrumentCommunicator {
+namespace Instrument_Communicator_Library {
 
     public class InstrumentInformation {
         private string name;    //Designated name of client device

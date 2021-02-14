@@ -3,7 +3,7 @@
 /// <author>Mikael Nilssen</author>
 /// </summary>
 
-namespace InstrumentCommunicator {
+namespace Instrument_Communicator_Library {
 
     public class AccessToken {
 

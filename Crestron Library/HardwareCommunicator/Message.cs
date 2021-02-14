@@ -3,7 +3,7 @@
 /// <author>Mikael Nilssen</author>
 /// </summary>
 
-namespace InstrumentCommunicator {
+namespace Instrument_Communicator_Library {
 
     public class Message {
         private protocolOption option;  //protocol option enum that tells server what protocol to use when sending

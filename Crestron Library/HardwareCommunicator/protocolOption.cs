@@ -3,7 +3,7 @@
 /// Enum used for synchronaztion in protocol use between server and client
 /// <author>Mikael Nilssen</author>
 /// </summary>
-namespace InstrumentCommunicator {
+namespace Instrument_Communicator_Library {
 
     /// <summary>
     /// Various different protocol options

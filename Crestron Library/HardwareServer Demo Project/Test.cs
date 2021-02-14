@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net;
 using System.Threading;
-using InstrumentCommunicator;
+using Instrument_Communicator_Library;
 using System.Collections.Immutable;
 using System.Collections.Concurrent;
 /// <summary>
