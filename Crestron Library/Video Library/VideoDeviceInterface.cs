@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 
+//TODO: Handle Unpluging w/out crashing.
 namespace Video_Library {
 
 	/// <summary>
@@ -11,34 +12,20 @@ namespace Video_Library {
 	/// </summary>
 	/// <author>Andre Helland</author>
 	public class VideoDeviceInterface: IDisposable {
-		private readonly VideoCapture capture;
+		private VideoCapture capture;
 		private readonly ConcurrentQueue<Mat> frameBuffer;
 		private bool captureFrames;
 
 		//DSHOW: Windows api for video devices.
-		public VideoDeviceInterface(int index = 0, VideoCaptureAPIs API = VideoCaptureAPIs.DSHOW) {
+		public VideoDeviceInterface(int index = 0, VideoCaptureAPIs API = VideoCaptureAPIs.DSHOW, int frameWidth=1280, int frameHeight=720) {
 			capture = new VideoCapture(index, API);
+			capture.Set(VideoCaptureProperties.FrameWidth, frameWidth);
+			capture.Set(VideoCaptureProperties.FrameHeight, frameHeight);
+
 			frameBuffer = new ConcurrentQueue<Mat>();
-			Thread thread = new Thread(FrameCaptureThread);
+			Thread thread = new Thread(FrameCaptureThread) { IsBackground = true };
 			captureFrames = true;
 			thread.Start();
-
-
-			//TODO: throw exception for invalid index.
-			//TODO: implement device watchdog timer.
-
-
-
-			//var frame = new Mat();
-			//while (true) {
-
-			//	if(tryReadFrameBuffer(out frame)) {
-			//		Cv2.ImShow("ffs", frame);
-			//	}
-
-
-			//	Cv2.WaitKey(1);
-			//}
 		}
 
 		/// <summary>

@@ -7,6 +7,7 @@ using System.Threading;
 //using AForge.Video.DirectShow;
 using OpenCvSharp;
 
+//TODO: delete.
 namespace Video_Library {
 	class Test {
 		public Test() {
@@ -14,16 +15,18 @@ namespace Video_Library {
 		}
 
 		static void Main(string[] args) {
-			var videoDevice = new VideoDeviceInterface(1);
+			var videoDevice = new VideoDeviceInterface(1,VideoCaptureAPIs.DSHOW);
 
 			Mat frame = new Mat();
 			while (true) {
-				if(videoDevice.tryReadFrameBuffer(out frame)) {
+				if (videoDevice.tryReadFrameBuffer(out frame)) {
 					Cv2.ImShow("test", frame);
 				}
 				Cv2.WaitKey(1);
 			}
 
+
+			//Test test = new Test();
 
 			//test.aForge();
 			//test.openCV();
