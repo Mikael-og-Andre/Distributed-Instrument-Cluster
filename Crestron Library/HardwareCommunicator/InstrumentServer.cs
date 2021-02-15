@@ -27,6 +27,8 @@ namespace Instrument_Communicator_Library {
         private int timeToWait = 1000*60;         //Time to wait between Pings in millis in the main loop
         private int timeTosleep = 1000;         //Time to sleep before checking for new commands in the main loop
 
+
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -84,7 +86,7 @@ namespace Instrument_Communicator_Library {
         /// </summary>
         public void StopServer() {
             isServerRunning = false;
-            listenSocket.Dispose();
+            listenSocket.Disconnect(true);
         }
 
         /// <summary>
