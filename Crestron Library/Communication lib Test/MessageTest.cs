@@ -18,8 +18,8 @@ namespace Communication_lib_Test {
             bool isRunning = server.isServerRunning;
             Assert.IsTrue(isRunning);
             server.StopServer();
-            isRunning = 
-            Assert.IsFalse();
+            isRunning = server.isServerRunning;
+            Assert.IsFalse(isRunning);
         }
 
         [TestInitialize]
