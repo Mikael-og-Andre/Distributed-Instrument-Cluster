@@ -15,10 +15,10 @@ namespace Communication_lib_Test {
             InstrumentServer server = new InstrumentServer(endpoint);
             server.StartListening();
             Thread.Sleep(2000);
-            bool isRunning = server.isServerRunning;
+            bool isRunning = server.isCrestronListnerRunning;
             Assert.IsTrue(isRunning);
             server.StopServer();
-            isRunning = server.isServerRunning;
+            isRunning = server.isCrestronListnerRunning;
             Assert.IsFalse(isRunning);
         }
 

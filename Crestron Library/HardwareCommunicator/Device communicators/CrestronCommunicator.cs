@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading;
 
 /// <summary>
-/// Client for connecting and recieving commands from server unit
+/// Client for connecting and recieving commands from server unit to control a crestron Device
 /// <author>Mikael Nilssen</author>
 /// </summary>
 
 namespace Instrument_Communicator_Library {
 
-    public class InstrumentDevice {
+    public class CrestronCommunicator {
         public string ip { get; private set; } //Ip address of target server
         public int port { get; private set; } //Port of target server
         private Socket connectionSocket;    //Connection to server
@@ -22,10 +22,10 @@ namespace Instrument_Communicator_Library {
 
         //Values for state control
         private bool isAuthorized;  //Boolean for wheter the authorization process is complete
-
         private bool isSocketConnected; //Is the socket connected to the server
+        private int failedAuthorizationAttempts;   //Count of failed con
 
-        public InstrumentDevice(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) {
+        public CrestronCommunicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) {
             this.ip = ip;
             this.port = port;
             this.clientInfo = informationAboutClient;
@@ -105,13 +105,10 @@ namespace Instrument_Communicator_Library {
                         //Read a protocol choice from the buffer and exceute it
                         startAProtocol(connectionSocket);
                     }
-                } else {
-                    Console.WriteLine("Thread {0} Client Authorization failed", Thread.CurrentThread.ManagedThreadId);
-                    Thread.Sleep(1000);
-                }
-            } catch (Exception ex) {
+                } 
                 
-                return;
+            } catch (Exception ex) {
+                throw ex;
             }
         }
 
@@ -187,6 +184,16 @@ namespace Instrument_Communicator_Library {
                     return true;
                 } else {
                     Console.WriteLine("Thread {0} Authorization Failed", Thread.CurrentThread.ManagedThreadId);
+
+                    //Count failed authorization attempts
+                    failedAuthorizationAttempts++;
+
+                    if (failedAuthorizationAttempts > 5) {
+                        //TODO: handle multiple failed authorizations
+                    }
+                    //Wait before trying to reconnect
+                    Thread.Sleep(1000 * 60);
+
                     // return false, representing a failed authorization
                     return false;
                 }

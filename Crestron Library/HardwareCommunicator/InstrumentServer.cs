@@ -18,16 +18,23 @@ namespace Instrument_Communicator_Library {
 
         private int maxConnections; //Maximum number of connections for the Pool
         private int maxPendingConnections;  //Backlog size of Listening socket
-        private int numConnections = 0; //Connected Sockets
-        public bool isServerRunning { get; private set; } //Should the server listen for more connection
-        private Socket listenSocket;    //Socket for accepting incoming connections
-        private IPEndPoint ipEndPoint { get; set; }     //Host Info
-        private List<CrestronConnection> crestronConnectionsList;   //All connected clients
 
+        #region Crestron variables
+        private int crestronConnections = 0; //Connected Sockets
+        public bool isCrestronListnerRunning { get; private set; } //Should the server listen for more connection
+        private Socket crestronListeningSocket;    //Socket for accepting incoming connections
+        private IPEndPoint ipEndPointCrestron { get; set; }     //Host Info
+        private List<CrestronConnection> crestronConnectionsList;   //All connected clients
         private int timeToWait = 1000*60;         //Time to wait between Pings in millis in the main loop
         private int timeTosleep = 1000;         //Time to sleep before checking for new commands in the main loop
+        #endregion
 
+        #region Video Variables
+        private IPEndPoint ipEndPointVideo;     //represents endpoint of the video streaming listening socket
+        private Socket videoListeningSocket;    //Socket stream used for video streaming
+        private bool isVideoListenerRunning;    //represents a listening video socket
 
+        #endregion
 
         /// <summary>
         /// Constructor
@@ -35,34 +42,44 @@ namespace Instrument_Communicator_Library {
         /// <param name="ipEndPoint"> ip specification used by socket</param>
         /// <param name="maxConnections"> maximum number of allowed connections by the server</param>
         /// <param name="maxPendingConnections"> maximum number of pending connections for the lsitenning socket</param>
-        public InstrumentServer(IPEndPoint ipEndPoint, int maxConnections = 30, int maxPendingConnections = 30) {
+        public InstrumentServer(IPEndPoint ipEndPointCrestron, IPEndPoint ipEndPointVideo, int maxConnections = 30, int maxPendingConnections = 30) {
             this.maxConnections = maxConnections;
-            this.ipEndPoint = ipEndPoint;
+            this.ipEndPointCrestron = ipEndPointCrestron;
+            this.ipEndPointVideo = ipEndPointVideo;
             this.maxPendingConnections = maxPendingConnections;
-            isServerRunning = true;
+            isCrestronListnerRunning = true;
             crestronConnectionsList = new List<CrestronConnection>();  //Initialize empty list for tracking client connections
 
         }
+
+        /// <summary>
+        /// Starts the crestron and video listening sockets, and accepts and handels new connections
+        /// </summary>
+        public void StartListener() {
+            StartListenerControls();
+        }
+
+
 
         #region Crestron Listening
         /// <summary>
         /// Sets up listening socket, and calls StartAccepting to continously accept new clients
         /// </summary>
-        public void StartListeningControls() {
+        private void StartListenerControls() {
             //Create socket for incoming connections
-            listenSocket = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            listenSocket.Bind(ipEndPoint);
+            crestronListeningSocket = new Socket(ipEndPointCrestron.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            crestronListeningSocket.Bind(ipEndPointCrestron);
 
             //Start listen with Backlog size of max connections
-            listenSocket.Listen(maxPendingConnections);
+            crestronListeningSocket.Listen(maxPendingConnections);
 
             //Accepts Connections
-            while (isServerRunning) {
+            while (isCrestronListnerRunning) {
                 //Accept an incoming connection
                 Console.WriteLine("SERVER - Main Thread {0} Says: Waiting For new Socket Connection...", Thread.CurrentThread.ManagedThreadId);
-                Socket newSocket = listenSocket.Accept();
+                Socket newSocket = crestronListeningSocket.Accept();
                 //Increment Current Connections
-                incrementConnectionNumber();
+                incrementCrestronConnection();
                 //Creates a new Thread to run a client communication on
                 Thread newClientThread = new Thread(ThreadRunProtocols);
                 newClientThread.IsBackground = true;
@@ -75,7 +92,7 @@ namespace Instrument_Communicator_Library {
                     newClientThread.Start(newClientConnection);
                 } catch (Exception ex) {
                     //Lower Connection number
-                    decrementConnectionNumber();
+                    decrementCrestronConnection();
                     newSocket.Disconnect(false);
                     newSocket.Close();
                 }
@@ -86,12 +103,12 @@ namespace Instrument_Communicator_Library {
         /// Stops server from looping and clears socket
         /// </summary>
         public void StopServer() {
-            isServerRunning = false;
-            listenSocket.Disconnect(true);
+            isCrestronListnerRunning = false;
+            crestronListeningSocket.Disconnect(true);
         }
 
         /// <summary>
-        /// Represents a communication thread that handles all communication with a single connected client
+        /// Represents a communication thread that handles all crestron communication iwth a connected client
         /// </summary>
         /// <param name="obj"> represents a ClientConnection object. in order to be used as a parameraizedThread, it needs to be casted</param>
         private void ThreadRunProtocols(object obj) {
@@ -191,17 +208,17 @@ namespace Instrument_Communicator_Library {
         /// Adds 1 to numConnections var
         /// Represents the number of connected clients to the server
         /// </summary>
-        private void incrementConnectionNumber() {
-            numConnections++;
+        private void incrementCrestronConnection() {
+            crestronConnections++;
         }
 
         /// <summary>
         /// Removes 1 from numConnections var
         /// Represents the number of connected clients to the server
         /// </summary>
-        private void decrementConnectionNumber() {
-            if (numConnections > 0) {
-                numConnections--;
+        private void decrementCrestronConnection() {
+            if (crestronConnections > 0) {
+                crestronConnections--;
             }
         }
 
@@ -412,5 +429,17 @@ namespace Instrument_Communicator_Library {
         }
 
         #endregion
+
+        #region Video listening
+
+        public void StartVideoListener() {
+
+
+
+        }
+
+
+        #endregion
+
     }
 }
