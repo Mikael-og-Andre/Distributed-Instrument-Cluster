@@ -22,7 +22,7 @@ namespace Instrument_Communicator_Library {
         public bool isServerRunning { get; private set; } //Should the server listen for more connection
         private Socket listenSocket;    //Socket for accepting incoming connections
         private IPEndPoint ipEndPoint { get; set; }     //Host Info
-        private List<ClientConnection> clientConnectionList;   //All connected clients
+        private List<CrestronConnection> crestronConnectionsList;   //All connected clients
 
         private int timeToWait = 1000*60;         //Time to wait between Pings in millis in the main loop
         private int timeTosleep = 1000;         //Time to sleep before checking for new commands in the main loop
@@ -40,14 +40,15 @@ namespace Instrument_Communicator_Library {
             this.ipEndPoint = ipEndPoint;
             this.maxPendingConnections = maxPendingConnections;
             isServerRunning = true;
-            clientConnectionList = new List<ClientConnection>();  //Initialize empty list for tracking client connections
+            crestronConnectionsList = new List<CrestronConnection>();  //Initialize empty list for tracking client connections
 
         }
 
+        #region Crestron Listening
         /// <summary>
         /// Sets up listening socket, and calls StartAccepting to continously accept new clients
         /// </summary>
-        public void StartListening() {
+        public void StartListeningControls() {
             //Create socket for incoming connections
             listenSocket = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             listenSocket.Bind(ipEndPoint);
@@ -67,7 +68,7 @@ namespace Instrument_Communicator_Library {
                 newClientThread.IsBackground = true;
 
                 //Create a client connection object representing the connection
-                ClientConnection newClientConnection = new ClientConnection(newSocket, newClientThread);
+                CrestronConnection newClientConnection = new CrestronConnection(newSocket, newClientThread);
 
                 try {
                     //Pass in ClientConnection and start a new thread ThreadProtocol
@@ -94,10 +95,10 @@ namespace Instrument_Communicator_Library {
         /// </summary>
         /// <param name="obj"> represents a ClientConnection object. in order to be used as a parameraizedThread, it needs to be casted</param>
         private void ThreadRunProtocols(object obj) {
-            ClientConnection clientConnection;
+            CrestronConnection clientConnection;
             try {
                 //cast input object to Client Connection
-                clientConnection = (ClientConnection)obj;
+                clientConnection = (CrestronConnection)obj;
             } catch (InvalidCastException ex) {
                 
                 throw new InvalidCastException("Could not cast input object to ClientConnection in method ThreadPortocol, Class InstrumentServer");
@@ -209,11 +210,11 @@ namespace Instrument_Communicator_Library {
         /// </summary>
         /// <param name="connection"> the ClientConnection to be added</param>
         /// <returns> Boolean value representing wheter the adding was succesful</returns>
-        private bool AddClientConnection(ClientConnection connection) {
+        private bool AddClientConnection(CrestronConnection connection) {
             try {
                 //Lock the non threadsafe list, and then add object
-                lock (clientConnectionList) {
-                    this.clientConnectionList.Add(connection);
+                lock (crestronConnectionsList) {
+                    this.crestronConnectionsList.Add(connection);
                 }
                 return true;
             } catch (Exception ex) {
@@ -226,11 +227,11 @@ namespace Instrument_Communicator_Library {
         /// </summary>
         /// <param name="connection">Connection to be removed</param>
         /// <returns>Boolean representing succcessful removal</returns>
-        private bool RemoveClientConnection(ClientConnection connection) {
+        private bool RemoveClientConnection(CrestronConnection connection) {
             try {
                 //lock the non threadsafe list and then remove object
-                lock (clientConnectionList) {
-                    return this.clientConnectionList.Remove(connection);
+                lock (crestronConnectionsList) {
+                    return this.crestronConnectionsList.Remove(connection);
                 }
             } catch (Exception ex) {
                 
@@ -246,7 +247,7 @@ namespace Instrument_Communicator_Library {
         /// Starts predermined sequenc eof socket operations used to authorize a remote device
         /// </summary>
         /// <param name="clientConnection">Client Connection representing The current Connection</param>
-        private void serverProtocolAuthorization(ClientConnection clientConnection) {
+        private void serverProtocolAuthorization(CrestronConnection clientConnection) {
             //get socket
             Socket connectionSocket = clientConnection.getSocket();
             //Convert string to bytes
@@ -286,7 +287,7 @@ namespace Instrument_Communicator_Library {
         /// Send protocol type PING to client and receives awnser
         /// </summary>
         /// <param name="clientConnection">Connected and authorized socket</param>
-        private void serverProtocolPing(ClientConnection clientConnection) {
+        private void serverProtocolPing(CrestronConnection clientConnection) {
             //Send protocol type "ping" to client
             //get socket
             Socket connectionSocket = clientConnection.getSocket();
@@ -319,7 +320,7 @@ namespace Instrument_Communicator_Library {
         }
 
         //TODO: handle status protocol server
-        private void serverProtocolStatus(ClientConnection clientConnection) {
+        private void serverProtocolStatus(CrestronConnection clientConnection) {
 
             throw new NotImplementedException();
         }
@@ -328,7 +329,7 @@ namespace Instrument_Communicator_Library {
         /// Sends an array of strings from the input queue in the client connection
         /// </summary>
         /// <param name="clientConnection">Client Connection Object</param>
-        private void serverProtocolMessage(ClientConnection clientConnection) {
+        private void serverProtocolMessage(CrestronConnection clientConnection) {
             //Get refrence to the queue
             ConcurrentQueue<Message> inputQueue = clientConnection.getInputQueue();
             //Get Socket
@@ -406,8 +407,10 @@ namespace Instrument_Communicator_Library {
         /// Get the list of connected clients
         /// </summary>
         /// <returns>List of Client Connections</returns>
-        public List<ClientConnection> getClientConnections() {
-            return this.clientConnectionList;
+        public List<CrestronConnection> getCrestronConnectionList() {
+            return this.crestronConnectionsList;
         }
+
+        #endregion
     }
 }

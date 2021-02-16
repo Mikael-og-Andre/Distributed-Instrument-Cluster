@@ -10,15 +10,16 @@ using System.Threading;
 
 namespace Instrument_Communicator_Library {
 
-    public class ClientConnection {
+    public class CrestronConnection {
         private Socket socket { get; set; }     //Socket of the client Connection
         private ConcurrentQueue<Message> concurrentQueueInput;  // Concurrent queue for Messages to send to the client
         private ConcurrentQueue<Message> concurrentQueueOutput;  //Concurrent queue for Messages recieved by the client
         private Thread myThread; // The thread the connection is running on
         private AccessToken accessToken = null; // Token representing a valid connection to the server
         private bool isActive = true; //Is the connection running
+        private InstrumentInformation info;
 
-        public ClientConnection(Socket socket, Thread thread) {
+        public CrestronConnection(Socket socket, Thread thread) {
             this.socket = socket;
             this.myThread = thread;
             //Init queues

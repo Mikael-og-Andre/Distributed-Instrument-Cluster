@@ -30,22 +30,22 @@ namespace Server_And_Demo_Project {
             AccessToken accessToken = new AccessToken("access");
             InstrumentInformation info = new InstrumentInformation("Device 1","Location 1", "sample type");
 
-            InstrumentClient client = new InstrumentClient(ip,port, info, accessToken);
+            InstrumentDevice client = new InstrumentDevice(ip,port, info, accessToken);
             Thread clientThread = new Thread(() => client.start());
             clientThread.Start();
-            InstrumentClient client2 = new InstrumentClient(ip, port, info, accessToken);
+            InstrumentDevice client2 = new InstrumentDevice(ip, port, info, accessToken);
             Thread clientThread2 = new Thread(() => client2.start());
             clientThread2.Start();
-            InstrumentClient client3 = new InstrumentClient(ip, port, info, accessToken);
+            InstrumentDevice client3 = new InstrumentDevice(ip, port, info, accessToken);
             Thread clientThread3 = new Thread(() => client3.start());
             clientThread3.Start();
             Thread.Sleep(20000);
-            List<ClientConnection> connections = instumentServer.getClientConnections();
+            List<CrestronConnection> connections = instumentServer.getCrestronConnectionList();
             Thread.Sleep(1000);
 
             Console.WriteLine("populating messages");
             for (int i = 0; i < connections.Count; i++) {
-                ClientConnection connection = connections[i];
+                CrestronConnection connection = connections[i];
                 ConcurrentQueue<Message> queue = connection.getInputQueue();
                 string[] strings = new string[] { "Hello", "this", "is", "a", "test" };
                 Message newMessage = new Message(protocolOption.message, strings);
@@ -54,7 +54,7 @@ namespace Server_And_Demo_Project {
             }
             Console.WriteLine("populating messages");
             for (int i = 0; i < connections.Count; i++) {
-                ClientConnection connection = connections[i];
+                CrestronConnection connection = connections[i];
                 ConcurrentQueue<Message> queue = connection.getInputQueue();
                 string[] strings = new string[] { "wow", "i", "dont", "like", "greens" };
                 Message newMessage = new Message(protocolOption.message, strings);

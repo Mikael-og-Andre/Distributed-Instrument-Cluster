@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace Instrument_Communicator_Library {
 
-    public class InstrumentClient {
+    public class InstrumentDevice {
         public string ip { get; private set; } //Ip address of target server
         public int port { get; private set; } //Port of target server
         private Socket connectionSocket;    //Connection to server
@@ -25,7 +25,7 @@ namespace Instrument_Communicator_Library {
 
         private bool isSocketConnected; //Is the socket connected to the server
 
-        public InstrumentClient(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) {
+        public InstrumentDevice(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) {
             this.ip = ip;
             this.port = port;
             this.clientInfo = informationAboutClient;
