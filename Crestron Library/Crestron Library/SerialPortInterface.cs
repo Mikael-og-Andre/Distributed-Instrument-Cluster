@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO.Ports;
 using System.Threading;
 
@@ -8,21 +10,65 @@ namespace Crestron_Library {
 	/// Class to interface with serial port and send bytes over serial connections.
 	/// </summary>
 	/// <author>Andre Helland</author>
-	public class SerialPortInterface {
-
+	public class SerialPortInterface: IDisposable {
+		private readonly ConcurrentQueue<byte> byteQueue = new ConcurrentQueue<byte>();
 		private static SerialPort serialPort;
+		private bool SendData = true;
 
-		public SerialPortInterface() {
+		public SerialPortInterface(string port) {
 			serialPort = new SerialPort();
+			setSerialPort(port);
+
+			Thread sendThread = new Thread(SendDataThread);
+			sendThread.Start();
 		}
 
 		/// <summary>
-		///Close connection with current port and change what serial port the class is connected to.
+		/// Thread sending bytes queued up in byteQueue.
+		/// Method sends byte one by one and waits for response byte from crestron cable before sending.
+		/// </summary>
+		private void SendDataThread() {
+			serialPort.Open();
+			while(SendData) {
+				byte b;
+				if (byteQueue.TryDequeue(out b))
+					sendByte(b);
+			}
+			serialPort.Close();
+		}
+
+
+		/// <summary>
+		/// Sends byte to serial port and waits for response.
+		/// 
+		/// After each command is sent to the CBL-USB-RS232KM-6,
+		/// the CBL-USB-RS232KM-6 returns a response code, which is the 1’s complement of the command received.
+		/// Use this response byte to indicate when the next command may be sent to the  CBL-USB-RS232KM-6. 
+		/// </summary>
+		/// <param name="bytes">List of bytes to send.</param>
+		/// <returns>Response byte from byte sent</returns>
+		private byte sendByte(byte b) {
+			byte[] bytes = new byte[] { b };
+
+			serialPort.Write(bytes, 0, bytes.Length);
+
+			//Wait for response byte before continuing.
+			var responseByte = new byte[1];
+			while (true) {
+				serialPort.Read(responseByte, 0, 1);
+				if (responseByte != null)
+					break;
+			}
+			return responseByte[0];
+		}
+
+		/// <summary>
+		/// Method for validating selected port and connecting to it.
 		/// </summary>
 		/// <param name="port">Serial port to connect to.</param>
-		public void setSerialPort(String port) {
+		private void setSerialPort(String port) {
 			//Check if port given is valid and throw exception if not.
-			String[] ports = getAvailablePorts();
+			String[] ports = GetAvailablePorts();
 			bool portValid = false;
 			foreach (String s in ports) {
 				if (port.ToLower().Equals(s.ToLower())) {
@@ -30,59 +76,48 @@ namespace Crestron_Library {
 					break;
 				}
 			}
-			if(!portValid) {
+			if (!portValid) {
 				throw new ArgumentException("Invalid port: \"" + port + "\"");
+			} else {
+				serialPort.PortName = port;
 			}
-
-			serialPort.Close();
-			serialPort.PortName = port;
 		}
 
 		/// <summary>
 		/// Function returns all available serial ports.
 		/// </summary>
 		/// <returns>String array of all available serial ports.</returns>
-		public String[] getAvailablePorts() {
+		public static String[] GetAvailablePorts() {
 			return SerialPort.GetPortNames();
 		}
 
-
+		//TODO: make synchronous / lock DataSendingThread (avoid com port collision).
 		/// <summary>
-		/// Sends byte array of bytes to serial port.
-		/// Unreliable when sending more than 2 bytes!!!
-		/// Use "sendBytesSafe" when sending more than 1 byte.
-		/// TODO: Potential fix (investigate).
-		/// After each command is sent to the CBL-USB-RS232KM-6,
-		/// the CBL-USB-RS232KM-6 returns a response code, which is the 1’s complement of the command received.
-		/// Use this response byte to indicate when the next command may be sent to the  CBL-USB-RS232KM-6. 
+		/// Method sends byte to receive information on button state for:
+		/// Caps Lock, num lock and scroll lock.
 		/// </summary>
-		/// <param name="bytes">Array of bytes to send.</param>
-		public void sendBytes(byte[] bytes) {
-			serialPort.Open();
-			serialPort.Write(bytes, 0, bytes.Length);
-			serialPort.Close();
+		/// <returns>Binary "truth table" for what buttons are on and off in the form of a byte.</returns>
+		public byte GetLEDStatus() {
+			return sendByte(0x7f); // 0x7f: Byte to get status response.
 		}
 
 		/// <summary>
-		/// Reliably transmit multiple bytes.
-		/// (Function is kinda slow due to serial port limitation/baud rate)
+		/// Adds bytes to byte queue.
+		/// Bytes are then sent by SendingDataThread.
 		/// </summary>
-		/// <param name="bytes">Array of bytes to send.</param>
-		/// <param name="keySafety">If function will send clear key buffer command to release all keys to prevent having keys accidentally stuck.</param>
-		public void sendBytesSafe(byte[] bytes, bool keySafety=true) {
-			//Iterate over all bytes in array and send them one at a time.
-			//(Done for reliable transmission. Sending more than 2 bytes = unreliable transmission)
-			foreach (byte b in bytes) {
-				sendBytes(new byte[] {b});
-			}
-
-			//Send buffer clear command releasing any potentially stuck key.
-			if (keySafety) {
-				serialPort.Open();
-				serialPort.Write(new byte[] { 0x38 }, 0, 1);              //0x38: USB buffer clear command (release all keys).
-				serialPort.Close();
+		/// <param name="bytes"></param>
+		public void SendBytes(List<byte> bytes) {
+			foreach(byte b in bytes) {
+				byteQueue.Enqueue(b);
 			}
 		}
 
+		/// <summary>
+		/// Stops data sending thread and releases com port.
+		/// </summary>
+		public void Dispose() {
+			SendData = false;
+			GC.Collect();
+		}
 	}
 }
