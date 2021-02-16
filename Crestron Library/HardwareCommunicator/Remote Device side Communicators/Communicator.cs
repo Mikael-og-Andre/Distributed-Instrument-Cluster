@@ -15,7 +15,7 @@ namespace Instrument_Communicator_Library {
 
         //State
         protected bool isSocketConnected = false; //Is the socket connected to the server
-        protected CancellationToken serverRunningCancellationToken;    //
+        protected CancellationToken serverRunningCancellationToken;    //Cancelation token used to stop loops
 
 
         public Communicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) {
@@ -32,9 +32,9 @@ namespace Instrument_Communicator_Library {
             try {
                 // Create new socket
                 connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            } catch (Exception e) {
+            } catch (Exception ex) {
 
-                throw e;
+                throw ex;
             }
             //connection state
             isSocketConnected = false;
