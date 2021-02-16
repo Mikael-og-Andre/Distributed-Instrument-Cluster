@@ -72,7 +72,7 @@ namespace Instrument_Communicator_Library {
                 try {
                     //Pass in ClientConnection and start a new thread ThreadProtocol
                     newClientThread.Start(newClientConnection);
-                } catch (Exception e) {
+                } catch (Exception ex) {
                     //Lower Connection number
                     decrementConnectionNumber();
                     newSocket.Disconnect(false);
@@ -98,7 +98,7 @@ namespace Instrument_Communicator_Library {
             try {
                 //cast input object to Client Connection
                 clientConnection = (ClientConnection)obj;
-            } catch (InvalidCastException e) {
+            } catch (InvalidCastException ex) {
                 
                 throw new InvalidCastException("Could not cast input object to ClientConnection in method ThreadPortocol, Class InstrumentServer");
             }
@@ -233,7 +233,7 @@ namespace Instrument_Communicator_Library {
                     return this.clientConnectionList.Remove(connection);
                 }
             } catch (Exception ex) {
-                //TODO: add logging remove client connection
+                
                 return false;
             }
         }
@@ -279,8 +279,7 @@ namespace Instrument_Communicator_Library {
                 clientConnection.setIsConnectionActive(false);
                 return;
             }
-            // If successful request more info
-            //TODO: Add extended profiling to authorization process
+            
         }
 
         /// <summary>
@@ -375,7 +374,8 @@ namespace Instrument_Communicator_Library {
                     //Send 32 bytes to client
                     connectionSocket.Send(bytesToSend, 32, SocketFlags.None);
                 }
-            } catch (Exception e) {
+            } catch (Exception ex) {
+                return;
             }
         }
 

@@ -27,18 +27,22 @@ namespace Server_And_Demo_Project {
             Thread.Sleep(10000);
             //instumentServer.StopServer();
             string ip = "127.0.0.1";
-            InstrumentClient client = new InstrumentClient(ip,port);
+            AccessToken accessToken = new AccessToken("access");
+            InstrumentInformation info = new InstrumentInformation("Device 1","Location 1", "sample type");
+
+            InstrumentClient client = new InstrumentClient(ip,port, info, accessToken);
             Thread clientThread = new Thread(() => client.start());
             clientThread.Start();
-            InstrumentClient client2 = new InstrumentClient(ip, port);
+            InstrumentClient client2 = new InstrumentClient(ip, port, info, accessToken);
             Thread clientThread2 = new Thread(() => client2.start());
             clientThread2.Start();
-            InstrumentClient client3 = new InstrumentClient(ip, port);
+            InstrumentClient client3 = new InstrumentClient(ip, port, info, accessToken);
             Thread clientThread3 = new Thread(() => client3.start());
             clientThread3.Start();
             Thread.Sleep(20000);
             List<ClientConnection> connections = instumentServer.getClientConnections();
             Thread.Sleep(1000);
+
             Console.WriteLine("populating messages");
             for (int i = 0; i < connections.Count; i++) {
                 ClientConnection connection = connections[i];

@@ -18,20 +18,21 @@ namespace Instrument_Communicator_Library {
         private bool isClientRunning = true;       //Should the client
         private AccessToken accessToken;   // Authorization code to send to the server
         private ConcurrentQueue<string> commandOutputQueue; //Queue representing commands received by receive protocol
+        private InstrumentInformation clientInfo;
 
         //Values for state control
         private bool isAuthorized;  //Boolean for wheter the authorization process is complete
 
         private bool isSocketConnected; //Is the socket connected to the server
 
-        public InstrumentClient(string ip, int port) {
+        public InstrumentClient(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) {
             this.ip = ip;
             this.port = port;
+            this.clientInfo = informationAboutClient;
             this.commandOutputQueue = new ConcurrentQueue<string>();    //Init queue
             this.isSocketConnected = false;
             this.isAuthorized = false;
-            //TODO: add accessToken loading from setting file
-            this.accessToken = new AccessToken("access");
+            this.accessToken = accessToken;
         }
 
         /// <summary>
@@ -42,7 +43,7 @@ namespace Instrument_Communicator_Library {
                 // Create new socket
                 connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             } catch (Exception e) {
-                //TODO: add logging create new socket
+                
                 throw e;
             }
             //connection state
@@ -75,8 +76,8 @@ namespace Instrument_Communicator_Library {
                 //Try Connecting to server
                 connectionSocket.Connect(ip, port);
                 return true;
-            } catch (SocketException e) {
-                //TODO: add Logging attempt conncetion
+            } catch (SocketException ex) {
+                //TODO: Add logging to instrument server
                 //return false to represent failed connection
                 return false;
             }
@@ -109,7 +110,7 @@ namespace Instrument_Communicator_Library {
                     Thread.Sleep(1000);
                 }
             } catch (Exception ex) {
-                //TODO: Exception logging
+                
                 return;
             }
         }
@@ -190,7 +191,7 @@ namespace Instrument_Communicator_Library {
                     return false;
                 }
             } catch (Exception ex) {
-                //TODO: Exception logging
+                
                 return false;
             }
         }
