@@ -11,83 +11,26 @@ using System.Threading;
 
 namespace Instrument_Communicator_Library {
 
-    public class CrestronCommunicator {
-        public string ip { get; private set; } //Ip address of target server
-        public int port { get; private set; } //Port of target server
-        private Socket connectionSocket;    //Connection to server
-        private bool isClientRunning = true;       //Should the client
-        private AccessToken accessToken;   // Authorization code to send to the server
+    public class CrestronCommunicator : Communicator {
+
         private ConcurrentQueue<string> commandOutputQueue; //Queue representing commands received by receive protocol
-        private InstrumentInformation clientInfo;
+
 
         //Values for state control
         private bool isAuthorized;  //Boolean for wheter the authorization process is complete
-        private bool isSocketConnected; //Is the socket connected to the server
         private int failedAuthorizationAttempts;   //Count of failed con
 
-        public CrestronCommunicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) {
-            this.ip = ip;
-            this.port = port;
-            this.clientInfo = informationAboutClient;
+        public CrestronCommunicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) : base(ip, port, informationAboutClient, accessToken) {
+            
             this.commandOutputQueue = new ConcurrentQueue<string>();    //Init queue
-            this.isSocketConnected = false;
-            this.isAuthorized = false;
-            this.accessToken = accessToken;
         }
 
-        /// <summary>
-        /// Starts the client and attempts to connect to the server
-        /// </summary>
-        public void start() {
-            try {
-                // Create new socket
-                connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            } catch (Exception e) {
-                
-                throw e;
-            }
-            //connection state
-            isSocketConnected = false;
-
-            // Loop whilst the client is supposed to run
-            while (isClientRunning) {
-                //check if client is connected, if not connect
-                if (!isSocketConnected) {
-                    // Try to connect
-                    isSocketConnected = attemptConnection(connectionSocket);
-                }
-                //check if client is connected, if it is handle the connection
-                if (isSocketConnected) {
-                    //handle the connection
-                    handleConnected(connectionSocket);
-                } else {
-                    Console.WriteLine("Thread {0} says: " + "Connection failed", Thread.CurrentThread.ManagedThreadId);
-                }
-            }
-        }
 
         /// <summary>
-        /// Attempts to connect to the given host and ip
-        /// </summary>
-        /// <param name="connectionSocket"> unconnected Soccket</param>
-        /// <returns> boolean representing succesful conncetion</returns>
-        private bool attemptConnection(Socket connectionSocket) {
-            try {
-                //Try Connecting to server
-                connectionSocket.Connect(ip, port);
-                return true;
-            } catch (SocketException ex) {
-                //TODO: Add logging to instrument server
-                //return false to represent failed connection
-                return false;
-            }
-        }
-
-        /// <summary>
-        ///
+        /// Handles the conneceted device
         /// </summary>
         /// <param name="connectionSocket"></param>
-        private void handleConnected(Socket connectionSocket) {
+        protected override void handleConnected(Socket connectionSocket) {
             try {
                 //check if the client is authorized,
                 if (!isAuthorized) {
@@ -101,16 +44,17 @@ namespace Instrument_Communicator_Library {
                 if (isAuthorized) {
                     Console.WriteLine("Thread {0} Client Authorization complete", Thread.CurrentThread.ManagedThreadId);
                     //Run main protocol Loop
-                    while (isClientRunning) {
+                    while (!serverRunningCancellationToken.IsCancellationRequested) {
                         //Read a protocol choice from the buffer and exceute it
                         startAProtocol(connectionSocket);
                     }
-                } 
-                
+                }
+
             } catch (Exception ex) {
                 throw ex;
             }
         }
+        
 
         /// <summary>
         /// Listens for selected protocol sent by server and preforms correct response protocol
@@ -261,5 +205,7 @@ namespace Instrument_Communicator_Library {
         public ConcurrentQueue<string> getCommandOutputQueue() {
             return commandOutputQueue;
         }
+
+        
     }
 }
