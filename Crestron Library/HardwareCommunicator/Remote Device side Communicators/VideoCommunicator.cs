@@ -4,6 +4,11 @@ using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 
+
+/// <summary>
+/// Represents a socket line from a device to the server, intended to send video
+/// <author>Mikael Nilssen</author>
+/// </summary>
 namespace Instrument_Communicator_Library {
 
     public class VideoCommunicator<T> : CommunicatorBase {
@@ -44,7 +49,10 @@ namespace Instrument_Communicator_Library {
                 
             }
         }
-
+        /// <summary>
+        /// Get the concurrent Queue
+        /// </summary>
+        /// <returns></returns>
         public ConcurrentQueue<T> getInputQueue() {
             return inputQueue;
         }

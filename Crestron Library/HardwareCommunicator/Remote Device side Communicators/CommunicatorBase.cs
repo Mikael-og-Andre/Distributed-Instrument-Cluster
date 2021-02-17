@@ -2,6 +2,12 @@
 using System.Net.Sockets;
 using System.Threading;
 
+
+/// <summary>
+/// Base class for communicator classes, intended to be on the remote side of the instrument cluster
+/// <Author>Mikael Nilssen</Author>
+/// </summary>
+
 namespace Instrument_Communicator_Library {
 
     public abstract class CommunicatorBase {
@@ -72,7 +78,18 @@ namespace Instrument_Communicator_Library {
                 return false;
             }
         }
-
+        /// <summary>
+        /// The main function of a communicator that gets called after you are connected and preforms actions with the socket
+        /// </summary>
+        /// <param name="connectionSocket"></param>
         abstract protected void handleConnected(Socket connectionSocket);
+
+        /// <summary>
+        /// returns the cnacelation token
+        /// </summary>
+        /// <returns>Returns cancellation token</returns>
+        public CancellationToken GetCancellationToken() {
+            return this.communicatorCancellationToken;
+        }
     }
 }

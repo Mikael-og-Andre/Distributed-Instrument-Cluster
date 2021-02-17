@@ -123,7 +123,10 @@ namespace Instrument_Communicator_Library.Server_Listener {
                 return obj;
             }
         }
-
+        /// <summary>
+        /// Get the list of video connection objects
+        /// </summary>
+        /// <returns>List of videoconnection objects of type T</returns>
         public List<VideoConnection<T>> getVideoConnectionList() {
             return listVideoConnections;
         }
