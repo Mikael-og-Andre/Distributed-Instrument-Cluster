@@ -60,7 +60,7 @@
 											"font": "Arial;13;1",
 											"left": 229,
 											"top": 271,
-											"width": 143,
+											"width": 152.8271484375,
 											"height": 13,
 											"text": "Serial Port Interface"
 										},
@@ -72,9 +72,9 @@
 											},
 											"visible": false,
 											"font": "Arial;13;0",
-											"left": 448,
-											"top": 528,
-											"width": 131.46630859375,
+											"left": 229,
+											"top": 286,
+											"width": 152.8271484375,
 											"height": 13,
 											"text": "(from Crestron Library)"
 										},
@@ -96,7 +96,7 @@
 									"font": "Arial;13;0",
 									"left": 224,
 									"top": 264,
-									"width": 153,
+									"width": 162.8271484375,
 									"height": 25,
 									"stereotypeLabel": {
 										"$ref": "AAAAAAF3kUYms6YZMqE="
@@ -133,18 +133,52 @@
 											"font": "Arial;13;0",
 											"left": 229,
 											"top": 294,
-											"width": 143,
+											"width": 152.8271484375,
 											"height": 13,
 											"underline": true,
 											"text": "-SerialPort",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "AAAAAAF3rNIYWHer70Y=",
+											"_parent": {
+												"$ref": "AAAAAAF3kUYmtKYdDT0="
+											},
+											"model": {
+												"$ref": "AAAAAAF3rNIYR3eoTeY="
+											},
+											"font": "Arial;13;0",
+											"left": 229,
+											"top": 309,
+											"width": 152.8271484375,
+											"height": 13,
+											"text": "-byteQueue",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "AAAAAAF3rNI0D3e4q28=",
+											"_parent": {
+												"$ref": "AAAAAAF3kUYmtKYdDT0="
+											},
+											"model": {
+												"$ref": "AAAAAAF3rNI0C3e1ta4="
+											},
+											"font": "Arial;13;0",
+											"left": 229,
+											"top": 324,
+											"width": 152.8271484375,
+											"height": 13,
+											"text": "-SendData",
 											"horizontalAlignment": 0
 										}
 									],
 									"font": "Arial;13;0",
 									"left": 224,
 									"top": 289,
-									"width": 153,
-									"height": 23
+									"width": 162.8271484375,
+									"height": 53
 								},
 								{
 									"_type": "UMLOperationCompartmentView",
@@ -167,10 +201,10 @@
 											},
 											"font": "Arial;13;0",
 											"left": 229,
-											"top": 317,
-											"width": 143,
+											"top": 347,
+											"width": 152.8271484375,
 											"height": 13,
-											"text": "+setSerialPort()",
+											"text": "-SendDataThread()",
 											"horizontalAlignment": 0
 										},
 										{
@@ -184,10 +218,11 @@
 											},
 											"font": "Arial;13;0",
 											"left": 229,
-											"top": 332,
-											"width": 143,
+											"top": 362,
+											"width": 152.8271484375,
 											"height": 13,
-											"text": "+getAvailablePorts()",
+											"underline": true,
+											"text": "+GetAvailablePorts()",
 											"horizontalAlignment": 0
 										},
 										{
@@ -201,10 +236,10 @@
 											},
 											"font": "Arial;13;0",
 											"left": 229,
-											"top": 347,
-											"width": 143,
+											"top": 377,
+											"width": 152.8271484375,
 											"height": 13,
-											"text": "+sendBytes()",
+											"text": "+SendBytes()",
 											"horizontalAlignment": 0
 										},
 										{
@@ -218,18 +253,69 @@
 											},
 											"font": "Arial;13;0",
 											"left": 229,
-											"top": 362,
-											"width": 143,
+											"top": 392,
+											"width": 152.8271484375,
 											"height": 13,
-											"text": "+sendBytesSafe()",
+											"text": "-setSerialPort()",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "AAAAAAF3rNgGiXfJQS8=",
+											"_parent": {
+												"$ref": "AAAAAAF3kUYmtKYeNnY="
+											},
+											"model": {
+												"$ref": "AAAAAAF3rNgGf3fGiFQ="
+											},
+											"font": "Arial;13;0",
+											"left": 229,
+											"top": 407,
+											"width": 152.8271484375,
+											"height": 13,
+											"text": "-sendByte()",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "AAAAAAF3rNgVF3fP/co=",
+											"_parent": {
+												"$ref": "AAAAAAF3kUYmtKYeNnY="
+											},
+											"model": {
+												"$ref": "AAAAAAF3rNgVE3fMRiM="
+											},
+											"font": "Arial;13;0",
+											"left": 229,
+											"top": 422,
+											"width": 152.8271484375,
+											"height": 13,
+											"text": "+GetLEDStatus()",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "AAAAAAF3rNjt2HfYmAg=",
+											"_parent": {
+												"$ref": "AAAAAAF3kUYmtKYeNnY="
+											},
+											"model": {
+												"$ref": "AAAAAAF3rNjt03fVBJw="
+											},
+											"font": "Arial;13;0",
+											"left": 229,
+											"top": 437,
+											"width": 152.8271484375,
+											"height": 13,
+											"text": "+Dispose()",
 											"horizontalAlignment": 0
 										}
 									],
 									"font": "Arial;13;0",
 									"left": 224,
-									"top": 312,
-									"width": 153,
-									"height": 68
+									"top": 342,
+									"width": 162.8271484375,
+									"height": 113
 								},
 								{
 									"_type": "UMLReceptionCompartmentView",
@@ -258,9 +344,9 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 224,
+									"left": 255.158203125,
 									"top": 264,
-									"width": 10,
+									"width": 130.6689453125,
 									"height": 10
 								}
 							],
@@ -268,8 +354,8 @@
 							"containerChangeable": true,
 							"left": 224,
 							"top": 264,
-							"width": 153,
-							"height": 131,
+							"width": 162.8271484375,
+							"height": 206,
 							"nameCompartment": {
 								"$ref": "AAAAAAF3kUYms6YYBzQ="
 							},
@@ -339,9 +425,9 @@
 											},
 											"visible": false,
 											"font": "Arial;13;0",
-											"left": 912,
-											"top": 528,
-											"width": 131.46630859375,
+											"left": 405,
+											"top": 286,
+											"width": 182.45068359375,
 											"height": 13,
 											"text": "(from Crestron Library)"
 										},
@@ -569,7 +655,7 @@
 							"left": 400,
 							"top": 264,
 							"width": 192.45068359375,
-							"height": 146,
+							"height": 161,
 							"nameCompartment": {
 								"$ref": "AAAAAAF3kVGF3qeKp8Y="
 							},
@@ -783,8 +869,8 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 457,
-									"top": 196,
+									"left": 469,
+									"top": 202,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 15,
@@ -804,8 +890,8 @@
 									},
 									"visible": null,
 									"font": "Arial;13;0",
-									"left": 467,
-									"top": 207,
+									"left": 480,
+									"top": 212,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 30,
@@ -825,8 +911,8 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 436,
-									"top": 175,
+									"left": 446,
+									"top": 181,
 									"height": 13,
 									"alpha": -1.5707963267948966,
 									"distance": 15,
@@ -844,7 +930,7 @@
 								"$ref": "AAAAAAF3kVIy6qe7Wto="
 							},
 							"lineStyle": 1,
-							"points": "524:121;371:263",
+							"points": "530:121;387:276",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAF3kVLUlqg0iEc="
@@ -938,7 +1024,7 @@
 								"$ref": "AAAAAAF3kVIy6qe7Wto="
 							},
 							"lineStyle": 1,
-							"points": "559:121;517:263",
+							"points": "559:121;518:263",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAF3kVLrlahFtLU="
@@ -2536,6 +2622,26 @@
 							"visibility": "private",
 							"isStatic": true,
 							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "AAAAAAF3rNIYR3eoTeY=",
+							"_parent": {
+								"$ref": "AAAAAAF3kUYms6YVbkQ="
+							},
+							"name": "byteQueue",
+							"visibility": "private",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "AAAAAAF3rNI0C3e1ta4=",
+							"_parent": {
+								"$ref": "AAAAAAF3kUYms6YVbkQ="
+							},
+							"name": "SendData",
+							"visibility": "private",
+							"type": ""
 						}
 					],
 					"operations": [
@@ -2545,7 +2651,9 @@
 							"_parent": {
 								"$ref": "AAAAAAF3kUYms6YVbkQ="
 							},
-							"name": "setSerialPort"
+							"name": "SendDataThread",
+							"visibility": "private",
+							"concurrency": "concurrent"
 						},
 						{
 							"_type": "UMLOperation",
@@ -2553,7 +2661,8 @@
 							"_parent": {
 								"$ref": "AAAAAAF3kUYms6YVbkQ="
 							},
-							"name": "getAvailablePorts"
+							"name": "GetAvailablePorts",
+							"isStatic": true
 						},
 						{
 							"_type": "UMLOperation",
@@ -2561,7 +2670,7 @@
 							"_parent": {
 								"$ref": "AAAAAAF3kUYms6YVbkQ="
 							},
-							"name": "sendBytes"
+							"name": "SendBytes"
 						},
 						{
 							"_type": "UMLOperation",
@@ -2569,7 +2678,33 @@
 							"_parent": {
 								"$ref": "AAAAAAF3kUYms6YVbkQ="
 							},
-							"name": "sendBytesSafe"
+							"name": "setSerialPort",
+							"visibility": "private"
+						},
+						{
+							"_type": "UMLOperation",
+							"_id": "AAAAAAF3rNgGf3fGiFQ=",
+							"_parent": {
+								"$ref": "AAAAAAF3kUYms6YVbkQ="
+							},
+							"name": "sendByte",
+							"visibility": "private"
+						},
+						{
+							"_type": "UMLOperation",
+							"_id": "AAAAAAF3rNgVE3fMRiM=",
+							"_parent": {
+								"$ref": "AAAAAAF3kUYms6YVbkQ="
+							},
+							"name": "GetLEDStatus"
+						},
+						{
+							"_type": "UMLOperation",
+							"_id": "AAAAAAF3rNjt03fVBJw=",
+							"_parent": {
+								"$ref": "AAAAAAF3kUYms6YVbkQ="
+							},
+							"name": "Dispose"
 						}
 					]
 				},
@@ -2864,7 +2999,8 @@
 								"$ref": "AAAAAAF3p8ujkIExBbE="
 							},
 							"name": "FrameCaptureThread",
-							"visibility": "private"
+							"visibility": "private",
+							"concurrency": "concurrent"
 						},
 						{
 							"_type": "UMLOperation",
