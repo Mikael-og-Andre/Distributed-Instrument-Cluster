@@ -4,6 +4,7 @@ using System.Text;
 using System.Net;
 using System.Threading;
 using Instrument_Communicator_Library;
+using Instrument_Communicator_Library.Server_Listener;
 using System.Collections.Immutable;
 using System.Collections.Concurrent;
 /// <summary>
@@ -22,8 +23,12 @@ namespace Server_And_Demo_Project {
             int portVideo = 5051;
             IPEndPoint endpointCrestron = new IPEndPoint(IPAddress.Parse("127.0.0.1"), portCrestron);
             IPEndPoint endpointVideo = new IPEndPoint(IPAddress.Parse("127.0.0.1"), portVideo);
-            InstrumentServer instumentServer = new InstrumentServer(endpointCrestron,endpointVideo);
-            Thread serverThread = new Thread(() => instumentServer.StartListener());
+
+
+            ListenerCrestron listenerCrestron = new ListenerCrestron(endpointCrestron);
+            Thread serverThread = new Thread(() => listenerCrestron.Start());
+
+
             serverThread.IsBackground = false;
             serverThread.Start();
             Thread.Sleep(10000);
@@ -51,26 +56,34 @@ namespace Server_And_Demo_Project {
             clientThread3.Start();
 
             Thread.Sleep(20000);
-            List<CrestronConnection> crestronConnection = instumentServer.getCrestronConnectionList();
+            List<CrestronConnection> crestronConnection = listenerCrestron.getCrestronConnectionList();
             Thread.Sleep(1000);
 
             Console.WriteLine("populating messages");
-            for (int i = 0; i < crestronConnection.Count; i++) {
-                CrestronConnection connection = crestronConnection[i];
-                ConcurrentQueue<Message> queue = connection.getInputQueue();
-                string[] strings = new string[] { "Hello", "this", "is", "a", "test" };
-                Message newMessage = new Message(protocolOption.message, strings);
+            lock (crestronConnection) {
+                for (int i = 0; i < crestronConnection.Count; i++) {
+                    lock (crestronConnection) {
+                        CrestronConnection connection = crestronConnection[i];
+                        ConcurrentQueue<Message> queue = connection.getInputQueue();
+                        string[] strings = new string[] { "Hello", "this", "is", "a", "test" };
+                        Message newMessage = new Message(protocolOption.message, strings);
 
-                queue.Enqueue(newMessage);
+                        queue.Enqueue(newMessage);
+                    }
+                }
             }
             Console.WriteLine("populating messages");
-            for (int i = 0; i < crestronConnection.Count; i++) {
-                CrestronConnection connection = crestronConnection[i];
-                ConcurrentQueue<Message> queue = connection.getInputQueue();
-                string[] strings = new string[] { "wow", "i", "dont", "like", "greens" };
-                Message newMessage = new Message(protocolOption.message, strings);
 
-                queue.Enqueue(newMessage);
+            lock (crestronConnection) {
+                for (int i = 0; i < crestronConnection.Count; i++) {
+
+                    CrestronConnection connection = crestronConnection[i];
+                    ConcurrentQueue<Message> queue = connection.getInputQueue();
+                    string[] strings = new string[] { "wow", "i", "dont", "like", "greens" };
+                    Message newMessage = new Message(protocolOption.message, strings);
+
+                    queue.Enqueue(newMessage);
+                }
             }
 
             Console.ReadLine();

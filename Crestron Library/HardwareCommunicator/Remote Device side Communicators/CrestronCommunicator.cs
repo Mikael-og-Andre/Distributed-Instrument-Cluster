@@ -11,20 +11,17 @@ using System.Threading;
 
 namespace Instrument_Communicator_Library {
 
-    public class CrestronCommunicator : Communicator {
-
+    public class CrestronCommunicator : CommunicatorBase {
         private ConcurrentQueue<string> commandOutputQueue; //Queue representing commands received by receive protocol
-
 
         //Values for state control
         private bool isAuthorized;  //Boolean for wheter the authorization process is complete
-        private int failedAuthorizationAttempts;   //Count of failed con
+
+        private int failedAuthorizationAttempts;   //Count of failed authorization attempts
 
         public CrestronCommunicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) : base(ip, port, informationAboutClient, accessToken) {
-            
             this.commandOutputQueue = new ConcurrentQueue<string>();    //Init queue
         }
-
 
         /// <summary>
         /// Handles the conneceted device
@@ -49,12 +46,10 @@ namespace Instrument_Communicator_Library {
                         startAProtocol(connectionSocket);
                     }
                 }
-
             } catch (Exception ex) {
                 throw ex;
             }
         }
-        
 
         /// <summary>
         /// Listens for selected protocol sent by server and preforms correct response protocol
@@ -142,7 +137,6 @@ namespace Instrument_Communicator_Library {
                     return false;
                 }
             } catch (Exception ex) {
-                
                 return false;
             }
         }
@@ -175,7 +169,7 @@ namespace Instrument_Communicator_Library {
                 string received = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
                 //trim null bytes that were sent by the socket
                 received = received.Trim('\0');
-                Console.WriteLine("Thread {0} message received "+ received, Thread.CurrentThread.ManagedThreadId);
+                Console.WriteLine("Thread {0} message received " + received, Thread.CurrentThread.ManagedThreadId);
                 //Check if end in messages
                 if (received.Equals("end")) {
                     //Set protocol to be over
@@ -205,7 +199,5 @@ namespace Instrument_Communicator_Library {
         public ConcurrentQueue<string> getCommandOutputQueue() {
             return commandOutputQueue;
         }
-
-        
     }
 }

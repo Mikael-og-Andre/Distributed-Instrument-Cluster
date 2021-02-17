@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Net.Sockets;
 using System.Threading;
 
 namespace Instrument_Communicator_Library {
-    public abstract class Communicator {
 
+    public abstract class CommunicatorBase {
         public string ip { get; private set; } //Ip address of target server
         public int port { get; private set; } //Port of target server
         protected Socket connectionSocket;    //Connection to server
@@ -15,10 +13,10 @@ namespace Instrument_Communicator_Library {
 
         //State
         protected bool isSocketConnected = false; //Is the socket connected to the server
+
         protected CancellationToken serverRunningCancellationToken;    //Cancelation token used to stop loops
 
-
-        public Communicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) {
+        public CommunicatorBase(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) {
             this.ip = ip;
             this.port = port;
             this.clientInfo = informationAboutClient;
@@ -33,7 +31,6 @@ namespace Instrument_Communicator_Library {
                 // Create new socket
                 connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             } catch (Exception ex) {
-
                 throw ex;
             }
             //connection state
@@ -63,7 +60,6 @@ namespace Instrument_Communicator_Library {
         /// <returns> boolean representing succesful conncetion</returns>
         protected bool attemptConnection(Socket connectionSocket) {
             try {
-
                 if (connectionSocket.Connected) {
                     return true;
                 }
@@ -78,8 +74,5 @@ namespace Instrument_Communicator_Library {
         }
 
         abstract protected void handleConnected(Socket connectionSocket);
-
-        
-
     }
 }

@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Threading;
 using System.Collections.Concurrent;
-using System.Text;
+using System.Net.Sockets;
 
 namespace Instrument_Communicator_Library {
-    public class VideoCommunicator<T> : Communicator {
 
+    public class VideoCommunicator<T> : CommunicatorBase {
         private ConcurrentQueue<T> inputQueue; //queue of inputs ment to be sent to server
 
         public VideoCommunicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) : base(ip, port, informationAboutClient, accessToken) {

@@ -1,122 +1,41 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 
-/// <summary>
-/// Server to be run for listening to incoming device connections and sending commands and data to them
-/// <author>Mikael Nilssen</author>
-/// </summary>
+namespace Instrument_Communicator_Library.Server_Listener {
 
-namespace Instrument_Communicator_Library {
+    public class ListenerCrestron : ListenerBase {
 
-    public class InstrumentServer {
-        private int maxConnections; //Maximum number of connections for the Pool
-        private int maxPendingConnections;  //Backlog size of Listening socket
-        private List<RemoteDevice> remoteDeviceList;    //List of remote Devices with video and control connnections
+        private int timeToWait;     //Time to wait between pings
+        private int timeToSleep;      // Time to sleep after nothing happens
+        private List<CrestronConnection> listCrestronConnections;   //List of crestron Connections
 
-        #region Crestron variables
-
-        private int crestronConnections = 0; //Connected Sockets
-        public bool isCrestronListnerRunning { get; private set; } //Should the server listen for more connection
-        private Socket crestronListeningSocket;    //Socket for accepting incoming connections
-        private IPEndPoint ipEndPointCrestron { get; set; }     //Host Info
-        private List<CrestronConnection> crestronConnectionsList;   //All connected clients
-        private int timeToWait = 1000 * 60;         //Time to wait between Pings in millis in the main loop
-        private int timeTosleep = 1000;         //Time to sleep before checking for new commands in the main loop
-
-        #endregion Crestron variables
-
-        #region Video Variables
-
-        private IPEndPoint ipEndPointVideo;     //represents endpoint of the video streaming listening socket
-        private Socket videoListeningSocket;    //Socket stream used for video streaming
-        private bool isVideoListenerRunning;    //represents a listening video socket
-
-        #endregion Video Variables
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="ipEndPoint"> ip specification used by socket</param>
-        /// <param name="maxConnections"> maximum number of allowed connections by the server</param>
-        /// <param name="maxPendingConnections"> maximum number of pending connections for the lsitenning socket</param>
-        public InstrumentServer(IPEndPoint ipEndPointCrestron, IPEndPoint ipEndPointVideo, int maxConnections = 30, int maxPendingConnections = 30) {
-            this.maxConnections = maxConnections;
-            this.maxPendingConnections = maxPendingConnections;
-
-            //Crestron
-            this.ipEndPointCrestron = ipEndPointCrestron;
-            isCrestronListnerRunning = true;
-            crestronConnectionsList = new List<CrestronConnection>();  //Initialize empty list for tracking client connections
-
-            //Video
-            this.ipEndPointVideo = ipEndPointVideo;
+        public ListenerCrestron(IPEndPoint ipEndPoint, int pingWaitTime = 1000*60, int sleepTime = 100, int maxConnections = 30, int maxPendingConnections = 30) : base(ipEndPoint, maxConnections, maxPendingConnections) {
+            this.timeToWait = pingWaitTime;
+            this.timeToSleep = sleepTime;
+            this.listCrestronConnections = new List<CrestronConnection>();
         }
 
         /// <summary>
-        /// Starts the crestron and video listening sockets, and accepts and handels new connections
+        /// Function to handle the new incoming connection on a new thread
         /// </summary>
-        public void StartListener(bool crestron, bool video) {
-            StartCrestronListener();
-        }
-
-        #region Crestron Listening
-
-        /// <summary>
-        /// Sets up listening socket, and calls StartAccepting to continously accept new clients
-        /// </summary>
-        private void StartCrestronListener() {
-            //Create socket for incoming connections
-            crestronListeningSocket = new Socket(ipEndPointCrestron.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            crestronListeningSocket.Bind(ipEndPointCrestron);
-
-            //Start listen with Backlog size of max connections
-            crestronListeningSocket.Listen(maxPendingConnections);
-
-            //Accepts Connections
-            while (isCrestronListnerRunning) {
-                //Accept an incoming connection
-                Console.WriteLine("SERVER - Main Thread {0} Says: Waiting For new Socket Connection...", Thread.CurrentThread.ManagedThreadId);
-                Socket newSocket = crestronListeningSocket.Accept();
-                //Increment Current Connections
-                incrementCrestronConnection();
-                //Creates a new Thread to run a client communication on
-                Thread newClientThread = new Thread(CrestronProtocol);
-                newClientThread.IsBackground = true;
-
-                //Create a client connection object representing the connection
-                CrestronConnection newClientConnection = new CrestronConnection(newSocket, newClientThread);
-
-                try {
-                    //Pass in ClientConnection and start a new thread ThreadProtocol
-                    newClientThread.Start(newClientConnection);
-                } catch (Exception ex) {
-                    //Lower Connection number
-                    decrementCrestronConnection();
-                    newSocket.Disconnect(false);
-                    newSocket.Close();
-                }
-            }
+        /// <param name="obj">Subclass of ConnectionBase, Should be the corresponsind type returned from createConnectionType</param>
+        protected override object createConnectionType(Socket socket, Thread thread) {
+            return new CrestronConnection(socket, thread);
         }
 
         /// <summary>
-        /// Stops server from looping and clears socket
+        /// Function for specifying specific type of ConnectionBase child the class should be returning and handing over to the HandleIncomingConnection
         /// </summary>
-        public void StopServer() {
-            isCrestronListnerRunning = false;
-            crestronListeningSocket.Disconnect(true);
-        }
-
-        /// <summary>
-        /// Represents a communication thread that handles all crestron communication iwth a connected client
-        /// </summary>
-        /// <param name="obj"> represents a ClientConnection object. in order to be used as a parameraizedThread, it needs to be casted</param>
-        private void CrestronProtocol(object obj) {
+        /// <param name="socket">Socket Of the incoming connection</param>
+        /// <param name="thread">Thread the new connection will be running on</param>
+        /// <returns> a Connection of one of the child types of ConnectionBase</returns>
+        protected override void handleIncomingConnection(object obj) {
             CrestronConnection clientConnection;
             try {
                 //cast input object to Client Connection
@@ -140,7 +59,7 @@ namespace Instrument_Communicator_Library {
             //Start stopwatch
             stopwatch.Start();
 
-            while (clientConnection.isConnectionActive()) {
+            while (!listenerCancellationToken.IsCancellationRequested) {
                 //Variable representing protocol to use;
                 protocolOption currentMode;
                 Message message;
@@ -163,7 +82,7 @@ namespace Instrument_Communicator_Library {
                 //if queue is empty and time since last ping isnt big, sleep for an amount of time
                 else if (!hasValue) {
                     //Was empty and didnt need ping, so restart loop after short sleep
-                    Thread.Sleep(timeTosleep);
+                    Thread.Sleep(timeToSleep);
                     continue;
                 } else {
                     //none of the above counted, just continue
@@ -206,25 +125,6 @@ namespace Instrument_Communicator_Library {
             //remove client from connections
         }
 
-        #region Helper Functions
-
-        /// <summary>
-        /// Adds 1 to numConnections var
-        /// Represents the number of connected clients to the server
-        /// </summary>
-        private void incrementCrestronConnection() {
-            crestronConnections++;
-        }
-
-        /// <summary>
-        /// Removes 1 from numConnections var
-        /// Represents the number of connected clients to the server
-        /// </summary>
-        private void decrementCrestronConnection() {
-            if (crestronConnections > 0) {
-                crestronConnections--;
-            }
-        }
 
         /// <summary>
         /// Adds a client connection to the list of connections
@@ -234,8 +134,8 @@ namespace Instrument_Communicator_Library {
         private bool AddClientConnection(CrestronConnection connection) {
             try {
                 //Lock the non threadsafe list, and then add object
-                lock (crestronConnectionsList) {
-                    this.crestronConnectionsList.Add(connection);
+                lock (listCrestronConnections) {
+                    this.listCrestronConnections.Add(connection);
                 }
                 return true;
             } catch (Exception ex) {
@@ -251,17 +151,13 @@ namespace Instrument_Communicator_Library {
         private bool RemoveClientConnection(CrestronConnection connection) {
             try {
                 //lock the non threadsafe list and then remove object
-                lock (crestronConnectionsList) {
-                    return this.crestronConnectionsList.Remove(connection);
+                lock (listCrestronConnections) {
+                    return this.listCrestronConnections.Remove(connection);
                 }
             } catch (Exception ex) {
                 return false;
             }
         }
-
-        #endregion Helper Functions
-
-        #region Protocols
 
         /// <summary>
         /// Starts predermined sequenc eof socket operations used to authorize a remote device
@@ -398,10 +294,6 @@ namespace Instrument_Communicator_Library {
             }
         }
 
-        #endregion Protocols
-
-        #region Security and Access Token
-
         /// <summary>
         /// Validates an accessToken
         /// </summary>
@@ -419,23 +311,12 @@ namespace Instrument_Communicator_Library {
             return false;
         }
 
-        #endregion Security and Access Token
-
         /// <summary>
         /// Get the list of connected clients
         /// </summary>
         /// <returns>List of Client Connections</returns>
         public List<CrestronConnection> getCrestronConnectionList() {
-            return this.crestronConnectionsList;
+            return this.listCrestronConnections;
         }
-
-        #endregion Crestron Listening
-
-        #region Video listening
-
-        public void StartVideoListener() {
-        }
-
-        #endregion Video listening
     }
 }
