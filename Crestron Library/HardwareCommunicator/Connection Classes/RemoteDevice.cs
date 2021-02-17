@@ -8,13 +8,13 @@ using System.Text;
 /// <author>Mikael Nilssen</author>
 /// </summary>
 namespace Instrument_Communicator_Library {
-    public class RemoteDevice {
+    public class RemoteDevice<T> {
 
         private string name;    //Name of the device
         private int id;         //Id Of the connection
 
         private CrestronConnection crestronConnection;  //Contains information about the socket and connection to the crestron of the device
-        private VideoConnection videoConnection;    //Contains information about the socket and connection to the video device
+        private VideoConnection<T> videoConnection;    //Contains information about the socket and connection to the video device
 
         public bool hasCrestron { get; private set; }
         public bool hasVideo { get; private set; }
@@ -52,7 +52,7 @@ namespace Instrument_Communicator_Library {
         /// Set the VideoConnection object
         /// </summary>
         /// <param name="con"></param>
-        public void setVideoConnection(VideoConnection con) {
+        public void setVideoConnection(VideoConnection<T> con) {
             this.videoConnection = con;
             this.hasVideo = true;
         }
@@ -61,7 +61,7 @@ namespace Instrument_Communicator_Library {
         /// Get videoConnection Object, or throw null refrence exception if null
         /// </summary>
         /// <returns>Video connection object</returns>
-        public VideoConnection getVideoConnection() {
+        public VideoConnection<T> getVideoConnection() {
             if (this.hasVideo) {
                 return this.videoConnection;
             } else {

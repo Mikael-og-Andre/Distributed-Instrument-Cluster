@@ -14,7 +14,7 @@ namespace Instrument_Communicator_Library {
         //State
         protected bool isSocketConnected = false; //Is the socket connected to the server
 
-        protected CancellationToken serverRunningCancellationToken;    //Cancelation token used to stop loops
+        protected CancellationToken communicatorCancellationToken;    //Cancelation token used to stop loops
 
         public CommunicatorBase(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) {
             this.ip = ip;
@@ -37,7 +37,7 @@ namespace Instrument_Communicator_Library {
             isSocketConnected = false;
 
             // Loop whilst the client is supposed to run
-            while (!serverRunningCancellationToken.IsCancellationRequested) {
+            while (!communicatorCancellationToken.IsCancellationRequested) {
                 //check if client is connected, if not connect
                 if (!isSocketConnected) {
                     // Try to connect

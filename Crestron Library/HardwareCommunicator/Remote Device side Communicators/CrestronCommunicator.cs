@@ -41,7 +41,7 @@ namespace Instrument_Communicator_Library {
                 if (isAuthorized) {
                     Console.WriteLine("Thread {0} Client Authorization complete", Thread.CurrentThread.ManagedThreadId);
                     //Run main protocol Loop
-                    while (!serverRunningCancellationToken.IsCancellationRequested) {
+                    while (!communicatorCancellationToken.IsCancellationRequested) {
                         //Read a protocol choice from the buffer and exceute it
                         startAProtocol(connectionSocket);
                     }

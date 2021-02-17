@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Net;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Instrument_Communicator_Library.Server_Listener {
     public class ListenerVideo<T> : ListenerBase {
@@ -31,10 +34,41 @@ namespace Instrument_Communicator_Library.Server_Listener {
             //add connection to list
             AddVideoConnection(videoConnection);
 
+            //Get outputQueue
+            ConcurrentQueue<T> outputQueue = videoConnection.getOutputQueue();
+            //Get socket
+            Socket connectionSocket = videoConnection.GetSocket();
+
+            //Delegate
+            byte[] sizeOfIncomingBuffer;
+            int sizeOfIncoming;
+            byte[] incomingObjectBuffer;
+            T newObject;
+
             //Do main loop
             while (!listenerCancellationToken.IsCancellationRequested) {
-                
 
+                //Get size of incoming object
+                sizeOfIncomingBuffer = new byte[sizeof(int)];
+                connectionSocket.Receive(sizeOfIncomingBuffer,0,sizeof(int),SocketFlags.None);
+                //extract int
+                sizeOfIncoming = BitConverter.ToInt32(sizeOfIncomingBuffer,0);
+                //receive main object
+                incomingObjectBuffer = new byte[sizeOfIncoming];
+                connectionSocket.Receive(incomingObjectBuffer,0,sizeOfIncoming, SocketFlags.None);
+
+                object newObj = ByteArrayToObject(incomingObjectBuffer);
+
+                try {
+                    //try to cast newObj
+                    newObject = (T)newObj;
+                    //Put in outputqueue
+                    outputQueue.Enqueue(newObject);
+
+                } catch (InvalidCastException ex) {
+                    Console.WriteLine("could not cast T");
+                    throw ex;
+                }
 
             }
         }
@@ -74,5 +108,24 @@ namespace Instrument_Communicator_Library.Server_Listener {
             }
         }
 
+        /// <summary>
+        /// From stackoverflow
+        /// https://stackoverflow.com/questions/1446547/how-to-convert-an-object-to-a-byte-array-in-c-sharp
+        /// </summary>
+        /// <param name="arrBytes"></param>
+        /// <returns></returns>
+        public static Object ByteArrayToObject(byte[] arrBytes) {
+            using (var memStream = new MemoryStream()) {
+                var binForm = new BinaryFormatter();
+                memStream.Write(arrBytes, 0, arrBytes.Length);
+                memStream.Seek(0, SeekOrigin.Begin);
+                var obj = binForm.Deserialize(memStream);
+                return obj;
+            }
+        }
+
+        public List<VideoConnection<T>> getVideoConnectionList() {
+            return listVideoConnections;
+        }
     }
 }
