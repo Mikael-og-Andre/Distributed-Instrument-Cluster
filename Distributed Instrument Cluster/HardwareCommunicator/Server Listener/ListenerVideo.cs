@@ -114,7 +114,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
         /// </summary>
         /// <param name="arrBytes"></param>
         /// <returns></returns>
-        public static Object ByteArrayToObject(byte[] arrBytes) {
+        private static Object ByteArrayToObject(byte[] arrBytes) {
             using (var memStream = new MemoryStream()) {
                 var binForm = new BinaryFormatter();
                 memStream.Write(arrBytes, 0, arrBytes.Length);

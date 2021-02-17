@@ -24,19 +24,69 @@ namespace Crestron_Library {
 		}
 
 		/// <summary>
+		/// Function returns all available serial ports.
+		/// </summary>
+		/// <returns>String array of all available serial ports.</returns>
+		public static String[] GetAvailablePorts() {
+			return SerialPort.GetPortNames();
+		}
+
+		/// <summary>
+		/// Method sends byte to receive information on button state for:
+		/// Caps Lock, num lock and scroll lock.
+		/// </summary>
+		/// <returns>Binary "truth table" for what buttons are on and off in the form of a byte.</returns>
+		public byte GetLEDStatus() {
+			while (!serialPort.IsOpen) ;
+
+			byte result = sendByte(0x7f);	// 0x7f: Byte to get status response.
+			return (byte)(result & 0x0f);	// Only takes first 4 bits. (0011 0011 and 0000 1111 = 0000 0011).
+		}
+
+		/// <summary>
+		/// TODO:
+		/// </summary>
+		/// <param name="index"></param>
+		/// <returns></returns>
+		public bool GetLEDStatusBitwise(int index) {
+			throw new NotImplementedException();
+
+			return false;
+		}
+
+		/// <summary>
+		/// Adds bytes to byte queue.
+		/// Bytes are then sent by SendingDataThread.
+		/// </summary>
+		/// <param name="bytes"></param>
+		public void SendBytes(List<byte> bytes) {
+			foreach (byte b in bytes) {
+				byteQueue.Enqueue(b);
+			}
+		}
+
+		/// <summary>
+		/// Stops data sending thread and releases com port.
+		/// </summary>
+		public void Dispose() {
+			SendData = false;
+			GC.SuppressFinalize(this);
+		}
+
+
+		/// <summary>
 		/// Thread sending bytes queued up in byteQueue.
 		/// Method sends byte one by one and waits for response byte from crestron cable before sending.
 		/// </summary>
 		private void SendDataThread() {
 			serialPort.Open();
 			while(SendData) {
-				byte b;
-				if (byteQueue.TryDequeue(out b))
+				if (byteQueue.TryDequeue(out byte b)) {
 					sendByte(b);
+				}
 			}
 			serialPort.Close();
 		}
-
 
 		/// <summary>
 		/// Sends byte to serial port and waits for response.
@@ -48,18 +98,21 @@ namespace Crestron_Library {
 		/// <param name="bytes">List of bytes to send.</param>
 		/// <returns>Response byte from byte sent</returns>
 		private byte sendByte(byte b) {
-			byte[] bytes = new byte[] { b };
+			//Critical zone, only one thread can access serial port.
+			lock (serialPort) {
+				byte[] bytes = new byte[] { b };
+			
+				serialPort.Write(bytes, 0, bytes.Length);
 
-			serialPort.Write(bytes, 0, bytes.Length);
-
-			//Wait for response byte before continuing.
-			var responseByte = new byte[1];
-			while (true) {
-				serialPort.Read(responseByte, 0, 1);
-				if (responseByte != null)
-					break;
+				//Wait for response byte before continuing.
+				var responseByte = new byte[1];
+				while (true) {
+					serialPort.Read(responseByte, 0, 1);
+					if (responseByte != null)
+						break;
+				}
+				return responseByte[0];
 			}
-			return responseByte[0];
 		}
 
 		/// <summary>
@@ -81,43 +134,6 @@ namespace Crestron_Library {
 			} else {
 				serialPort.PortName = port;
 			}
-		}
-
-		/// <summary>
-		/// Function returns all available serial ports.
-		/// </summary>
-		/// <returns>String array of all available serial ports.</returns>
-		public static String[] GetAvailablePorts() {
-			return SerialPort.GetPortNames();
-		}
-
-		//TODO: make synchronous / lock DataSendingThread (avoid com port collision).
-		/// <summary>
-		/// Method sends byte to receive information on button state for:
-		/// Caps Lock, num lock and scroll lock.
-		/// </summary>
-		/// <returns>Binary "truth table" for what buttons are on and off in the form of a byte.</returns>
-		public byte GetLEDStatus() {
-			return sendByte(0x7f); // 0x7f: Byte to get status response.
-		}
-
-		/// <summary>
-		/// Adds bytes to byte queue.
-		/// Bytes are then sent by SendingDataThread.
-		/// </summary>
-		/// <param name="bytes"></param>
-		public void SendBytes(List<byte> bytes) {
-			foreach(byte b in bytes) {
-				byteQueue.Enqueue(b);
-			}
-		}
-
-		/// <summary>
-		/// Stops data sending thread and releases com port.
-		/// </summary>
-		public void Dispose() {
-			SendData = false;
-			GC.Collect();
 		}
 	}
 }

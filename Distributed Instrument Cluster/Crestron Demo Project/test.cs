@@ -67,22 +67,22 @@ namespace Crestron_Library {
 			//serialPortInterface.enqueuBytes(new List<byte> { 0x33, 0xB3, 0x18, 0x98, 0x32, 0xB2, 0x32, 0xB2, 0x1F, 0x9F });
 
 
-			for (int i = 0; i < 100; i++) {
+			for (int i = 0; i < 1; i++) {
 				//serialPortInterface.enqueuBytes(new List<byte> { 0x44, 0x42 });	//top left
-				serialPortInterface.SendBytes(new List<byte> { 0x45, 0x43 });	//bottom right
+				//serialPortInterface.SendBytes(new List<byte> { 0x45, 0x43 });	//bottom right
 
 				//serialPortInterface.sendBytesSafe(new byte[] { 0x44 }, false);    //up
 				//serialPortInterface.sendBytesSafe(new byte[] { 0x45 }, false);    //down
 				
 
 			}
+			Thread.Sleep(1000);
+			Console.WriteLine(serialPortInterface.GetLEDStatus());
+			serialPortInterface.SendBytes(new List<byte> { 0x1e, 0x9e });
+			Thread.Sleep(1000);
+			Console.WriteLine(serialPortInterface.GetLEDStatus());
 
-			while (true)
-				try {
-					Console.WriteLine(serialPortInterface.GetLEDStatus());
-					break;
-				} catch { }
-
+			serialPortInterface.Dispose();
 		}
 
 		private static void testSerialInterface() {
