@@ -76,11 +76,12 @@ namespace Crestron_Library {
 				
 
 			}
-			Thread.Sleep(1000);
-			Console.WriteLine(serialPortInterface.GetLEDStatus());
+			Thread.Sleep(100);
+			Console.WriteLine(serialPortInterface.GetLEDStatus()[1]);
+			Thread.Sleep(100);
 			serialPortInterface.SendBytes(new List<byte> { 0x1e, 0x9e });
-			Thread.Sleep(1000);
-			Console.WriteLine(serialPortInterface.GetLEDStatus());
+			Thread.Sleep(100);
+			Console.WriteLine(serialPortInterface.GetLEDStatus()[1]);
 
 			serialPortInterface.Dispose();
 		}

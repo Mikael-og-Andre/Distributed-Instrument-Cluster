@@ -35,23 +35,16 @@ namespace Crestron_Library {
 		/// Method sends byte to receive information on button state for:
 		/// Caps Lock, num lock and scroll lock.
 		/// </summary>
-		/// <returns>Binary "truth table" for what buttons are on and off in the form of a byte.</returns>
-		public byte GetLEDStatus() {
+		/// <returns>Binary "truth table" for what buttons are on and off.</returns>
+		public bool[] GetLEDStatus() {
 			while (!serialPort.IsOpen) ;
+			bool[] result = new bool[3];
+			byte bits = sendByte(0x7f); // 0x7f: Byte to get status response.
+			result[0] = (byte)(bits & 0x01) != 0;	//Get num lock bit.
+			result[1] = (byte)(bits & 0x02) != 0;	//Get caps lock bit.
+			result[2] = (byte)(bits & 0x04) != 0;	//Get scroll lock bit.
 
-			byte result = sendByte(0x7f);	// 0x7f: Byte to get status response.
-			return (byte)(result & 0x0f);	// Only takes first 4 bits. (0011 0011 and 0000 1111 = 0000 0011).
-		}
-
-		/// <summary>
-		/// TODO:
-		/// </summary>
-		/// <param name="index"></param>
-		/// <returns></returns>
-		public bool GetLEDStatusBitwise(int index) {
-			throw new NotImplementedException();
-
-			return false;
+			return result;
 		}
 
 		/// <summary>
