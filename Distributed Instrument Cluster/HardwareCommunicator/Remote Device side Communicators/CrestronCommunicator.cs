@@ -16,6 +16,7 @@ namespace Instrument_Communicator_Library {
 
         //Values for state control
         private bool isAuthorized;  //Boolean for wheter the authorization process is complete
+        //TODO: add buffer size limts to queue
 
         private int failedAuthorizationAttempts;   //Count of failed authorization attempts
 

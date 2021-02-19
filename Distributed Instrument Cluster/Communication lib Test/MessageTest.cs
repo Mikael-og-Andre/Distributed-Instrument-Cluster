@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Threading;
+using System.Net.Sockets;
 
 namespace Communication_lib_Test {
 
@@ -63,7 +64,7 @@ namespace Communication_lib_Test {
             Thread crestronListenerThread = new Thread(() => crestronListener.Start());
             crestronListenerThread.Start();
 
-            Thread.Sleep(2000);
+            Thread.Sleep(500);
 
             //Communicator crestron
             InstrumentInformation infoCrest = new InstrumentInformation("name", "loc", "type");
@@ -72,7 +73,8 @@ namespace Communication_lib_Test {
             Thread crestronComThread = new Thread(() => crestronCommunicator.start());
             crestronComThread.Start();
 
-            Thread.Sleep(2000);
+            //wait for auth
+            Thread.Sleep(1000);
 
             string[] stringList = new string[] { "this is a test", "HASIDHASIDHAISDHIISDhi" };
 
@@ -86,7 +88,8 @@ namespace Communication_lib_Test {
                     inputQueue.Enqueue(msg);
                 }
             }
-            Thread.Sleep(10000);
+            
+
             ConcurrentQueue<string> outputQueue = crestronCommunicator.getCommandOutputQueue();
 
             Assert.IsNotNull(outputQueue);
@@ -98,7 +101,7 @@ namespace Communication_lib_Test {
                 if (!hasVal) {
                     Stopwatch watch = new Stopwatch();
                     watch.Start();
-                    while (!hasVal && watch.ElapsedMilliseconds < 1000) {
+                    while (!hasVal && watch.ElapsedMilliseconds < 500) {
                         hasVal = outputQueue.TryDequeue(out outs);
                     }
                     if (!hasVal) {
@@ -117,7 +120,7 @@ namespace Communication_lib_Test {
             CrestronCommunicator cCom = new CrestronCommunicator("127.0.0.1", 5090, new InstrumentInformation("name", "location", "type"), new AccessToken("access"));
             Action startCom = () => cCom.start();
 
-            Assert.ThrowsException<Exception>(startCom);
+            Assert.ThrowsException<SocketException>(startCom);
         }
     }
 }
