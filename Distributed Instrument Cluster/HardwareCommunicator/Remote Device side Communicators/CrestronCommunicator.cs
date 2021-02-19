@@ -123,20 +123,11 @@ namespace Instrument_Communicator_Library {
                     return true;
                 } else {
                     Console.WriteLine("Thread {0} Authorization Failed", Thread.CurrentThread.ManagedThreadId);
-
-                    //Count failed authorization attempts
-                    failedAuthorizationAttempts++;
-
-                    if (failedAuthorizationAttempts > 5) {
-                        //TODO: handle multiple failed authorizations
-                    }
-                    //Wait before trying to reconnect
-                    Thread.Sleep(1000 * 60);
-
                     // return false, representing a failed authorization
                     return false;
                 }
             } catch (Exception ex) {
+                
                 return false;
             }
         }
@@ -156,16 +147,17 @@ namespace Instrument_Communicator_Library {
         /// </summary>
         /// <param name="connectionSocket">Connected and authorized socket</param>
         private void protocolMessage(Socket connectionSocket) {
+            int bufferSize = 128;
             //Loop boolean
             bool isAccepting = true;
             //Socket buffer
             byte[] receiveBuffer;
             //Loop until end signal received by server
             while (isAccepting) {
-                //receive buffer of 32 bytes
-                receiveBuffer = new byte[32];
-                //Receive into the receive buffer from slot 0 to 32
-                int bytesReceived = connectionSocket.Receive(receiveBuffer, 0, 32, SocketFlags.None);
+                //receive buffer of bufferSize bytes
+                receiveBuffer = new byte[bufferSize];
+                //Receive into the receive buffer from slot 0 to bufferSize
+                int bytesReceived = connectionSocket.Receive(receiveBuffer, 0, bufferSize, SocketFlags.None);
                 string received = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
                 //trim null bytes that were sent by the socket
                 received = received.Trim('\0');
@@ -174,7 +166,7 @@ namespace Instrument_Communicator_Library {
                 if (received.Equals("end")) {
                     //Set protocol to be over
                     isAccepting = false;
-                    break; ;
+                    break;
                 }
                 //Add Command To Concurrent queue
                 commandOutputQueue.Enqueue(received);

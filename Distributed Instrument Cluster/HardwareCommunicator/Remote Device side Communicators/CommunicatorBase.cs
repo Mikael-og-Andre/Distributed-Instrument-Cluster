@@ -2,7 +2,6 @@
 using System.Net.Sockets;
 using System.Threading;
 
-
 /// <summary>
 /// Base class for communicator classes, intended to be on the remote side of the instrument cluster
 /// <Author>Mikael Nilssen</Author>
@@ -18,7 +17,7 @@ namespace Instrument_Communicator_Library {
         protected AccessToken accessToken;   // Authorization code to send to the server
 
         //State
-        protected bool isSocketConnected = false; //Is the socket connected to the server
+        public bool isSocketConnected { get; private set; } = false; //Is the socket connected to the server
 
         protected CancellationToken communicatorCancellationToken;    //Cancelation token used to stop loops
 
@@ -72,12 +71,13 @@ namespace Instrument_Communicator_Library {
                 //Try Connecting to server
                 connectionSocket.Connect(ip, port);
                 return true;
-            } catch (SocketException ex) {
-                //TODO: Add logging to instrument server
+            } catch (Exception ex) {
+                throw new Exception(ex.ToString());
                 //return false to represent failed connection
-                return false;
+                //return false;
             }
         }
+
         /// <summary>
         /// The main function of a communicator that gets called after you are connected and preforms actions with the socket
         /// </summary>

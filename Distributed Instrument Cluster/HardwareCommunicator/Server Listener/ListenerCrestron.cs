@@ -1,21 +1,20 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Collections.Concurrent;
-using System.Diagnostics;
 
 namespace Instrument_Communicator_Library.Server_Listener {
 
     public class ListenerCrestron : ListenerBase {
-
         private int timeToWait;     //Time to wait between pings
         private int timeToSleep;      // Time to sleep after nothing happens
         private List<CrestronConnection> listCrestronConnections;   //List of crestron Connections
 
-        public ListenerCrestron(IPEndPoint ipEndPoint, int pingWaitTime = 1000*60, int sleepTime = 100, int maxConnections = 30, int maxPendingConnections = 30) : base(ipEndPoint, maxConnections, maxPendingConnections) {
+        public ListenerCrestron(IPEndPoint ipEndPoint, int pingWaitTime = 1000 * 60, int sleepTime = 100, int maxConnections = 30, int maxPendingConnections = 30) : base(ipEndPoint, maxConnections, maxPendingConnections) {
             this.timeToWait = pingWaitTime;
             this.timeToSleep = sleepTime;
             this.listCrestronConnections = new List<CrestronConnection>();
@@ -64,7 +63,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
                 protocolOption currentMode;
                 Message message;
                 bool hasValue = inputQueue.TryPeek(out message);
-                Message msg = message;
+                Message msg = (Message)message;
                 //Check what action to take
                 //If queue is empty and time since last ping is greater than timeToWait, ping
                 if ((!hasValue) && (stopwatch.ElapsedMilliseconds > timeToWait)) {
@@ -125,7 +124,6 @@ namespace Instrument_Communicator_Library.Server_Listener {
             //remove client from connections
         }
 
-
         /// <summary>
         /// Adds a client connection to the list of connections
         /// </summary>
@@ -155,7 +153,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
                     return this.listCrestronConnections.Remove(connection);
                 }
             } catch (Exception ex) {
-                return false;
+                throw ex;
             }
         }
 
@@ -244,12 +242,13 @@ namespace Instrument_Communicator_Library.Server_Listener {
         /// </summary>
         /// <param name="clientConnection">Client Connection Object</param>
         private void serverProtocolMessage(CrestronConnection clientConnection) {
+            int bufferSize = 128;
             //Get refrence to the queue
             ConcurrentQueue<Message> inputQueue = clientConnection.getInputQueue();
             //Get Socket
             Socket connectionSocket = clientConnection.getSocket();
             //Byte buffer decleration
-            byte[] bytesToSend = new byte[32];
+            byte[] bytesToSend = new byte[bufferSize];
             try {
                 //extract message from queue
                 Message messageToSend;
@@ -273,24 +272,28 @@ namespace Instrument_Communicator_Library.Server_Listener {
                         if (s.Equals("end")) {
                             continue;
                         }
+                        Console.WriteLine("SERVER - Thread {0} is sending " + s + " to the client", Thread.CurrentThread.ManagedThreadId);
                         //clear byte buffer
                         encodingTarget = s;
-                        bytesToSend = new byte[32];
+                        bytesToSend = new byte[bufferSize];
                         //Write bytes to the bytes to send buffer
                         writtenBytes = Encoding.ASCII.GetBytes(encodingTarget, 0, encodingTarget.Length, bytesToSend, 0);
                         //Send the 32 bytes in the bytesToSend buffer to the client
-                        connectionSocket.Send(bytesToSend, 32, SocketFlags.None);
+                        connectionSocket.Send(bytesToSend, bufferSize, SocketFlags.None);
                     }
                     //Send end signal to client, singling no more strings are coming
                     encodingTarget = "end";
-                    bytesToSend = new byte[32];
+                    bytesToSend = new byte[bufferSize];
                     //Write bytes to the bytes to send buffer
                     writtenBytes = Encoding.ASCII.GetBytes(encodingTarget, 0, encodingTarget.Length, bytesToSend, 0);
                     //Send 32 bytes to client
-                    connectionSocket.Send(bytesToSend, 32, SocketFlags.None);
+                    connectionSocket.Send(bytesToSend, bufferSize, SocketFlags.None);
+                } else {
+                    Console.WriteLine("SERVER - Crestron Listener Message queue was empty when trying to  ");
                 }
             } catch (Exception ex) {
-                return;
+                throw ex;
+                //return;
             }
         }
 
