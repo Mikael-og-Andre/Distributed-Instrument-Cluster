@@ -7,13 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron Demo Project", "Cr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron Library", "Crestron Library\Crestron Library.csproj", "{180BF30C-8249-4B27-876D-CFFD3E78593A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Instrument Communicator Library", "HardwareCommunicator\Instrument Communicator Library.csproj", "{4A90BCC3-E1CF-4CCA-AAE1-E00675DAADED}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Crestron POC", "Crestron POC", "{5938B500-D48F-41D7-9F84-1F6F8181E181}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Instrument Communicator", "Instrument Communicator", "{6D20DEAB-92F0-400C-94EA-2DF5B6D74793}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server and Device Demo Project", "HardwareServer Demo Project\Server and Device Demo Project.csproj", "{86ACBFB2-B5C0-4A1C-8791-B286CE1E860E}"
+	ProjectSection(SolutionItems) = preProject
+		Instrument Communicator Library\Instrument Communicator Library.csproj = Instrument Communicator Library\Instrument Communicator Library.csproj
+		Instrument Communicator Demo Project\Server and Device Demo Project.csproj = Instrument Communicator Demo Project\Server and Device Demo Project.csproj
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Video Library", "Video Library\Video Library.csproj", "{1B3808BE-84CB-4D8C-8CE5-A6E8B6F245CE}"
 EndProject
@@ -27,11 +27,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Video Demo Project", "Video
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Blazor Website", "Blazor Website", "{7B9C315B-B280-4893-BD2D-D46A4D4D5C0D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor Instrument Cluster.Server", "Blazor Instrument Cluster\Server\Blazor Instrument Cluster.Server.csproj", "{17C3FC60-FB71-47F8-BEFB-F6D792B93B3B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor Instrument Cluster.Server", "Blazor Instrument Cluster\Server\Blazor Instrument Cluster.Server.csproj", "{17C3FC60-FB71-47F8-BEFB-F6D792B93B3B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor Instrument Cluster.Client", "Blazor Instrument Cluster\Client\Blazor Instrument Cluster.Client.csproj", "{D42D242E-3621-474C-8271-35126286DD18}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor Instrument Cluster.Client", "Blazor Instrument Cluster\Client\Blazor Instrument Cluster.Client.csproj", "{D42D242E-3621-474C-8271-35126286DD18}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor Instrument Cluster.Shared", "Blazor Instrument Cluster\Shared\Blazor Instrument Cluster.Shared.csproj", "{085F35F7-CD6D-43A6-8B3A-C818BC3C5FB8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor Instrument Cluster.Shared", "Blazor Instrument Cluster\Shared\Blazor Instrument Cluster.Shared.csproj", "{085F35F7-CD6D-43A6-8B3A-C818BC3C5FB8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,14 +47,6 @@ Global
 		{180BF30C-8249-4B27-876D-CFFD3E78593A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{180BF30C-8249-4B27-876D-CFFD3E78593A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{180BF30C-8249-4B27-876D-CFFD3E78593A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4A90BCC3-E1CF-4CCA-AAE1-E00675DAADED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4A90BCC3-E1CF-4CCA-AAE1-E00675DAADED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4A90BCC3-E1CF-4CCA-AAE1-E00675DAADED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4A90BCC3-E1CF-4CCA-AAE1-E00675DAADED}.Release|Any CPU.Build.0 = Release|Any CPU
-		{86ACBFB2-B5C0-4A1C-8791-B286CE1E860E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{86ACBFB2-B5C0-4A1C-8791-B286CE1E860E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{86ACBFB2-B5C0-4A1C-8791-B286CE1E860E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{86ACBFB2-B5C0-4A1C-8791-B286CE1E860E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1B3808BE-84CB-4D8C-8CE5-A6E8B6F245CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1B3808BE-84CB-4D8C-8CE5-A6E8B6F245CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B3808BE-84CB-4D8C-8CE5-A6E8B6F245CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -90,8 +82,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{1F9A1968-B758-41A1-9D94-ABB04C1AB5CE} = {5938B500-D48F-41D7-9F84-1F6F8181E181}
 		{180BF30C-8249-4B27-876D-CFFD3E78593A} = {5938B500-D48F-41D7-9F84-1F6F8181E181}
-		{4A90BCC3-E1CF-4CCA-AAE1-E00675DAADED} = {6D20DEAB-92F0-400C-94EA-2DF5B6D74793}
-		{86ACBFB2-B5C0-4A1C-8791-B286CE1E860E} = {6D20DEAB-92F0-400C-94EA-2DF5B6D74793}
 		{1B3808BE-84CB-4D8C-8CE5-A6E8B6F245CE} = {E2740EF0-B264-4539-9A25-C403493A5717}
 		{30AB89E6-9DEF-4865-83B2-72632C500C3C} = {5938B500-D48F-41D7-9F84-1F6F8181E181}
 		{414664C3-4BF3-4C0A-A0CA-9D6D47A3C0C2} = {6D20DEAB-92F0-400C-94EA-2DF5B6D74793}
