@@ -4,14 +4,13 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-/// <summary>
-/// Signal R Hubs
-/// <author>Mikael Nilssen</author>
-/// </summary>
+
 namespace Blazor_Instrument_Cluster.Server.Hubs {
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class VideoHub : Hub {
-        protected bool isSendingFrames = true;
 
         public ChannelReader<string> Counter(int delay, CancellationToken cancellationToken) {
             var channel = Channel.CreateUnbounded<string>();

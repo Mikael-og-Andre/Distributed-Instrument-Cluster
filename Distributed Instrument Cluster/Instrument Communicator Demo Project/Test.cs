@@ -31,27 +31,30 @@ namespace Server_And_Demo_Project {
             string ip = "127.0.0.1";
             AccessToken accessToken = new AccessToken("access");
             InstrumentInformation info = new InstrumentInformation("Device 1", "Location 1", "sample type");
+            CancellationToken cancellationToken = new CancellationToken(false);
 
-            CrestronCommunicator client = new CrestronCommunicator(ip, portCrestron, info, accessToken);
-            Thread clientThread = new Thread(() => client.start());
+            CrestronCommunicator client = new CrestronCommunicator(ip, portCrestron, info, accessToken, cancellationToken);
+            Thread clientThread = new Thread(() => client.Start());
             clientThread.Start();
 
             AccessToken accessToken2 = new AccessToken("access");
             InstrumentInformation info2 = new InstrumentInformation("Device 2", "Location 2", "sample type 2");
+            CancellationToken cancellationToken2 = new CancellationToken(false);
 
-            CrestronCommunicator client2 = new CrestronCommunicator(ip, portCrestron, info2, accessToken2);
-            Thread clientThread2 = new Thread(() => client2.start());
+            CrestronCommunicator client2 = new CrestronCommunicator(ip, portCrestron, info2, accessToken2, cancellationToken2);
+            Thread clientThread2 = new Thread(() => client2.Start());
             clientThread2.Start();
 
             AccessToken accessToken3 = new AccessToken("acess");
             InstrumentInformation info3 = new InstrumentInformation("Device 3", "Location 3", "sample type 3");
+            CancellationToken cancellationToken3 = new CancellationToken(false);
 
-            CrestronCommunicator client3 = new CrestronCommunicator(ip, portCrestron, info3, accessToken3);
-            Thread clientThread3 = new Thread(() => client3.start());
+            CrestronCommunicator client3 = new CrestronCommunicator(ip, portCrestron, info3, accessToken3, cancellationToken3);
+            Thread clientThread3 = new Thread(() => client3.Start());
             clientThread3.Start();
 
             Thread.Sleep(2000);
-            List<CrestronConnection> crestronConnection = listenerCrestron.getCrestronConnectionList();
+            List<CrestronConnection> crestronConnection = listenerCrestron.GetCrestronConnectionList();
 
             Console.WriteLine("populating messages");
             lock (crestronConnection) {

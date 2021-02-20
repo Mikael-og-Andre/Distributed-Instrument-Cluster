@@ -3,19 +3,20 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using System.Threading;
 
 
-/// <summary>
-/// Represents a socket line from a device to the server, intended to send video
-/// <author>Mikael Nilssen</author>
-/// </summary>
+
 namespace Instrument_Communicator_Library {
-
+    /// <summary>
+    /// Represents a socket line from a device to the server, intended to send video
+    /// <author>Mikael Nilssen</author>
+    /// </summary>
     public class VideoCommunicator<T> : CommunicatorBase {
 
-        private ConcurrentQueue<T> inputQueue; //queue of inputs ment to be sent to server
+        private ConcurrentQueue<T> inputQueue; //queue of inputs meant to be sent to server
 
-        public VideoCommunicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) : base(ip, port, informationAboutClient, accessToken) {
+        public VideoCommunicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken cancellationToken) : base(ip, port, informationAboutClient, accessToken, cancellationToken) {
             //initialize queue
             inputQueue = new ConcurrentQueue<T>();
         }
@@ -24,7 +25,7 @@ namespace Instrument_Communicator_Library {
         /// Handles the protocols after the socket has been connected
         /// </summary>
         /// <param name="connectionSocket"></param>
-        protected override void handleConnected(Socket connectionSocket) {
+        protected override void HandleConnected(Socket connectionSocket) {
 
             //While not canceled push from queue to socket
             while (!communicatorCancellationToken.IsCancellationRequested) {

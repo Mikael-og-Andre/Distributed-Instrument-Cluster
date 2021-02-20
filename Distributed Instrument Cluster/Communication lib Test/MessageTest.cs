@@ -15,7 +15,7 @@ namespace Communication_lib_Test {
     public class MessageTest {
 
         [TestMethod]
-        public void testSendingNormalStringsVideo() {
+        public void TestSendingNormalStringsVideo() {
             //init vid listener
             int portVideo = 5055;
             IPEndPoint endpointVid = new IPEndPoint(IPAddress.Parse("127.0.0.1"), portVideo);
@@ -28,9 +28,10 @@ namespace Communication_lib_Test {
             //Communicator vid
             InstrumentInformation infoVid = new InstrumentInformation("name", "loc", "type");
             AccessToken accessTokenVid = new AccessToken("access");
+            CancellationToken cancellationToken = new CancellationToken(false);
 
-            VideoCommunicator<string> vidCom = new VideoCommunicator<string>("127.0.0.1", portVideo, infoVid, accessTokenVid);
-            Thread vidComThread = new Thread(() => vidCom.start());
+            VideoCommunicator<string> vidCom = new VideoCommunicator<string>("127.0.0.1", portVideo, infoVid, accessTokenVid, cancellationToken);
+            Thread vidComThread = new Thread(() => vidCom.Start());
             vidComThread.Start();
 
             ConcurrentQueue<string> inputQueue = vidCom.getInputQueue();
@@ -40,7 +41,7 @@ namespace Communication_lib_Test {
                 inputQueue.Enqueue(s);
             }
             Thread.Sleep(50);
-            List<VideoConnection<string>> vidCons = vidListener.getVideoConnectionList();
+            List<VideoConnection<string>> vidCons = vidListener.GetVideoConnectionList();
             lock (vidCons) {
                 foreach (VideoConnection<string> con in vidCons) {
                     ConcurrentQueue<string> queue = con.getOutputQueue();
@@ -55,7 +56,7 @@ namespace Communication_lib_Test {
         }
 
         [TestMethod]
-        public void testSendingMessagesCrestron() {
+        public void TestSendingMessagesCrestron() {
             //init crestron Listener
             int portCrest = 5050;
             IPEndPoint endpointCres = new IPEndPoint(IPAddress.Parse("127.0.0.1"), portCrest);
@@ -69,8 +70,10 @@ namespace Communication_lib_Test {
             //Communicator crestron
             InstrumentInformation infoCrest = new InstrumentInformation("name", "loc", "type");
             AccessToken accessTokenCrest = new AccessToken("access");
-            CrestronCommunicator crestronCommunicator = new CrestronCommunicator("127.0.0.1", portCrest, infoCrest, accessTokenCrest);
-            Thread crestronComThread = new Thread(() => crestronCommunicator.start());
+            CancellationToken cancellationToken = new CancellationToken(false);
+
+            CrestronCommunicator crestronCommunicator = new CrestronCommunicator("127.0.0.1", portCrest, infoCrest, accessTokenCrest, cancellationToken);
+            Thread crestronComThread = new Thread(() => crestronCommunicator.Start());
             crestronComThread.Start();
 
             //wait for auth
@@ -78,7 +81,7 @@ namespace Communication_lib_Test {
 
             string[] stringList = new string[] { "this is a test", "HASIDHASIDHAISDHIISDhi" };
 
-            List<CrestronConnection> listCons = crestronListener.getCrestronConnectionList();
+            List<CrestronConnection> listCons = crestronListener.GetCrestronConnectionList();
             Assert.AreNotEqual(listCons.Count, 0);
             lock (listCons) {
                 foreach (CrestronConnection con in listCons) {
@@ -90,7 +93,7 @@ namespace Communication_lib_Test {
             }
             
 
-            ConcurrentQueue<string> outputQueue = crestronCommunicator.getCommandOutputQueue();
+            ConcurrentQueue<string> outputQueue = crestronCommunicator.GetCommandOutputQueue();
 
             Assert.IsNotNull(outputQueue);
             Assert.IsTrue(crestronCommunicator.isSocketConnected);
@@ -116,9 +119,9 @@ namespace Communication_lib_Test {
         }
 
         [TestMethod]
-        public void testExceptions() {
-            CrestronCommunicator cCom = new CrestronCommunicator("127.0.0.1", 5090, new InstrumentInformation("name", "location", "type"), new AccessToken("access"));
-            Action startCom = () => cCom.start();
+        public void TestExceptions() {
+            CrestronCommunicator cCom = new CrestronCommunicator("127.0.0.1", 5090, new InstrumentInformation("name", "location", "type"), new AccessToken("access"),new CancellationToken(false));
+            Action startCom = () => cCom.Start();
 
             Assert.ThrowsException<SocketException>(startCom);
         }

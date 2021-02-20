@@ -10,11 +10,11 @@ using System.Linq;
 using Blazor_Instrument_Cluster.Server.Hubs;
 
 
-/// <summary>
-/// Apache 2.0 Licensed MICROSOFT
-/// 
-/// </summary>
 namespace Blazor_Instrument_Cluster.Server {
+    /// <summary>
+    /// Apache 2.0 Licensed MICROSOFT
+    /// 
+    /// </summary>
     public class Startup {
         public Startup(IConfiguration configuration) {
             Configuration = configuration;

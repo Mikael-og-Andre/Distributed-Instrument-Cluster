@@ -4,23 +4,21 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-/// <summary>
-/// Client for connecting and recieving commands from server unit to control a crestron Device
-/// <author>Mikael Nilssen</author>
-/// </summary>
-
 namespace Instrument_Communicator_Library {
 
+    /// <summary>
+    /// Client for connecting and receiving commands from server unit to control a crestron Device
+    /// <author>Mikael Nilssen</author>
+    /// </summary>
     public class CrestronCommunicator : CommunicatorBase {
         private ConcurrentQueue<string> commandOutputQueue; //Queue representing commands received by receive protocol
 
         //Values for state control
         private bool isAuthorized;  //Boolean for wheter the authorization process is complete
+
         //TODO: add buffer size limts to queue
 
-        private int failedAuthorizationAttempts;   //Count of failed authorization attempts
-
-        public CrestronCommunicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken) : base(ip, port, informationAboutClient, accessToken) {
+        public CrestronCommunicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken cancellationToken) : base(ip, port, informationAboutClient, accessToken, cancellationToken) {
             this.commandOutputQueue = new ConcurrentQueue<string>();    //Init queue
         }
 
@@ -28,7 +26,7 @@ namespace Instrument_Communicator_Library {
         /// Handles the conneceted device
         /// </summary>
         /// <param name="connectionSocket"></param>
-        protected override void handleConnected(Socket connectionSocket) {
+        protected override void HandleConnected(Socket connectionSocket) {
             try {
                 //check if the client is authorized,
                 if (!isAuthorized) {
@@ -36,15 +34,15 @@ namespace Instrument_Communicator_Library {
                     byte[] bufferReceive = new byte[32];
                     connectionSocket.Receive(bufferReceive);
                     //Start Authorization
-                    isAuthorized = protocolAuthorize(connectionSocket);
+                    isAuthorized = ProtocolAuthorize(connectionSocket);
                 }
                 //Check if successfully authorized
                 if (isAuthorized) {
                     Console.WriteLine("Thread {0} Client Authorization complete", Thread.CurrentThread.ManagedThreadId);
                     //Run main protocol Loop
                     while (!communicatorCancellationToken.IsCancellationRequested) {
-                        //Read a protocol choice from the buffer and exceute it
-                        startAProtocol(connectionSocket);
+                        //Read a protocol choice from the buffer and execute it
+                        StartAProtocol(connectionSocket);
                     }
                 }
             } catch (Exception ex) {
@@ -56,9 +54,8 @@ namespace Instrument_Communicator_Library {
         /// Listens for selected protocol sent by server and preforms correct response protocol
         /// </summary>
         /// <param name="connectionSocket"> Socket Connection to server</param>
-        /// <param name="bufferSize">Size of the receive buffer with deafult size 32 bytes. May need to be adjusted base on how big protocol names become</param>
-        private void startAProtocol(Socket connectionSocket) {
-            //Recieve protocol type from server
+        private void StartAProtocol(Socket connectionSocket) {
+            //Receive protocol type from server
             byte[] receiveBuffer = new byte[32];
             int bytesReceived = connectionSocket.Receive(receiveBuffer, 32, SocketFlags.None);
             string extractedString = Encoding.ASCII.GetString(receiveBuffer, 0, 32);
@@ -69,19 +66,19 @@ namespace Instrument_Communicator_Library {
             //Select Protocol
             switch (option) {
                 case protocolOption.ping:
-                    protocolPing(connectionSocket);
+                    ProtocolPing(connectionSocket);
                     break;
 
                 case protocolOption.message:
-                    protocolMessage(connectionSocket);
+                    ProtocolMessage(connectionSocket);
                     break;
 
                 case protocolOption.status:
-                    protocolStatus(connectionSocket);
+                    ProtocolStatus(connectionSocket);
                     break;
 
                 case protocolOption.authorize:
-                    protocolAuthorize(connectionSocket);
+                    ProtocolAuthorize(connectionSocket);
                     break;
 
                 default:
@@ -96,7 +93,7 @@ namespace Instrument_Communicator_Library {
         /// </summary>
         /// <param name="connectionSocket"></param>
         /// <returns>Boolean representing if the authorization was successful or not</returns>
-        private bool protocolAuthorize(Socket connectionSocket) {
+        private bool ProtocolAuthorize(Socket connectionSocket) {
             try {
                 //Create accessToken
                 AccessToken accessToken = this.accessToken;
@@ -128,7 +125,6 @@ namespace Instrument_Communicator_Library {
                     return false;
                 }
             } catch (Exception ex) {
-                
                 return false;
             }
         }
@@ -137,7 +133,7 @@ namespace Instrument_Communicator_Library {
         /// Activates predetermined sequence of socket operations for a ping, to confirm both locations
         /// </summary>
         /// <param name="connectionSocket"> Authorized connection socket</param>
-        private void protocolPing(Socket connectionSocket) {
+        private void ProtocolPing(Socket connectionSocket) {
             //Send simple byte to server
             byte[] sendBuffer = new byte[] { (byte)'y' };
             connectionSocket.Send(sendBuffer);
@@ -147,7 +143,7 @@ namespace Instrument_Communicator_Library {
         /// Activates predetermined sequence of socket operation for receiving an array of string from the server
         /// </summary>
         /// <param name="connectionSocket">Connected and authorized socket</param>
-        private void protocolMessage(Socket connectionSocket) {
+        private void ProtocolMessage(Socket connectionSocket) {
             int bufferSize = 128;
             //Loop boolean
             bool isAccepting = true;
@@ -178,7 +174,7 @@ namespace Instrument_Communicator_Library {
         /// Activates predetermined sequence of socket operations for sending the status to the server
         /// </summary>
         /// <param name="connectionSocket">Authorized connection socket</param>
-        private void protocolStatus(Socket connectionSocket) {
+        private void ProtocolStatus(Socket connectionSocket) {
             //TODO: Implement Status Protocol
             throw new NotImplementedException();
         }
@@ -188,8 +184,8 @@ namespace Instrument_Communicator_Library {
         /// <summary>
         /// Returns a reference to queue of commands received by receive protocol in string format
         /// </summary>
-        /// <returns>refrence to Concurrent queue of type string</returns>
-        public ConcurrentQueue<string> getCommandOutputQueue() {
+        /// <returns>reference to Concurrent queue of type string</returns>
+        public ConcurrentQueue<string> GetCommandOutputQueue() {
             return commandOutputQueue;
         }
     }

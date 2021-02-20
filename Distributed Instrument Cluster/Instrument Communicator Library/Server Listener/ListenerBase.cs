@@ -43,11 +43,11 @@ namespace Instrument_Communicator_Library.Server_Listener {
                 //Increment Current Connections
                 this.currentConnectionCount += 1;
                 //Creates a new Thread to run a client communication on
-                Thread newThread = new Thread(handleIncomingConnection);
+                Thread newThread = new Thread(HandleIncomingConnection);
                 newThread.IsBackground = true;
 
                 //Create a client connection object representing the connection
-                object newClientConnection = createConnectionType(newSocket, newThread);
+                object newClientConnection = CreateConnectionType(newSocket, newThread);
 
                 try {
                     //Pass in ClientConnection and start a new thread ThreadProtocol
@@ -65,7 +65,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
         /// Function to handle the new incoming connection on a new thread
         /// </summary>
         /// <param name="obj">Subclass of ConnectionBase, Should be the corresponsind type returned from createConnectionType</param>
-        protected abstract void handleIncomingConnection(object obj);
+        protected abstract void HandleIncomingConnection(object obj);
 
         /// <summary>
         /// Function for specifying specific type of ConnectionBase child the class should be returning and handing over to the HandleIncomingConnection
@@ -73,6 +73,6 @@ namespace Instrument_Communicator_Library.Server_Listener {
         /// <param name="socket">Socket Of the incoming connection</param>
         /// <param name="thread">Thread the new connection will be running on</param>
         /// <returns> a Connection of one of the child types of ConnectionBase</returns>
-        protected abstract object createConnectionType(Socket socket, Thread thread);
+        protected abstract object CreateConnectionType(Socket socket, Thread thread);
     }
 }

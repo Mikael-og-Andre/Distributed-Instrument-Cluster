@@ -1,35 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
-using System.Net;
+using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
 
 namespace Instrument_Communicator_Library.Server_Listener {
-    public class ListenerVideo<T> : ListenerBase {
 
+    /// <summary>
+    /// Base class for all listeners
+    /// </summary>
+    /// <typeparam name="T">The type of object that will be sent through the socket</typeparam>
+    public class ListenerVideo<T> : ListenerBase {
         private List<VideoConnection<T>> listVideoConnections;     //list of connected video streams
 
         public ListenerVideo(IPEndPoint ipEndPoint, int maxConnections = 30, int maxPendingConnections = 30) : base(ipEndPoint, maxConnections, maxPendingConnections) {
-            this.listVideoConnections = new List<VideoConnection<T>>();
+            listVideoConnections = new List<VideoConnection<T>>();
         }
 
-        protected override object createConnectionType(Socket socket, Thread thread) {
-            return new VideoConnection<T>(socket,thread);
+        protected override object CreateConnectionType(Socket socket, Thread thread) {
+            return new VideoConnection<T>(socket, thread);
         }
 
-        protected override void handleIncomingConnection(object obj) {
-            VideoConnection<T> videoConnection;
-            try {
-                //Cast to videoconnection
-                videoConnection = (VideoConnection<T>) obj;
-
-            } catch (Exception ex) {
-                throw ex;
-            }
+        protected override void HandleIncomingConnection(object obj) {
+            //Cast to video-connection
+            var videoConnection = (VideoConnection<T>)obj;
 
             //add connection to list
             AddVideoConnection(videoConnection);
@@ -39,77 +36,60 @@ namespace Instrument_Communicator_Library.Server_Listener {
             //Get socket
             Socket connectionSocket = videoConnection.GetSocket();
 
-            //Delegate
-            byte[] sizeOfIncomingBuffer;
-            int sizeOfIncoming;
-            byte[] incomingObjectBuffer;
-            T newObject;
-
             //Do main loop
             while (!listenerCancellationToken.IsCancellationRequested) {
-
                 //Get size of incoming object
-                sizeOfIncomingBuffer = new byte[sizeof(int)];
-                connectionSocket.Receive(sizeOfIncomingBuffer,0,sizeof(int),SocketFlags.None);
+                var sizeOfIncomingBuffer = new byte[sizeof(int)];
+                connectionSocket.Receive(sizeOfIncomingBuffer, 0, sizeof(int), SocketFlags.None);
                 //extract int
-                sizeOfIncoming = BitConverter.ToInt32(sizeOfIncomingBuffer,0);
+                var sizeOfIncoming = BitConverter.ToInt32(sizeOfIncomingBuffer, 0);
                 //receive main object
-                incomingObjectBuffer = new byte[sizeOfIncoming];
-                connectionSocket.Receive(incomingObjectBuffer,0,sizeOfIncoming, SocketFlags.None);
+                var incomingObjectBuffer = new byte[sizeOfIncoming];
+                connectionSocket.Receive(incomingObjectBuffer, 0, sizeOfIncoming, SocketFlags.None);
 
-                object newObj = ByteArrayToObject(incomingObjectBuffer);
+                var newObj = ByteArrayToObject(incomingObjectBuffer);
 
                 try {
                     //try to cast newObj
-                    newObject = (T)newObj;
-                    //Put in outputqueue
+                    var newObject = (T)newObj;
+                    //Put in output-queue
                     outputQueue.Enqueue(newObject);
-
-                } catch (InvalidCastException ex) {
+                } catch (InvalidCastException) {
                     Console.WriteLine("could not cast T");
-                    throw ex;
+                    throw;
                 }
-
             }
+            //remove connection
+            RemoveVideoConnection(videoConnection);
         }
 
         /// <summary>
         /// Add item to the list
         /// </summary>
         private void AddVideoConnection(VideoConnection<T> connection) {
-            try {
-                lock (this.listVideoConnections) {
-                    this.listVideoConnections.Add(connection);
-                }
-
-            }catch (Exception ex) {
-                throw ex;
+            lock (listVideoConnections) {
+                listVideoConnections.Add(connection);
             }
         }
+
         /// <summary>
         /// Remove the client connection from the list
         /// </summary>
         /// <param name="connection"> Video Connection</param>
         /// <returns>Boolean representing successful removal</returns>
         private bool RemoveVideoConnection(VideoConnection<T> connection) {
-            bool result;
-            try {
-                //Lock list and remove the connection
-                lock (listVideoConnections) {
-                    //Try to remove connection
-                    result = listVideoConnections.Remove(connection);
-                }
-                //return bool
-                return result;
-
-            } catch (Exception ex) {
-                return false;
-                throw ex;
+            //Lock list and remove the connection
+            bool result = false;
+            lock (listVideoConnections) {
+                //Try to remove connection
+                result = listVideoConnections.Remove(connection);
             }
+            //return bool
+            return result;
         }
 
         /// <summary>
-        /// From stackoverflow
+        /// From stack overflow
         /// https://stackoverflow.com/questions/1446547/how-to-convert-an-object-to-a-byte-array-in-c-sharp
         /// </summary>
         /// <param name="arrBytes"></param>
@@ -123,12 +103,15 @@ namespace Instrument_Communicator_Library.Server_Listener {
                 return obj;
             }
         }
+
         /// <summary>
         /// Get the list of video connection objects
         /// </summary>
-        /// <returns>List of videoconnection objects of type T</returns>
-        public List<VideoConnection<T>> getVideoConnectionList() {
-            return listVideoConnections;
+        /// <returns>List of video-connection objects of type T</returns>
+        public List<VideoConnection<T>> GetVideoConnectionList() {
+            lock (listVideoConnections) {
+                return listVideoConnections;
+            }
         }
     }
 }
