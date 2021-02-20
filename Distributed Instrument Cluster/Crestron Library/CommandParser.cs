@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+
+//TODO: clean, complete and document.
 namespace Crestron_Library {
 	public class CommandParser {
 		Stack<string> cursorPosition = new Stack<string>();
@@ -18,11 +20,11 @@ namespace Crestron_Library {
 		}
 
 		private void randomThread() {
-			serialPort.SendBytes(new List<byte> { commands.getMakeByte("magnitude large") });
+			serialPort.SendBytes(commands.getMakeByte("magnitude large"));
 			for (int i = 0; i < 100; i++)
 				serialPort.SendBytes(new List<byte> { commands.getMakeByte("left"), commands.getMakeByte("up") });
 
-			serialPort.SendBytes(new List<byte> { commands.getMakeByte("magnitude small") });
+			serialPort.SendBytes(commands.getMakeByte("magnitude small"));
 			while(serialPort.isExecuting())
 
 			while (true) {
@@ -101,23 +103,24 @@ namespace Crestron_Library {
 			return deltas;
 		}
 
+		//TODO: Mix horizontal and vertical movement
 		private void executeMove(double x, double y) {
 			for (int i = 0; i < Math.Floor(x); i++)
-				serialPort.SendBytes(new List<byte> { commands.getMakeByte("right") });
+				serialPort.SendBytes(commands.getMakeByte("right"));
 
 			for (int i = 0; i < Math.Floor(y); i++)
-				serialPort.SendBytes(new List<byte> { commands.getMakeByte("down") });
+				serialPort.SendBytes(commands.getMakeByte("down"));
 
 			if (x < 0) {
 				x /= -1;
 				for (int i = 0; i < Math.Floor(x); i++)
-					serialPort.SendBytes(new List<byte> { commands.getMakeByte("left") });
+					serialPort.SendBytes(commands.getMakeByte("left"));
 			}
 
 			if (y < 0) {
 				y /= -1;
 				for (int i = 0; i < Math.Floor(y); i++)
-					serialPort.SendBytes(new List<byte> { commands.getMakeByte("up") });
+					serialPort.SendBytes(commands.getMakeByte("up"));
 			}
 		}
 
@@ -127,4 +130,3 @@ namespace Crestron_Library {
 		}
 	}
 }
-

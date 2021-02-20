@@ -38,22 +38,5 @@ namespace Crestron_Test {
 			Assert.ThrowsException<ArgumentException>(() => commands.getBreakByte("\""));
 			Assert.ThrowsException<ArgumentException>(() => commands.getBreakByte("\n"));
 		}
-
-		[TestMethod]
-		public void getClickBytesTest() {
-			CollectionAssert.AreEqual(commands.getClickBytes("k"), new byte[] { 0x26, 0xa6 });
-			CollectionAssert.AreEqual(commands.getClickBytes("K"), new byte[] { 0x26, 0xa6 });
-			CollectionAssert.AreEqual(commands.getClickBytes("cAps"), new byte[] { 0x1e, 0x9e });
-			CollectionAssert.AreEqual(commands.getClickBytes("["), new byte[] { 0x1b, 0x9b });
-			CollectionAssert.AreEqual(commands.getClickBytes("8 (num)"), new byte[] { 0x60, 0xe0 });
-			CollectionAssert.AreNotEqual(commands.getClickBytes("["), new byte[] { 0x1b, 0xff });
-			Assert.ThrowsException<ArgumentException>(() => commands.getClickBytes("left"));
-			Assert.ThrowsException<ArgumentException>(() => commands.getClickBytes("left button on"));
-			Assert.ThrowsException<ArgumentException>(() => commands.getClickBytes("scroll up"));
-			Assert.ThrowsException<ArgumentException>(() => commands.getClickBytes("not a key"));
-			Assert.ThrowsException<ArgumentException>(() => commands.getClickBytes("\""));
-			Assert.ThrowsException<ArgumentException>(() => commands.getClickBytes("\n"));
-		}
-
 	}
 }
