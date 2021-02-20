@@ -48,6 +48,14 @@ namespace Crestron_Library {
 		}
 
 		/// <summary>
+		/// Alternative method call to pass in a single byte.
+		/// </summary>
+		/// <param name="b"></param>
+		public void SendBytes(byte b) {
+			SendBytes(new List<byte> { b });
+		}
+
+		/// <summary>
 		/// Adds bytes to byte queue.
 		/// Bytes are then sent by SendingDataThread.
 		/// </summary>
@@ -57,6 +65,16 @@ namespace Crestron_Library {
 				byteQueue.Enqueue(b);
 			}
 		}
+
+
+		/// <summary>
+		/// Checks is byte queue contains data i.e. is still executing commands.
+		/// </summary>
+		/// <returns>If commands are being executed</returns>
+		public bool isExecuting() {
+			return byteQueue.TryPeek(out _);
+		}
+
 
 		/// <summary>
 		/// Stops data sending thread and releases com port.
