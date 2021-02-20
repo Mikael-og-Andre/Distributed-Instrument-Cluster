@@ -4,10 +4,12 @@
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Blazor Instrument Cluster.Server</RootNamespace>
     <AssemblyName>$(AssemblyName.Replace(' ', '_'))</AssemblyName>
+    <StartupObject>Blazor_Instrument_Cluster.Server.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>
