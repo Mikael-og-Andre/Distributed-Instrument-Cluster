@@ -10,10 +10,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Crestron POC", "Crestron POC", "{5938B500-D48F-41D7-9F84-1F6F8181E181}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Instrument Communicator", "Instrument Communicator", "{6D20DEAB-92F0-400C-94EA-2DF5B6D74793}"
-	ProjectSection(SolutionItems) = preProject
-		Instrument Communicator Library\Instrument Communicator Library.csproj = Instrument Communicator Library\Instrument Communicator Library.csproj
-		Instrument Communicator Demo Project\Server and Device Demo Project.csproj = Instrument Communicator Demo Project\Server and Device Demo Project.csproj
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Video Library", "Video Library\Video Library.csproj", "{1B3808BE-84CB-4D8C-8CE5-A6E8B6F245CE}"
 EndProject
@@ -32,6 +28,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor Instrument Cluster.Client", "Blazor Instrument Cluster\Client\Blazor Instrument Cluster.Client.csproj", "{D42D242E-3621-474C-8271-35126286DD18}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor Instrument Cluster.Shared", "Blazor Instrument Cluster\Shared\Blazor Instrument Cluster.Shared.csproj", "{085F35F7-CD6D-43A6-8B3A-C818BC3C5FB8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Instrument Communicator Library", "Instrument Communicator Library\Instrument Communicator Library.csproj", "{D1A502F5-300B-4DE6-882F-BDAD8CBFF404}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server and Device Demo Project", "Instrument Communicator Demo Project\Server and Device Demo Project.csproj", "{575B18F9-BA35-428D-9A37-FD00F1CA24DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +75,14 @@ Global
 		{085F35F7-CD6D-43A6-8B3A-C818BC3C5FB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{085F35F7-CD6D-43A6-8B3A-C818BC3C5FB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{085F35F7-CD6D-43A6-8B3A-C818BC3C5FB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1A502F5-300B-4DE6-882F-BDAD8CBFF404}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1A502F5-300B-4DE6-882F-BDAD8CBFF404}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1A502F5-300B-4DE6-882F-BDAD8CBFF404}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1A502F5-300B-4DE6-882F-BDAD8CBFF404}.Release|Any CPU.Build.0 = Release|Any CPU
+		{575B18F9-BA35-428D-9A37-FD00F1CA24DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{575B18F9-BA35-428D-9A37-FD00F1CA24DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{575B18F9-BA35-428D-9A37-FD00F1CA24DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{575B18F9-BA35-428D-9A37-FD00F1CA24DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -89,6 +97,8 @@ Global
 		{17C3FC60-FB71-47F8-BEFB-F6D792B93B3B} = {7B9C315B-B280-4893-BD2D-D46A4D4D5C0D}
 		{D42D242E-3621-474C-8271-35126286DD18} = {7B9C315B-B280-4893-BD2D-D46A4D4D5C0D}
 		{085F35F7-CD6D-43A6-8B3A-C818BC3C5FB8} = {7B9C315B-B280-4893-BD2D-D46A4D4D5C0D}
+		{D1A502F5-300B-4DE6-882F-BDAD8CBFF404} = {6D20DEAB-92F0-400C-94EA-2DF5B6D74793}
+		{575B18F9-BA35-428D-9A37-FD00F1CA24DF} = {6D20DEAB-92F0-400C-94EA-2DF5B6D74793}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {60FC54DD-4F26-4A47-8B04-E09BEED72B78}
