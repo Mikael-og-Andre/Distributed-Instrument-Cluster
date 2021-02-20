@@ -53,6 +53,8 @@ namespace Crestron_Library {
 			////Console.WriteLine(c.getBreakByte("left"));
 			///
 
+			var temp = new Commands();
+
 			test test = new test();
 
 			test.pythonCursorCapture();
