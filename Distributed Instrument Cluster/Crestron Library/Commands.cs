@@ -89,8 +89,7 @@ namespace Crestron_Library {
 			while (!parser.EndOfData) {
 				field = parser.ReadFields();
 				if (field != null)
-					for (int y = 0; field.Length > y; y++)
-					{
+					for (int y = 0; field.Length > y; y++) {
 						matrix[y].Add(field[y]);
 					}
 				i++;

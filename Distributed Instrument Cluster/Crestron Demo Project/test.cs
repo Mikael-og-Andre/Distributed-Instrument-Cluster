@@ -53,7 +53,15 @@ namespace Crestron_Library {
 			////Console.WriteLine(c.getBreakByte("left"));
 			///
 
-			var temp = new Commands();
+			//var temp = new Commands();
+
+			var ports = SerialPortInterface.GetAvailablePorts();
+
+			foreach (var VARIABLE in ports) {
+				Console.WriteLine(VARIABLE);
+			}
+
+			
 
 			test test = new test();
 

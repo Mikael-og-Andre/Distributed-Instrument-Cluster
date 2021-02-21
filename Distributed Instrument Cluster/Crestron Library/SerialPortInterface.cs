@@ -71,7 +71,7 @@ namespace Crestron_Library {
 		/// Checks is byte queue contains data i.e. is still executing commands.
 		/// </summary>
 		/// <returns>If commands are being executed</returns>
-		public bool isExecuting() {
+		public bool isExecuting() { 
 			return byteQueue.TryPeek(out _);
 		}
 

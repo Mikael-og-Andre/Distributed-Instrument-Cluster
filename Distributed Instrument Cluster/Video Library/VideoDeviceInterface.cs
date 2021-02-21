@@ -3,7 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 
-//TODO: Handle Unpluging w/out crashing.
+//TODO: Handle Unplugging w/out crashing.
 namespace Video_Library {
 
 	/// <summary>
