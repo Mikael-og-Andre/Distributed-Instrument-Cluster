@@ -15,15 +15,19 @@ namespace Instrument_Communicator_Library {
 
     public class VideoConnection<T> {
 
-        private Socket socketConnection;    //Socket connection
-        private Thread myThread;    //Thread the conenction will run on
-        private InstrumentInformation info;     //Information about the device
+        private Socket socketConnection;            //Socket connection
+        private Thread myThread;                     //Thread the conenction will run on
+        private InstrumentInformation info;          //Information about the device
         private ConcurrentQueue<T> outputQueue;     //Queue of items received by the connection
+        private bool hasInstrument = false;                 
 
         public VideoConnection(Socket socketConnection, Thread thread, InstrumentInformation info = null) {
             this.socketConnection = socketConnection;
             this.myThread = thread;
             this.outputQueue = new ConcurrentQueue<T>();
+            if (info!=null) {
+                hasInstrument = true;
+            }
             this.info = info;
         }
 
@@ -49,13 +53,18 @@ namespace Instrument_Communicator_Library {
         /// <param name="instrumentInformation">Instrument Information object</param>
         public void SetInstrumentInformation(InstrumentInformation instrumentInformation) {
             this.info = instrumentInformation;
+            this.hasInstrument = true;
         }
         /// <summary>
-        /// Get Instrument Information
+        /// Get the instrument information object
         /// </summary>
-        /// <param name="instrumentInformation">Instrument Information Object</param>
-        public InstrumentInformation GetInstrumentInformation(InstrumentInformation instrumentInformation) {
-            return this.info;
+        /// <returns></returns>
+        public InstrumentInformation GetInstrumentInformation() {
+            if (hasInstrument) {
+                return this.info;
+            }
+
+            return null;
         }
     }
 }
