@@ -34,7 +34,7 @@ namespace Communication_lib_Test {
             Thread vidComThread = new Thread(() => vidCom.Start());
             vidComThread.Start();
 
-            ConcurrentQueue<string> inputQueue = vidCom.getInputQueue();
+            ConcurrentQueue<string> inputQueue = vidCom.GetInputQueue();
 
             string[] strings = new string[] { "oooooooooooooooooooooooooooooooooooooooooooooooa long string", "s", "Hello !@$£@£$€@€@$${£€$", "12315127651294182491289049009++0" };
             foreach (string s in strings) {
@@ -44,7 +44,7 @@ namespace Communication_lib_Test {
             List<VideoConnection<string>> vidCons = vidListener.GetVideoConnectionList();
             lock (vidCons) {
                 foreach (VideoConnection<string> con in vidCons) {
-                    ConcurrentQueue<string> queue = con.getOutputQueue();
+                    ConcurrentQueue<string> queue = con.GetOutputQueue();
                     foreach (string s in strings) {
                         string qOut;
                         bool hasVal = queue.TryDequeue(out qOut);
@@ -85,7 +85,7 @@ namespace Communication_lib_Test {
             Assert.AreNotEqual(listCons.Count, 0);
             lock (listCons) {
                 foreach (CrestronConnection con in listCons) {
-                    ConcurrentQueue<Message> inputQueue = con.getInputQueue();
+                    ConcurrentQueue<Message> inputQueue = con.GetInputQueue();
                     Message msg;
                     msg = new Message(protocolOption.message, stringList);
                     inputQueue.Enqueue(msg);

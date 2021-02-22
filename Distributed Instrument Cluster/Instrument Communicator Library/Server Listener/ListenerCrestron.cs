@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Instrument_Communicator_Library.Helper_Class;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,9 +22,9 @@ namespace Instrument_Communicator_Library.Server_Listener {
         }
 
         /// <summary>
-        /// Function to handle the new incoming connection on a new thread
-        /// <param name="socket"></param>
-        /// <param name="thread"></param>
+        /// Function to Create a new connection of the desired type
+        /// <param name="socket">Socket</param>
+        /// <param name="thread">Thread</param>
         /// </summary>
         protected override object CreateConnectionType(Socket socket, Thread thread) {
             return new CrestronConnection(socket, thread);
@@ -48,8 +49,8 @@ namespace Instrument_Communicator_Library.Server_Listener {
             //Do authorization process
             ServerProtocolAuthorization(clientConnection);
 
-            ConcurrentQueue<Message> inputQueue = clientConnection.getInputQueue();   //Get reference to the queue of inputs intended to send to the client
-            ConcurrentQueue<Message> outputQueue = clientConnection.getOutputQueue();     //Get reference to the queue of things received by the client
+            ConcurrentQueue<Message> inputQueue = clientConnection.GetInputQueue();   //Get reference to the queue of inputs intended to send to the client
+            ConcurrentQueue<Message> outputQueue = clientConnection.GetOutputQueue();     //Get reference to the queue of things received by the client
 
             //Setup stopwatch
             Stopwatch stopwatch = new Stopwatch();
@@ -77,8 +78,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
                     currentMode = messageOption;
                 }
                 //if queue is empty and time since last ping isn't big, sleep for an amount of time
-                else
-                {
+                else {
                     //Was empty and didn't need ping, so restart loop after short sleep
                     Thread.Sleep(timeToSleep);
                     continue;
@@ -115,7 +115,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
             //Stop stopwatch if ending i guess
             stopwatch.Stop();
             //get socket and disconnect
-            Socket socket = clientConnection.getSocket();
+            Socket socket = clientConnection.GetSocket();
             socket.Disconnect(false);
             //remove client from connections
         }
@@ -126,17 +126,14 @@ namespace Instrument_Communicator_Library.Server_Listener {
         /// <param name="connection"> the ClientConnection to be added</param>
         /// <returns> Boolean value representing whether the adding was successful</returns>
         private void AddClientConnection(CrestronConnection connection) {
-            try
-            {
+            try {
                 //Lock the non thread-safe list, and then add object
                 lock (listCrestronConnections) {
                     this.listCrestronConnections.Add(connection);
                 }
 
                 return;
-            }
-            catch (Exception)
-            {
+            } catch (Exception) {
                 // ignored
             }
         }
@@ -146,8 +143,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
         /// </summary>
         /// <param name="connection">Connection to be removed</param>
         /// <returns>Boolean representing successful removal</returns>
-        private bool RemoveClientConnection(CrestronConnection connection)
-        {
+        private bool RemoveClientConnection(CrestronConnection connection) {
             //lock the non thread-safe list and then remove object
             lock (listCrestronConnections) {
                 return this.listCrestronConnections.Remove(connection);
@@ -160,15 +156,11 @@ namespace Instrument_Communicator_Library.Server_Listener {
         /// <param name="clientConnection">Client Connection representing The current Connection</param>
         private void ServerProtocolAuthorization(CrestronConnection clientConnection) {
             //get socket
-            Socket connectionSocket = clientConnection.getSocket();
-            //Convert string to bytes
-            byte[] bytesToSend = Encoding.ASCII.GetBytes(protocolOption.authorize.ToString());
+            Socket connectionSocket = clientConnection.GetSocket();
             //Send protocol type to client
-            connectionSocket.Send(bytesToSend);
+            NetworkingOperations.SendStringWithSocket(protocolOption.authorize.ToString(), connectionSocket);
             //receive token
-            byte[] receiveBuffer = new byte[32];
-            int bytesReceived = connectionSocket.Receive(receiveBuffer);
-            string receivedToken = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
+            string receivedToken = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
 
             //TODO: Add Encryption to accessTokens
 
@@ -179,49 +171,51 @@ namespace Instrument_Communicator_Library.Server_Listener {
             //Send success/failure to client
             if (validationResult) {
                 //Send char y for success
-                bytesToSend = new byte[] { (byte)'y' };
-                connectionSocket.Send(bytesToSend);
+                NetworkingOperations.SendStringWithSocket("y", connectionSocket);
                 //Add access Token to clientConnection
-                clientConnection.setAccessToken(token);
+                clientConnection.SetAccessToken(token);
             } else {
                 //Send char n for negative
-                bytesToSend = new byte[] { (byte)'n' };
-                connectionSocket.Send(bytesToSend);
+                NetworkingOperations.SendStringWithSocket("n", connectionSocket);
                 //authorization failed, set not clientConnection to not active and return
-                clientConnection.setIsConnectionActive(false);
+                clientConnection.SetIsConnectionActive(false);
+                return;
             }
+
+            //Get instrument Information
+            //Send signal to start instrumentCommunication
+            NetworkingOperations.SendStringWithSocket("y", connectionSocket);
+
+            string name = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
+            string location = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
+            string type = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
+
+            //Send signal to for successful finish instrumentCommunication
+            NetworkingOperations.SendStringWithSocket("y", connectionSocket);
+
+            clientConnection.SetInstrumentInformation(new InstrumentInformation(name, location, type));
         }
 
         /// <summary>
-        /// Send protocol type PING to client and receives awnser
+        /// Send protocol type PING to client and receives answer
         /// </summary>
         /// <param name="clientConnection">Connected and authorized socket</param>
         private void ServerProtocolPing(CrestronConnection clientConnection) {
             //Send protocol type "ping" to client
             //get socket
-            Socket connectionSocket = clientConnection.getSocket();
-            //Convert string to bytes
-            byte[] bytesToSend = Encoding.ASCII.GetBytes(protocolOption.ping.ToString());
-            //Send protocol type to client
-            connectionSocket.Send(bytesToSend);
-            //Receive awnser byte, or cancel connection
-            byte[] receiveBuffer = new byte[8];
-            int bytesReceived = connectionSocket.Receive(receiveBuffer);
-            char[] receiveChars = Encoding.ASCII.GetChars(receiveBuffer, 0, bytesReceived);
+            Socket connectionSocket = clientConnection.GetSocket();
+            NetworkingOperations.SendStringWithSocket(protocolOption.ping.ToString(), connectionSocket);
+            //Receive answer
+            string receiveString = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
             //Check if correct Response
-            if (receiveChars.Length > 0) {
-                if ('y' == (char)receiveChars[0]) {
-                    //Successful ping
-                    Console.WriteLine("SERVER - Client Thread {0} says: Ping successful", Thread.CurrentThread.ManagedThreadId);
-                } else {
-                    //failed ping, stop connection
-                    Console.WriteLine("SERVER - Client Thread {0} says: Ping failed, received wrong response", Thread.CurrentThread.ManagedThreadId);
-                    clientConnection.setIsConnectionActive(false);
-                }
+
+            if (receiveString.ToLower().Equals("y")) {
+                //Successful ping
+                Console.WriteLine("SERVER - Client Thread {0} says: Ping successful", Thread.CurrentThread.ManagedThreadId);
             } else {
                 //failed ping, stop connection
-                Console.WriteLine("SERVER - Client Thread {0} says: Ping failed, received empty response", Thread.CurrentThread.ManagedThreadId);
-                clientConnection.setIsConnectionActive(false);
+                Console.WriteLine("SERVER - Client Thread {0} says: Ping failed, received wrong response", Thread.CurrentThread.ManagedThreadId);
+                clientConnection.SetIsConnectionActive(false);
             }
         }
 
@@ -235,25 +229,18 @@ namespace Instrument_Communicator_Library.Server_Listener {
         /// </summary>
         /// <param name="clientConnection">Client Connection Object</param>
         private void ServerProtocolMessage(CrestronConnection clientConnection) {
-            int bufferSize = 128;
-            //Get refrence to the queue
-            ConcurrentQueue<Message> inputQueue = clientConnection.getInputQueue();
+            //Get reference to the queue
+            ConcurrentQueue<Message> inputQueue = clientConnection.GetInputQueue();
             //Get Socket
-            Socket connectionSocket = clientConnection.getSocket();
-            //Byte buffer decleration
-            byte[] bytesToSend = new byte[bufferSize];
+            Socket connectionSocket = clientConnection.GetSocket();
             try {
                 //extract message from queue
                 bool isSuccess = inputQueue.TryDequeue(out var messageToSend);
-                Message msg = (Message) messageToSend;
+                Message msg = (Message)messageToSend;
                 //Check if success and start sending messages
                 if (isSuccess) {
                     //Say protocol type to client
-                    //Convert string to bytes
-                    string encodingTarget = protocolOption.message.ToString();
-                    Encoding.ASCII.GetBytes(encodingTarget, 0, encodingTarget.Length, bytesToSend, 0);
-                    //Send message string to client
-                    connectionSocket.Send(bytesToSend, 32, SocketFlags.None);
+                    NetworkingOperations.SendStringWithSocket(protocolOption.message.ToString(),connectionSocket);
 
                     //Get string array from message object
                     string[] stringArray = msg.getMessageArray();
@@ -265,21 +252,10 @@ namespace Instrument_Communicator_Library.Server_Listener {
                             continue;
                         }
                         Console.WriteLine("SERVER - Thread {0} is sending " + s + " to the client", Thread.CurrentThread.ManagedThreadId);
-                        //clear byte buffer
-                        encodingTarget = s;
-                        bytesToSend = new byte[bufferSize];
-                        //Write bytes to the bytes to send buffer
-                        Encoding.ASCII.GetBytes(encodingTarget, 0, encodingTarget.Length, bytesToSend, 0);
-                        //Send the 32 bytes in the bytesToSend buffer to the client
-                        connectionSocket.Send(bytesToSend, bufferSize, SocketFlags.None);
+                        NetworkingOperations.SendStringWithSocket(s,connectionSocket);
                     }
                     //Send end signal to client, singling no more strings are coming
-                    encodingTarget = "end";
-                    bytesToSend = new byte[bufferSize];
-                    //Write bytes to the bytes to send buffer
-                    Encoding.ASCII.GetBytes(encodingTarget, 0, encodingTarget.Length, bytesToSend, 0);
-                    //Send 32 bytes to client
-                    connectionSocket.Send(bytesToSend, bufferSize, SocketFlags.None);
+                    NetworkingOperations.SendStringWithSocket("end",connectionSocket);
                 } else {
                     Console.WriteLine("SERVER - Crestron Listener Message queue was empty when trying to  ");
                 }
@@ -310,10 +286,8 @@ namespace Instrument_Communicator_Library.Server_Listener {
         /// Get the list of connected clients
         /// </summary>
         /// <returns>List of Client Connections</returns>
-        public List<CrestronConnection> GetCrestronConnectionList()
-        {
-            lock (listCrestronConnections)
-            {
+        public List<CrestronConnection> GetCrestronConnectionList() {
+            lock (listCrestronConnections) {
                 return this.listCrestronConnections;
             }
         }

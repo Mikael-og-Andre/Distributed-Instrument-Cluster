@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using Instrument_Communicator_Library.Helper_Class;
 
 namespace Instrument_Communicator_Library {
 
@@ -31,8 +32,7 @@ namespace Instrument_Communicator_Library {
                 //check if the client is authorized,
                 if (!isAuthorized) {
                     //receive the first authorization call from server
-                    byte[] bufferReceive = new byte[32];
-                    connectionSocket.Receive(bufferReceive);
+                    NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
                     //Start Authorization
                     isAuthorized = ProtocolAuthorize(connectionSocket);
                 }
@@ -45,8 +45,8 @@ namespace Instrument_Communicator_Library {
                         StartAProtocol(connectionSocket);
                     }
                 }
-            } catch (Exception ex) {
-                throw ex;
+            } catch (Exception) {
+                throw;
             }
         }
 
@@ -56,10 +56,7 @@ namespace Instrument_Communicator_Library {
         /// <param name="connectionSocket"> Socket Connection to server</param>
         private void StartAProtocol(Socket connectionSocket) {
             //Receive protocol type from server
-            byte[] receiveBuffer = new byte[32];
-            int bytesReceived = connectionSocket.Receive(receiveBuffer, 32, SocketFlags.None);
-            string extractedString = Encoding.ASCII.GetString(receiveBuffer, 0, 32);
-            extractedString = extractedString.Trim('\0');
+            string extractedString=NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
             //Parse Enum
             protocolOption option = (protocolOption)Enum.Parse(typeof(protocolOption), extractedString, true);
             Console.WriteLine("thread {0} Client says: " + "Received option " + option, Thread.CurrentThread.ManagedThreadId);
@@ -98,32 +95,36 @@ namespace Instrument_Communicator_Library {
                 //Create accessToken
                 AccessToken accessToken = this.accessToken;
                 string accessTokenHash = accessToken.getAccessString();
-                //Create byte array
-                char[] chars = accessTokenHash.ToCharArray();
-                byte[] bytesToSend = new byte[chars.Length];
-                for (int i = 0; i < chars.Length; i++) {
-                    bytesToSend[i] = (byte)chars[i];
-                }
+                //Send token
+                NetworkingOperations.SendStringWithSocket(accessTokenHash,connectionSocket);
 
-                //TODO: Add Encryption to accessToken
-
-                //Send Token
-                connectionSocket.Send(bytesToSend);
                 //Receive Result
-                byte[] byteBuffer = new byte[32];
-                connectionSocket.Receive(byteBuffer, SocketFlags.None);
-                //Translate to char
-                char result = (char)byteBuffer[0];
+                string result = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
                 //Check result
-                if ((char)'y' == result) {
+                if (result.ToLower().Equals("y")) {
                     Console.WriteLine("Thread {0} Authorization Successful", Thread.CurrentThread.ManagedThreadId);
-                    // return true, representing a successful authorization
-                    return true;
+                    //If returned y then do instrument detailing
+                    
                 } else {
                     Console.WriteLine("Thread {0} Authorization Failed", Thread.CurrentThread.ManagedThreadId);
                     // return false, representing a failed authorization
                     return false;
                 }
+
+                //Receive Y for started instrument detailing
+                string response = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
+                Console.WriteLine("Response was " + response);
+                if (!response.ToLower().Equals("y")) {
+                    return false;
+                }
+                NetworkingOperations.SendStringWithSocket(information.name, connectionSocket);
+                NetworkingOperations.SendStringWithSocket(information.location, connectionSocket);
+                NetworkingOperations.SendStringWithSocket(information.type, connectionSocket);
+
+                //Receive Y for started instrument detailing
+                string complete = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
+
+                return true;
             } catch (Exception ex) {
                 return false;
             }
@@ -135,8 +136,7 @@ namespace Instrument_Communicator_Library {
         /// <param name="connectionSocket"> Authorized connection socket</param>
         private void ProtocolPing(Socket connectionSocket) {
             //Send simple byte to server
-            byte[] sendBuffer = new byte[] { (byte)'y' };
-            connectionSocket.Send(sendBuffer);
+            NetworkingOperations.SendStringWithSocket("y",connectionSocket);
         }
 
         /// <summary>
@@ -144,23 +144,14 @@ namespace Instrument_Communicator_Library {
         /// </summary>
         /// <param name="connectionSocket">Connected and authorized socket</param>
         private void ProtocolMessage(Socket connectionSocket) {
-            int bufferSize = 128;
             //Loop boolean
             bool isAccepting = true;
-            //Socket buffer
-            byte[] receiveBuffer;
             //Loop until end signal received by server
             while (isAccepting) {
-                //receive buffer of bufferSize bytes
-                receiveBuffer = new byte[bufferSize];
-                //Receive into the receive buffer from slot 0 to bufferSize
-                int bytesReceived = connectionSocket.Receive(receiveBuffer, 0, bufferSize, SocketFlags.None);
-                string received = Encoding.ASCII.GetString(receiveBuffer, 0, bytesReceived);
-                //trim null bytes that were sent by the socket
-                received = received.Trim('\0');
+                string received = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
                 Console.WriteLine("Thread {0} message received " + received, Thread.CurrentThread.ManagedThreadId);
                 //Check if end in messages
-                if (received.Equals("end")) {
+                if (received.ToLower().Equals("end")) {
                     //Set protocol to be over
                     isAccepting = false;
                     break;

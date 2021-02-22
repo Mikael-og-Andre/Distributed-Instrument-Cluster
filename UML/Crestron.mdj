@@ -3079,9 +3079,9 @@
 														"$ref": "AAAAAAF3plWihSy0T2E="
 													},
 													"font": "Arial;13;0",
-													"left": 32.72998046875,
+													"left": 30.55908203125,
 													"top": 13,
-													"width": 147.6689453125,
+													"width": 136.7509765625,
 													"height": 13,
 													"text": "CommunicationDiagram1"
 												},
@@ -3094,7 +3094,7 @@
 													"font": "Arial;13;1",
 													"left": 13,
 													"top": 13,
-													"width": 14.72998046875,
+													"width": 12.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -7545,8 +7545,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": 572.658203125,
-													"top": 312,
+													"left": 428.658203125,
+													"top": 584,
 													"height": 13
 												},
 												{
@@ -7556,8 +7556,8 @@
 														"$ref": "AAAAAAF3vm8bsuFxnL4="
 													},
 													"font": "Arial;13;1",
-													"left": 477,
-													"top": 201,
+													"left": 405,
+													"top": 337,
 													"width": 344.07958984375,
 													"height": 13,
 													"text": "RemoteDevice"
@@ -7570,8 +7570,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": 572.658203125,
-													"top": 312,
+													"left": 428.658203125,
+													"top": 584,
 													"width": 238.4052734375,
 													"height": 13,
 													"text": "(from Instrument_Communicator_Library)"
@@ -7584,15 +7584,15 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": 572.658203125,
-													"top": 312,
+													"left": 428.658203125,
+													"top": 584,
 													"height": 13,
 													"horizontalAlignment": 1
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 472,
-											"top": 194,
+											"left": 400,
+											"top": 330,
 											"width": 354.07958984375,
 											"height": 25,
 											"stereotypeLabel": {
@@ -7628,8 +7628,8 @@
 														"$ref": "AAAAAAF3vm8a5tv+vs0="
 													},
 													"font": "Arial;13;0",
-													"left": 477,
-													"top": 224,
+													"left": 405,
+													"top": 360,
 													"width": 344.07958984375,
 													"height": 13,
 													"text": "+hasCrestron: bool",
@@ -7645,8 +7645,8 @@
 														"$ref": "AAAAAAF3vm8a5tv/9Mo="
 													},
 													"font": "Arial;13;0",
-													"left": 477,
-													"top": 239,
+													"left": 405,
+													"top": 375,
 													"width": 344.07958984375,
 													"height": 13,
 													"text": "+hasVideo: bool",
@@ -7654,8 +7654,8 @@
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 472,
-											"top": 219,
+											"left": 400,
+											"top": 355,
 											"width": 354.07958984375,
 											"height": 38
 										},
@@ -7679,8 +7679,8 @@
 														"$ref": "AAAAAAF3vm8Z9tu7lLo="
 													},
 													"font": "Arial;13;0",
-													"left": 477,
-													"top": 262,
+													"left": 405,
+													"top": 398,
 													"width": 344.07958984375,
 													"height": 13,
 													"text": "«constructor»+RemoteDevice()",
@@ -7696,8 +7696,8 @@
 														"$ref": "AAAAAAF3vm8Z9tu8CjQ="
 													},
 													"font": "Arial;13;0",
-													"left": 477,
-													"top": 277,
+													"left": 405,
+													"top": 413,
 													"width": 344.07958984375,
 													"height": 13,
 													"text": "+setCrestronConnection(con: CrestronConnection): void",
@@ -7713,8 +7713,8 @@
 														"$ref": "AAAAAAF3vm8Z9tu/Z7o="
 													},
 													"font": "Arial;13;0",
-													"left": 477,
-													"top": 292,
+													"left": 405,
+													"top": 428,
 													"width": 344.07958984375,
 													"height": 13,
 													"text": "+getCrestronConnection(): CrestronConnection",
@@ -7730,8 +7730,8 @@
 														"$ref": "AAAAAAF3vm8Z9tvBkBE="
 													},
 													"font": "Arial;13;0",
-													"left": 477,
-													"top": 307,
+													"left": 405,
+													"top": 443,
 													"width": 344.07958984375,
 													"height": 13,
 													"text": "+setVideoConnection(con: VideoConnection): void",
@@ -7747,8 +7747,8 @@
 														"$ref": "AAAAAAF3vm8Z9tvEQpc="
 													},
 													"font": "Arial;13;0",
-													"left": 477,
-													"top": 322,
+													"left": 405,
+													"top": 458,
 													"width": 344.07958984375,
 													"height": 13,
 													"text": "+getVideoConnection(): VideoConnection",
@@ -7756,8 +7756,8 @@
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 472,
-											"top": 257,
+											"left": 400,
+											"top": 393,
 											"width": 354.07958984375,
 											"height": 83
 										},
@@ -7771,8 +7771,8 @@
 												"$ref": "AAAAAAF3vm8Z9tu5rq4="
 											},
 											"font": "Arial;13;0",
-											"left": 472,
-											"top": 340,
+											"left": 400,
+											"top": 476,
 											"width": 354.07958984375,
 											"height": 10
 										},
@@ -7796,8 +7796,8 @@
 														"$ref": "AAAAAAF3vm8Z9tu6afU="
 													},
 													"font": "Arial;13;0",
-													"left": 822.138671875,
-													"top": 181,
+													"left": 750.138671875,
+													"top": 317,
 													"width": 7.94091796875,
 													"height": 13,
 													"text": "T",
@@ -7805,16 +7805,16 @@
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 817.138671875,
-											"top": 176,
+											"left": 745.138671875,
+											"top": 312,
 											"width": 17.94091796875,
 											"height": 23
 										}
 									],
 									"font": "Arial;13;0",
 									"containerChangeable": true,
-									"left": 472,
-									"top": 176,
+									"left": 400,
+									"top": 312,
 									"width": 364.07958984375,
 									"height": 174,
 									"nameCompartment": {
@@ -7862,8 +7862,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": 189.4638671875,
-													"top": 984,
+													"left": 109.4638671875,
+													"top": 1064,
 													"height": 13
 												},
 												{
@@ -7873,8 +7873,8 @@
 														"$ref": "AAAAAAF3vm8bsuF7tbg="
 													},
 													"font": "Arial;13;1",
-													"left": 445,
-													"top": 537,
+													"left": 405,
+													"top": 577,
 													"width": 242.9423828125,
 													"height": 13,
 													"text": "VideoConnection"
@@ -7887,8 +7887,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": 189.4638671875,
-													"top": 984,
+													"left": 109.4638671875,
+													"top": 1064,
 													"width": 238.4052734375,
 													"height": 13,
 													"text": "(from Instrument_Communicator_Library)"
@@ -7901,15 +7901,15 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": 189.4638671875,
-													"top": 984,
+													"left": 109.4638671875,
+													"top": 1064,
 													"height": 13,
 													"horizontalAlignment": 1
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 440,
-											"top": 530,
+											"left": 400,
+											"top": 570,
 											"width": 252.9423828125,
 											"height": 25,
 											"stereotypeLabel": {
@@ -7935,8 +7935,8 @@
 												"$ref": "AAAAAAF3vm8aBdvG/HI="
 											},
 											"font": "Arial;13;0",
-											"left": 440,
-											"top": 555,
+											"left": 400,
+											"top": 595,
 											"width": 252.9423828125,
 											"height": 10
 										},
@@ -7960,8 +7960,8 @@
 														"$ref": "AAAAAAF3vm8aBdvId08="
 													},
 													"font": "Arial;13;0",
-													"left": 445,
-													"top": 570,
+													"left": 405,
+													"top": 610,
 													"width": 242.9423828125,
 													"height": 13,
 													"text": "«constructor»+VideoConnection()",
@@ -7977,8 +7977,8 @@
 														"$ref": "AAAAAAF3vm8aBdvJvYI="
 													},
 													"font": "Arial;13;0",
-													"left": 445,
-													"top": 585,
+													"left": 405,
+													"top": 625,
 													"width": 242.9423828125,
 													"height": 13,
 													"text": "+getOutputQueue(): ConcurrentQueue",
@@ -7994,8 +7994,8 @@
 														"$ref": "AAAAAAF3vm8aBdvL9Og="
 													},
 													"font": "Arial;13;0",
-													"left": 445,
-													"top": 600,
+													"left": 405,
+													"top": 640,
 													"width": 242.9423828125,
 													"height": 13,
 													"text": "+GetSocket(): Socket",
@@ -8003,8 +8003,8 @@
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 440,
-											"top": 565,
+											"left": 400,
+											"top": 605,
 											"width": 252.9423828125,
 											"height": 53
 										},
@@ -8018,8 +8018,8 @@
 												"$ref": "AAAAAAF3vm8aBdvG/HI="
 											},
 											"font": "Arial;13;0",
-											"left": 440,
-											"top": 618,
+											"left": 400,
+											"top": 658,
 											"width": 252.9423828125,
 											"height": 10
 										},
@@ -8043,8 +8043,8 @@
 														"$ref": "AAAAAAF3vm8aBdvHoas="
 													},
 													"font": "Arial;13;0",
-													"left": 689.00146484375,
-													"top": 517,
+													"left": 649.00146484375,
+													"top": 557,
 													"width": 7.94091796875,
 													"height": 13,
 													"text": "T",
@@ -8052,16 +8052,16 @@
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 684.00146484375,
-											"top": 512,
+											"left": 644.00146484375,
+											"top": 552,
 											"width": 17.94091796875,
 											"height": 23
 										}
 									],
 									"font": "Arial;13;0",
 									"containerChangeable": true,
-									"left": 440,
-									"top": 512,
+									"left": 400,
+									"top": 552,
 									"width": 262.9423828125,
 									"height": 116,
 									"nameCompartment": {
@@ -8108,8 +8108,8 @@
 														"$ref": "AAAAAAF3vm8bsuGFGQM="
 													},
 													"font": "Arial;13;0",
-													"left": 245,
-													"top": 205,
+													"left": 181,
+													"top": 213,
 													"width": 93.869140625,
 													"height": 13,
 													"text": "«enumeration»"
@@ -8121,8 +8121,8 @@
 														"$ref": "AAAAAAF3vm8bsuGFGQM="
 													},
 													"font": "Arial;13;1",
-													"left": 245,
-													"top": 220,
+													"left": 181,
+													"top": 228,
 													"width": 93.869140625,
 													"height": 13,
 													"text": "protocolOption"
@@ -8135,8 +8135,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -563.8427734375,
-													"top": 355,
+													"left": -691.8427734375,
+													"top": 371,
 													"width": 238.4052734375,
 													"height": 13,
 													"text": "(from Instrument_Communicator_Library)"
@@ -8149,15 +8149,15 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -563.8427734375,
-													"top": 355,
+													"left": -691.8427734375,
+													"top": 371,
 													"height": 13,
 													"horizontalAlignment": 1
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 240,
-											"top": 200,
+											"left": 176,
+											"top": 208,
 											"width": 103.869140625,
 											"height": 38,
 											"stereotypeLabel": {
@@ -8183,8 +8183,8 @@
 												"$ref": "AAAAAAF3vm8aDtvNjQc="
 											},
 											"font": "Arial;13;0",
-											"left": 240,
-											"top": 248,
+											"left": 176,
+											"top": 256,
 											"width": 103.869140625,
 											"height": 10
 										},
@@ -8198,8 +8198,8 @@
 												"$ref": "AAAAAAF3vm8aDtvNjQc="
 											},
 											"font": "Arial;13;0",
-											"left": 240,
-											"top": 258,
+											"left": 176,
+											"top": 266,
 											"width": 103.869140625,
 											"height": 10
 										},
@@ -8213,8 +8213,8 @@
 												"$ref": "AAAAAAF3vm8aDtvNjQc="
 											},
 											"font": "Arial;13;0",
-											"left": -281.92138671875,
-											"top": 177.5,
+											"left": -345.92138671875,
+											"top": 185.5,
 											"width": 10,
 											"height": 10
 										},
@@ -8229,8 +8229,8 @@
 											},
 											"visible": false,
 											"font": "Arial;13;0",
-											"left": -281.92138671875,
-											"top": 177.5,
+											"left": -345.92138671875,
+											"top": 185.5,
 											"width": 10,
 											"height": 10
 										},
@@ -8244,16 +8244,16 @@
 												"$ref": "AAAAAAF3vm8aDtvNjQc="
 											},
 											"font": "Arial;13;0",
-											"left": 240,
-											"top": 238,
+											"left": 176,
+											"top": 246,
 											"width": 103.869140625,
 											"height": 10
 										}
 									],
 									"font": "Arial;13;0",
 									"containerChangeable": true,
-									"left": 240,
-									"top": 200,
+									"left": 176,
+									"top": 208,
 									"width": 103.869140625,
 									"height": 68,
 									"nameCompartment": {
@@ -8304,8 +8304,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -959.5810546875,
-													"top": 566,
+													"left": -1167.5810546875,
+													"top": 582,
 													"height": 13
 												},
 												{
@@ -8315,8 +8315,8 @@
 														"$ref": "AAAAAAF3vm8bs+GQOjI="
 													},
 													"font": "Arial;13;1",
-													"left": 181,
-													"top": 319,
+													"left": 77,
+													"top": 327,
 													"width": 242.4296875,
 													"height": 13,
 													"text": "InstrumentInformation"
@@ -8329,8 +8329,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -959.5810546875,
-													"top": 566,
+													"left": -1167.5810546875,
+													"top": 582,
 													"width": 238.4052734375,
 													"height": 13,
 													"text": "(from Instrument_Communicator_Library)"
@@ -8343,15 +8343,15 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -959.5810546875,
-													"top": 566,
+													"left": -1167.5810546875,
+													"top": 582,
 													"height": 13,
 													"horizontalAlignment": 1
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 176,
-											"top": 312,
+											"left": 72,
+											"top": 320,
 											"width": 252.4296875,
 											"height": 25,
 											"stereotypeLabel": {
@@ -8387,8 +8387,8 @@
 														"$ref": "AAAAAAF3vm8a5twA7+g="
 													},
 													"font": "Arial;13;0",
-													"left": 181,
-													"top": 342,
+													"left": 77,
+													"top": 350,
 													"width": 242.4296875,
 													"height": 13,
 													"text": "+id: int",
@@ -8404,8 +8404,8 @@
 														"$ref": "AAAAAAF3vm8a5twBbFw="
 													},
 													"font": "Arial;13;0",
-													"left": 181,
-													"top": 357,
+													"left": 77,
+													"top": 365,
 													"width": 242.4296875,
 													"height": 13,
 													"text": "+name: string",
@@ -8421,8 +8421,8 @@
 														"$ref": "AAAAAAF3vm8a5twC+04="
 													},
 													"font": "Arial;13;0",
-													"left": 181,
-													"top": 372,
+													"left": 77,
+													"top": 380,
 													"width": 242.4296875,
 													"height": 13,
 													"text": "+location: string",
@@ -8438,8 +8438,8 @@
 														"$ref": "AAAAAAF3vm8a5twDp3Y="
 													},
 													"font": "Arial;13;0",
-													"left": 181,
-													"top": 387,
+													"left": 77,
+													"top": 395,
 													"width": 242.4296875,
 													"height": 13,
 													"text": "+type: string",
@@ -8447,8 +8447,8 @@
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 176,
-											"top": 337,
+											"left": 72,
+											"top": 345,
 											"width": 252.4296875,
 											"height": 68
 										},
@@ -8472,8 +8472,8 @@
 														"$ref": "AAAAAAF3vm8aHNvPSL4="
 													},
 													"font": "Arial;13;0",
-													"left": 181,
-													"top": 410,
+													"left": 77,
+													"top": 418,
 													"width": 242.4296875,
 													"height": 13,
 													"text": "«constructor»+InstrumentInformation()",
@@ -8489,8 +8489,8 @@
 														"$ref": "AAAAAAF3vm8aHNvQ40M="
 													},
 													"font": "Arial;13;0",
-													"left": 181,
-													"top": 425,
+													"left": 77,
+													"top": 433,
 													"width": 242.4296875,
 													"height": 13,
 													"text": "+Equals(info: InstrumentInformation): bool",
@@ -8498,8 +8498,8 @@
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 176,
-											"top": 405,
+											"left": 72,
+											"top": 413,
 											"width": 252.4296875,
 											"height": 38
 										},
@@ -8513,8 +8513,8 @@
 												"$ref": "AAAAAAF3vm8aHNvOBmk="
 											},
 											"font": "Arial;13;0",
-											"left": 176,
-											"top": 443,
+											"left": 72,
+											"top": 451,
 											"width": 252.4296875,
 											"height": 10
 										},
@@ -8529,16 +8529,16 @@
 											},
 											"visible": false,
 											"font": "Arial;13;0",
-											"left": -479.79052734375,
-											"top": 283,
+											"left": -583.79052734375,
+											"top": 291,
 											"width": 10,
 											"height": 10
 										}
 									],
 									"font": "Arial;13;0",
 									"containerChangeable": true,
-									"left": 176,
-									"top": 312,
+									"left": 72,
+									"top": 320,
 									"width": 252.4296875,
 									"height": 141,
 									"nameCompartment": {
@@ -8586,8 +8586,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -516.91015625,
-													"top": 6,
+													"left": -868.91015625,
+													"top": 102,
 													"height": 13
 												},
 												{
@@ -8597,8 +8597,8 @@
 														"$ref": "AAAAAAF3vm8bs+Gat8s="
 													},
 													"font": "Arial;13;1",
-													"left": 581,
-													"top": 39,
+													"left": 405,
+													"top": 87,
 													"width": 176.64892578125,
 													"height": 13,
 													"text": "Message"
@@ -8611,8 +8611,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -516.91015625,
-													"top": 6,
+													"left": -868.91015625,
+													"top": 102,
 													"width": 238.4052734375,
 													"height": 13,
 													"text": "(from Instrument_Communicator_Library)"
@@ -8625,15 +8625,15 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -516.91015625,
-													"top": 6,
+													"left": -868.91015625,
+													"top": 102,
 													"height": 13,
 													"horizontalAlignment": 1
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 576,
-											"top": 32,
+											"left": 400,
+											"top": 80,
 											"width": 186.64892578125,
 											"height": 25,
 											"stereotypeLabel": {
@@ -8659,8 +8659,8 @@
 												"$ref": "AAAAAAF3vm8aKNvTX7Q="
 											},
 											"font": "Arial;13;0",
-											"left": 576,
-											"top": 57,
+											"left": 400,
+											"top": 105,
 											"width": 186.64892578125,
 											"height": 10
 										},
@@ -8684,8 +8684,8 @@
 														"$ref": "AAAAAAF3vm8aKNvU1Wc="
 													},
 													"font": "Arial;13;0",
-													"left": 581,
-													"top": 72,
+													"left": 405,
+													"top": 120,
 													"width": 176.64892578125,
 													"height": 13,
 													"text": "«constructor»+Message()",
@@ -8701,8 +8701,8 @@
 														"$ref": "AAAAAAF3vm8aKNvVoVI="
 													},
 													"font": "Arial;13;0",
-													"left": 581,
-													"top": 87,
+													"left": 405,
+													"top": 135,
 													"width": 176.64892578125,
 													"height": 13,
 													"text": "+getMessageArray(): string[][*]",
@@ -8718,8 +8718,8 @@
 														"$ref": "AAAAAAF3vm8aKNvXeak="
 													},
 													"font": "Arial;13;0",
-													"left": 581,
-													"top": 102,
+													"left": 405,
+													"top": 150,
 													"width": 176.64892578125,
 													"height": 13,
 													"text": "+getProtocol(): protocolOption",
@@ -8727,8 +8727,8 @@
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 576,
-											"top": 67,
+											"left": 400,
+											"top": 115,
 											"width": 186.64892578125,
 											"height": 53
 										},
@@ -8742,8 +8742,8 @@
 												"$ref": "AAAAAAF3vm8aKNvTX7Q="
 											},
 											"font": "Arial;13;0",
-											"left": 576,
-											"top": 120,
+											"left": 400,
+											"top": 168,
 											"width": 186.64892578125,
 											"height": 10
 										},
@@ -8758,16 +8758,16 @@
 											},
 											"visible": false,
 											"font": "Arial;13;0",
-											"left": -258.455078125,
-											"top": 3,
+											"left": -434.455078125,
+											"top": 51,
 											"width": 10,
 											"height": 10
 										}
 									],
 									"font": "Arial;13;0",
 									"containerChangeable": true,
-									"left": 576,
-									"top": 32,
+									"left": 400,
+									"top": 80,
 									"width": 186.64892578125,
 									"height": 98,
 									"nameCompartment": {
@@ -8815,8 +8815,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -66.75,
-													"top": 326,
+													"left": -466.75,
+													"top": 374,
 													"height": 13
 												},
 												{
@@ -8826,8 +8826,8 @@
 														"$ref": "AAAAAAF3vm8bs+GkJiE="
 													},
 													"font": "Arial;13;1",
-													"left": 901,
-													"top": 199,
+													"left": 701,
+													"top": 223,
 													"width": 282.90869140625,
 													"height": 13,
 													"text": "CrestronCommunicator"
@@ -8840,8 +8840,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -66.75,
-													"top": 326,
+													"left": -466.75,
+													"top": 374,
 													"width": 238.4052734375,
 													"height": 13,
 													"text": "(from Instrument_Communicator_Library)"
@@ -8854,15 +8854,15 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -66.75,
-													"top": 326,
+													"left": -466.75,
+													"top": 374,
 													"height": 13,
 													"horizontalAlignment": 1
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 896,
-											"top": 192,
+											"left": 696,
+											"top": 216,
 											"width": 292.90869140625,
 											"height": 25,
 											"stereotypeLabel": {
@@ -8888,8 +8888,8 @@
 												"$ref": "AAAAAAF3vm8acNvZoDI="
 											},
 											"font": "Arial;13;0",
-											"left": 896,
-											"top": 217,
+											"left": 696,
+											"top": 241,
 											"width": 292.90869140625,
 											"height": 10
 										},
@@ -8913,8 +8913,8 @@
 														"$ref": "AAAAAAF3vm8acNvagEo="
 													},
 													"font": "Arial;13;0",
-													"left": 901,
-													"top": 232,
+													"left": 701,
+													"top": 256,
 													"width": 282.90869140625,
 													"height": 13,
 													"text": "«constructor»+CrestronCommunicator()",
@@ -8930,8 +8930,8 @@
 														"$ref": "AAAAAAF3vm8acNvbDmI="
 													},
 													"font": "Arial;13;0",
-													"left": 901,
-													"top": 247,
+													"left": 701,
+													"top": 271,
 													"width": 282.90869140625,
 													"height": 13,
 													"text": "+getCommandOutputQueue(): ConcurrentQueue",
@@ -8939,8 +8939,8 @@
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 896,
-											"top": 227,
+											"left": 696,
+											"top": 251,
 											"width": 292.90869140625,
 											"height": 38
 										},
@@ -8954,8 +8954,8 @@
 												"$ref": "AAAAAAF3vm8acNvZoDI="
 											},
 											"font": "Arial;13;0",
-											"left": 896,
-											"top": 265,
+											"left": 696,
+											"top": 289,
 											"width": 292.90869140625,
 											"height": 10
 										},
@@ -8970,16 +8970,16 @@
 											},
 											"visible": false,
 											"font": "Arial;13;0",
-											"left": -33.375,
-											"top": 163,
+											"left": -233.375,
+											"top": 187,
 											"width": 10,
 											"height": 10
 										}
 									],
 									"font": "Arial;13;0",
 									"containerChangeable": true,
-									"left": 896,
-									"top": 192,
+									"left": 696,
+									"top": 216,
 									"width": 292.90869140625,
 									"height": 83,
 									"nameCompartment": {
@@ -9027,8 +9027,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -630.564453125,
-													"top": 920,
+													"left": -1430.564453125,
+													"top": 344,
 													"height": 13
 												},
 												{
@@ -9038,8 +9038,8 @@
 														"$ref": "AAAAAAF3vm8bs+GuRXs="
 													},
 													"font": "Arial;13;1",
-													"left": 805,
-													"top": 505,
+													"left": 405,
+													"top": 217,
 													"width": 258.06884765625,
 													"height": 13,
 													"text": "VideoCommunicator"
@@ -9052,8 +9052,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -630.564453125,
-													"top": 920,
+													"left": -1430.564453125,
+													"top": 344,
 													"width": 238.4052734375,
 													"height": 13,
 													"text": "(from Instrument_Communicator_Library)"
@@ -9066,15 +9066,15 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -630.564453125,
-													"top": 920,
+													"left": -1430.564453125,
+													"top": 344,
 													"height": 13,
 													"horizontalAlignment": 1
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 800,
-											"top": 498,
+											"left": 400,
+											"top": 210,
 											"width": 268.06884765625,
 											"height": 25,
 											"stereotypeLabel": {
@@ -9100,8 +9100,8 @@
 												"$ref": "AAAAAAF3vm8ahdvdcxk="
 											},
 											"font": "Arial;13;0",
-											"left": 800,
-											"top": 523,
+											"left": 400,
+											"top": 235,
 											"width": 268.06884765625,
 											"height": 10
 										},
@@ -9125,8 +9125,8 @@
 														"$ref": "AAAAAAF3vm8ahdvfKKQ="
 													},
 													"font": "Arial;13;0",
-													"left": 805,
-													"top": 538,
+													"left": 405,
+													"top": 250,
 													"width": 258.06884765625,
 													"height": 13,
 													"text": "«constructor»+VideoCommunicator()",
@@ -9142,8 +9142,8 @@
 														"$ref": "AAAAAAF3vm8ahdvga/o="
 													},
 													"font": "Arial;13;0",
-													"left": 805,
-													"top": 553,
+													"left": 405,
+													"top": 265,
 													"width": 258.06884765625,
 													"height": 13,
 													"text": "+getInputQueue(): ConcurrentQueue",
@@ -9159,8 +9159,8 @@
 														"$ref": "AAAAAAF3vm8ahdvi9zs="
 													},
 													"font": "Arial;13;0",
-													"left": 805,
-													"top": 568,
+													"left": 405,
+													"top": 280,
 													"width": 258.06884765625,
 													"height": 13,
 													"underline": true,
@@ -9169,8 +9169,8 @@
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 800,
-											"top": 533,
+											"left": 400,
+											"top": 245,
 											"width": 268.06884765625,
 											"height": 53
 										},
@@ -9184,8 +9184,8 @@
 												"$ref": "AAAAAAF3vm8ahdvdcxk="
 											},
 											"font": "Arial;13;0",
-											"left": 800,
-											"top": 586,
+											"left": 400,
+											"top": 298,
 											"width": 268.06884765625,
 											"height": 10
 										},
@@ -9209,8 +9209,8 @@
 														"$ref": "AAAAAAF3vm8ahdvex4o="
 													},
 													"font": "Arial;13;0",
-													"left": 1064.1279296875,
-													"top": 485,
+													"left": 664.1279296875,
+													"top": 197,
 													"width": 7.94091796875,
 													"height": 13,
 													"text": "T",
@@ -9218,16 +9218,16 @@
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 1059.1279296875,
-											"top": 480,
+											"left": 659.1279296875,
+											"top": 192,
 											"width": 17.94091796875,
 											"height": 23
 										}
 									],
 									"font": "Arial;13;0",
 									"containerChangeable": true,
-									"left": 800,
-									"top": 480,
+									"left": 400,
+									"top": 192,
 									"width": 278.06884765625,
 									"height": 116,
 									"nameCompartment": {
@@ -9275,8 +9275,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -608.34375,
-													"top": 566,
+													"left": -1056.34375,
+													"top": 646,
 													"height": 13
 												},
 												{
@@ -9286,8 +9286,8 @@
 														"$ref": "AAAAAAF3vm8btOG4g80="
 													},
 													"font": "Arial;13;1",
-													"left": 1013,
-													"top": 319,
+													"left": 789,
+													"top": 359,
 													"width": 171.6025390625,
 													"height": 13,
 													"text": "AccessToken"
@@ -9300,8 +9300,8 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -608.34375,
-													"top": 566,
+													"left": -1056.34375,
+													"top": 646,
 													"width": 238.4052734375,
 													"height": 13,
 													"text": "(from Instrument_Communicator_Library)"
@@ -9314,15 +9314,15 @@
 													},
 													"visible": false,
 													"font": "Arial;13;0",
-													"left": -608.34375,
-													"top": 566,
+													"left": -1056.34375,
+													"top": 646,
 													"height": 13,
 													"horizontalAlignment": 1
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 1008,
-											"top": 312,
+											"left": 784,
+											"top": 352,
 											"width": 181.6025390625,
 											"height": 25,
 											"stereotypeLabel": {
@@ -9358,8 +9358,8 @@
 														"$ref": "AAAAAAF3vm8a5twE0Rw="
 													},
 													"font": "Arial;13;0",
-													"left": 1013,
-													"top": 342,
+													"left": 789,
+													"top": 382,
 													"width": 171.6025390625,
 													"height": 13,
 													"text": "+connectionHash: string",
@@ -9367,8 +9367,8 @@
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 1008,
-											"top": 337,
+											"left": 784,
+											"top": 377,
 											"width": 181.6025390625,
 											"height": 23
 										},
@@ -9392,8 +9392,8 @@
 														"$ref": "AAAAAAF3vm8akdvmVkA="
 													},
 													"font": "Arial;13;0",
-													"left": 1013,
-													"top": 365,
+													"left": 789,
+													"top": 405,
 													"width": 171.6025390625,
 													"height": 13,
 													"text": "«constructor»+AccessToken()",
@@ -9401,8 +9401,8 @@
 												}
 											],
 											"font": "Arial;13;0",
-											"left": 1008,
-											"top": 360,
+											"left": 784,
+											"top": 400,
 											"width": 181.6025390625,
 											"height": 23
 										},
@@ -9416,8 +9416,8 @@
 												"$ref": "AAAAAAF3vm8akdvlvsY="
 											},
 											"font": "Arial;13;0",
-											"left": 1008,
-											"top": 383,
+											"left": 784,
+											"top": 423,
 											"width": 181.6025390625,
 											"height": 10
 										},
@@ -9432,16 +9432,16 @@
 											},
 											"visible": false,
 											"font": "Arial;13;0",
-											"left": -304.171875,
-											"top": 283,
+											"left": -528.171875,
+											"top": 323,
 											"width": 10,
 											"height": 10
 										}
 									],
 									"font": "Arial;13;0",
 									"containerChangeable": true,
-									"left": 1008,
-									"top": 312,
+									"left": 784,
+									"top": 352,
 									"width": 181.6025390625,
 									"height": 81,
 									"nameCompartment": {

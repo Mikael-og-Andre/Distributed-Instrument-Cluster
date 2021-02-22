@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
-
+using Instrument_Communicator_Library.Information_Classes;
 
 namespace Server_And_Demo_Project {
 
@@ -18,50 +18,43 @@ namespace Server_And_Demo_Project {
             int portVideo = 5051;
             IPEndPoint endpointVid = new IPEndPoint(IPAddress.Parse("127.0.0.1"), portVideo);
 
-            ListenerVideo<string> vidListener = new ListenerVideo<string>(endpointVid);
+            ListenerVideo<VideoObject> vidListener = new ListenerVideo<VideoObject>(endpointVid);
 
             Thread videoListenerThread = new Thread(() => vidListener.Start());
             videoListenerThread.Start();
 
-            List<VideoConnection<string>> listListenerConnections = vidListener.GetVideoConnectionList();
-
             //Wait so server runs before connecting
+            Console.WriteLine("Waiting for server");
             Thread.Sleep(1000);
             //Communicator
-            InstrumentInformation info = new InstrumentInformation("name", "loc", "type");
+            InstrumentInformation info = new InstrumentInformation("Video Communicator 1", "loc", "type");
             AccessToken accessToken = new AccessToken("access");
             CancellationToken comCancellationToken = new CancellationToken(false);
 
-            VideoCommunicator<string> vidCom = new VideoCommunicator<string>("127.0.0.1", 5051, info, accessToken, comCancellationToken);
+            VideoCommunicator<VideoObject> vidCom = new VideoCommunicator<VideoObject>("127.0.0.1", 5051, info, accessToken, comCancellationToken);
             Thread vidComThread = new Thread(() => vidCom.Start());
             vidComThread.Start();
+            Thread.Sleep(1000);
 
-            ConcurrentQueue<string> inputQueue = vidCom.getInputQueue();
+            ConcurrentQueue<VideoObject> inputQueue = vidCom.GetInputQueue();
 
-            Thread loaderThread = new Thread(loadQueue);
-            loaderThread.Start(inputQueue);
+            List<VideoConnection<VideoObject>> listListenerConnections = vidListener.GetVideoConnectionList();
+
+            for (int i = 0; i < 300; i++) {
+                
+                inputQueue.Enqueue(new VideoObject("int is "+i));
+                Console.WriteLine("Queueing " + "int is " + i);
+            }
+
+            var con = listListenerConnections[0];
+
+            ConcurrentQueue<VideoObject> queueOutputQueue = con.GetOutputQueue();
 
             while (true) {
-                lock (listListenerConnections) {
-                    foreach (VideoConnection<string> con in listListenerConnections) {
-                        ConcurrentQueue<string> pout = con.getOutputQueue();
-
-                        string s;
-                        bool hadValue = pout.TryDequeue(out s);
-                        if (hadValue) {
-                            Console.WriteLine("Output queue pushes " + s);
-                        }
-                    }
+                if (queueOutputQueue.TryPeek(out VideoObject nahResult)) {
+                    queueOutputQueue.TryDequeue(out VideoObject result);
+                    Console.WriteLine("Output pushes " + result.GetName());
                 }
-            }
-        }
-
-        private static void loadQueue(object que) {
-            ConcurrentQueue<string> queue = (ConcurrentQueue<string>)que;
-
-            for (int i = 0; i < 100; i++) {
-                queue.Enqueue("int is " + i);
-                Thread.Sleep(1000);
             }
         }
     }

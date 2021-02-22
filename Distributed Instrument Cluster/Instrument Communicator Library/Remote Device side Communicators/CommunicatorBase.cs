@@ -9,11 +9,11 @@ namespace Instrument_Communicator_Library {
     /// <Author>Mikael Nilssen</Author>
     /// </summary>
     public abstract class CommunicatorBase {
-        private string ip { get; set; } //Ip address of target server
-        private int port { get; set; } //Port of target server
-        private Socket connectionSocket;    //Connection to server
-        private InstrumentInformation clientInfo;   //Information about hardware
-        protected AccessToken accessToken;   // Authorization code to send to the server
+        private string ip { get; set; }                 //Ip address of target server
+        private int port { get; set; }                  //Port of target server
+        private Socket connectionSocket;              //Connection to server
+        protected InstrumentInformation information;   //Information about hardware
+        protected AccessToken accessToken;               // Authorization code to send to the server
 
         //State
         public bool isSocketConnected { get; private set; } = false; //Is the socket connected to the server
@@ -23,7 +23,7 @@ namespace Instrument_Communicator_Library {
         protected CommunicatorBase(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken communicatorCancellationToken) {
             this.ip = ip;
             this.port = port;
-            this.clientInfo = informationAboutClient;
+            this.information = informationAboutClient;
             this.accessToken = accessToken;
             this.communicatorCancellationToken = communicatorCancellationToken;
         }

@@ -1,19 +1,17 @@
 ﻿using System;
+using Instrument_Communicator_Library.Helper_Class;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.IO;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 
-
-
 namespace Instrument_Communicator_Library {
+
     /// <summary>
     /// Represents a socket line from a device to the server, intended to send video
     /// <author>Mikael Nilssen</author>
     /// </summary>
     public class VideoCommunicator<T> : CommunicatorBase {
-
         private ConcurrentQueue<T> inputQueue; //queue of inputs meant to be sent to server
 
         public VideoCommunicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken cancellationToken) : base(ip, port, informationAboutClient, accessToken, cancellationToken) {
@@ -26,51 +24,33 @@ namespace Instrument_Communicator_Library {
         /// </summary>
         /// <param name="connectionSocket"></param>
         protected override void HandleConnected(Socket connectionSocket) {
+            //wait for signal to start instrument detailing
+            string response = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
+            if (!response.ToLower().Equals("y")) {
+                
+            }
+            NetworkingOperations.SendStringWithSocket(information.name, connectionSocket);
+            NetworkingOperations.SendStringWithSocket(information.location, connectionSocket);
+            NetworkingOperations.SendStringWithSocket(information.type, connectionSocket);
 
             //While not canceled push from queue to socket
             while (!communicatorCancellationToken.IsCancellationRequested) {
                 //get input form queue
-                T objectFromQueue;
-                bool hasInput = inputQueue.TryDequeue(out objectFromQueue);
-                if (hasInput) {
-                    //Get the object
-                    T obj = objectFromQueue;
+                bool hasInput = inputQueue.TryDequeue(out T objectFromQueue);
+                if (!hasInput) continue;
+                //Get the object
+                T obj = objectFromQueue;
 
-                    //Get bytes of object T
-                    byte[] objectBytes = ObjectToByteArray(obj);
-
-                    //size byte array from sizeOfT
-                    byte[] sizeByte = BitConverter.GetBytes(objectBytes.Length);
-                    //Send int for amount of incoming bytes
-                    connectionSocket.Send(sizeByte, sizeof(int), SocketFlags.None);
-
-                    //Send queue object
-                    connectionSocket.Send(objectBytes,objectBytes.Length,SocketFlags.None);
-                }
-                
+                NetworkingOperations.SendObjectWithSocket<T>(obj, connectionSocket);
             }
         }
+
         /// <summary>
         /// Get the concurrent Queue
         /// </summary>
         /// <returns></returns>
-        public ConcurrentQueue<T> getInputQueue() {
+        public ConcurrentQueue<T> GetInputQueue() {
             return inputQueue;
-        }
-
-        /// <summary>
-        /// Truns object into byte array
-        /// From stack overflow
-        /// https://stackoverflow.com/questions/1446547/how-to-convert-an-object-to-a-byte-array-in-c-sharp
-        /// </summary>
-        /// <param name="obj">Any Object</param>
-        /// <returns>Byte array</returns>
-        public static byte[] ObjectToByteArray(Object obj) {
-            BinaryFormatter bf = new BinaryFormatter();
-            using (var ms = new MemoryStream()) {
-                bf.Serialize(ms, obj);
-                return ms.ToArray();
-            }
         }
     }
 }
