@@ -2,48 +2,159 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 
 //TODO: clean, complete and document.
-namespace Crestron_Library {
+namespace Crestron_Library
+{
+	/// <summary>
+	/// Class pars commands to its corresponding byte code and executes it.
+	/// Converts cursor position to movements.
+	/// </summary>
+	/// <author>Andre Helland</author>
 	public class CommandParser {
+		//TODO: Deprecate.
 		Stack<string> cursorPosition = new Stack<string>();
-		Commands commands = new Commands();
-		SerialPortInterface serialPort = new SerialPortInterface("COM4");
 
-		public CommandParser() {
+		private readonly Commands commands = new Commands();
+		private readonly SerialPortInterface serialPort;
+
+		public CommandParser(SerialPortInterface serialPortInterface) {
+			serialPort = serialPortInterface;
+
+
 			Thread thread = new Thread(randomThread);
 			thread.Start();
 		}
 
-		public List<byte> parse(string idk)
-		{
-			List<byte> bytes = new List<byte>();
+		/// <summary>
+		/// Pars commands from string to bytes and execute the commands by sending it to the serial port.
+		/// </summary>
+		/// <param name="toPars">Command to pars.</param>
+		public void pars(string toPars) {
+			//List<byte> bytes = new List<byte>();
 
+			//Try to split string.
+			string[] split = toPars.Split(" ");
+			if (split.Length < 2) {
+				throw new Exception("Parsing failed, could not split string");
+			}
 
+			string operation = split[0].ToLower();
+			string key = split[1].ToLower();
 
-
-
-			return bytes;
-
+			switch (operation) {
+				case "make":
+					serialPort.SendBytes(commands.getMakeByte(key));
+					break;
+				case "break":
+					serialPort.SendBytes(commands.getBreakByte(key));
+					break;
+				//TODO: deprecate potentially.
+				case "setcursor":
+					setCursor(key);
+					break;
+				case "movecursor":
+					moveCursor(key);
+					break;
+				default:
+					throw new Exception("Pars failed, \"" + operation + "\" was not recognized as an operation");
+			}
 		}
 
-		//TODO: refactor whole region.
+		//Might be broken.
+		private int dx = 0;
+		private int dy = 0;
+		private void moveCursor(string move) {
+			try {
+				Console.WriteLine(move);
+				move = move.Substring(1, move.Length - 1);  // Trim off "( )"
+				string[] moves = move.Split(",");
+			
+				dx += int.Parse(moves[0]);
+				dy += int.Parse(moves[1]);
+			}
+			catch (Exception e) {
+				Console.WriteLine(e);
+				return;
+			}
+
+
+			if (serialPort.isExecuting()) return;
+
+			if (Math.Abs(dx) >= scaleFactorL) {
+				serialPort.SendBytes(commands.getMakeByte("magnitude large"));
+				serialPort.SendBytes(commands.getMakeByte(dx > 0 ? "right" : "left"));
+				dx -= (int) Math.Ceiling(scaleFactorL);
+
+			} else {
+				serialPort.SendBytes(commands.getMakeByte("magnitude small"));
+				serialPort.SendBytes(commands.getMakeByte(dx > 0 ? "right" : "left"));
+				dx -= (int) Math.Ceiling(scaleFactorS);
+			}
+
+			if (Math.Abs(dy) >= scaleFactorL) {
+				serialPort.SendBytes(commands.getMakeByte("magnitude large"));
+				serialPort.SendBytes(commands.getMakeByte(dy > 0 ? "down" : "up"));
+				dy -= (int) Math.Ceiling(scaleFactorL);
+
+			} else {
+				serialPort.SendBytes(commands.getMakeByte("magnitude small"));
+				serialPort.SendBytes(commands.getMakeByte(dy > 0 ? "down" : "up"));
+				dy -= (int) Math.Ceiling(scaleFactorS);
+			}
+		}
+
+
+		private int tempx = 0;
+		private int tempy = 0;
+
+		private void test(string s) {
+			try {
+				Console.WriteLine(s);
+				s = s.Substring(1, s.Length - 2); // Trim off "( )"
+				var moves = s.Split(",");
+
+				Console.WriteLine(moves[1]);
+
+				var dx = int.Parse(moves[0]);
+				var dy = int.Parse(moves[1]);
+			}
+			catch (Exception e) {
+				Console.WriteLine(e);
+				return;
+			}
+
+			dx -= tempx;
+			dy -= tempy;
+
+			tempx += dx;
+			tempy += dy;
+
+
+			Console.WriteLine("ok?");
+			;
+
+			var temp = "(" + this.dx + ", " + this.dy + ") ";
+			moveCursor(temp);
+		}
+
+
+		//TODO: refactor whole region/deprecate.
 		#region Cursor Movement
 
 		private void randomThread() {
 			serialPort.SendBytes(commands.getMakeByte("magnitude large"));
-			for (int i = 0; i < 200; i++)
+			for (int i = 0; i < 200; i++) {
 				serialPort.SendBytes(new List<byte> { commands.getMakeByte("left"), commands.getMakeByte("up") });
+			}
 
-			while(serialPort.isExecuting())
+			while (serialPort.isExecuting());
 
 			while (true) {
-				Thread.Sleep(50);
+					Thread.Sleep(50);
+					while (serialPort.isExecuting());
 				try {
 					string temp = cursorPosition.Pop();
 					Console.WriteLine(temp);
@@ -53,19 +164,18 @@ namespace Crestron_Library {
 				} catch {}
 				Thread.Sleep(0);
 				//cursorPosition.Clear();
-
 			}
 		}
 
 
 		public void setCursor(string temp) {
-			temp = temp.Substring(1, temp.Length - 2);	// Trim off "( )"
-			var position = temp.Split(",");
+			temp = temp.Substring(1, temp.Length - 2);  // Trim off "( )"
+			string[] position = temp.Split(",");
 
 			int x = int.Parse(position[0]);
 			int y = int.Parse(position[1]);
 
-			var deltas = calculateDelta(x, y);
+			int[] deltas = calculateDelta(x, y);
 
 			foreach(double d in deltas) {
 				Console.WriteLine(d);
@@ -138,17 +248,21 @@ namespace Crestron_Library {
 			byte vertical = commands.getMakeByte("down");
 
 			if (x < 0)
+			{
 				horizontal = commands.getMakeByte("left");
+			}
 
 			if (y < 0)
+			{
 				vertical = commands.getMakeByte("up");
+			}
 
 			//TODO: mix input.
 			x = Math.Abs(x);
 			y = Math.Abs(y);
 
 
-			var xy = new int[x + y];
+			int[] xy = new int[x + y];
 			for (int i = 0; i < x + y; i++) {
 				if (i < x) {
 					xy[i] = 0;
@@ -163,7 +277,7 @@ namespace Crestron_Library {
 			Random rnd = new Random();
 			int[] mixed = xy.OrderBy(x => rnd.Next()).ToArray();
 
-			foreach (var VARIABLE in mixed) {
+			foreach (int VARIABLE in mixed) {
 				serialPort.SendBytes(VARIABLE == 0 ? horizontal : vertical);
 			}
 
@@ -196,7 +310,8 @@ namespace Crestron_Library {
 
 
 		public void spamIn(object sender, DataReceivedEventArgs e) {
-			cursorPosition.Push(e.Data);
+			//cursorPosition.Push(e.Data);
+			test(e.Data);
 		}
 
 		#endregion

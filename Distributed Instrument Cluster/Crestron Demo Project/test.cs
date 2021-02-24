@@ -12,7 +12,7 @@ using Microsoft.VisualBasic.FileIO;
 //TODO: delete.
 namespace Crestron_Library {
 	class test {
-		CommandParser commandParser = new CommandParser();
+		CommandParser commandParser = new CommandParser(new SerialPortInterface("com4"));
 
 		public static void Main(string[] args) {
 			//Console.WriteLine("wth");
