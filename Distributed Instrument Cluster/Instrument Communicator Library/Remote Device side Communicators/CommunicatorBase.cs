@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Instrument_Communicator_Library {
+namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 
     /// <summary>
     /// Base class for communicator classes, intended to be on the remote side of the instrument cluster
@@ -35,8 +35,8 @@ namespace Instrument_Communicator_Library {
             try {
                 // Create new socket
                 connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            } catch (SocketException ex) {
-                throw ex;
+            } catch (SocketException) {
+                throw;
             }
             //connection state
             isSocketConnected = false;

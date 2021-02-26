@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Net.Sockets;
+using Instrument_Communicator_Library.Remote_Device_side_Communicators;
 
 namespace Communication_lib_Test {
 

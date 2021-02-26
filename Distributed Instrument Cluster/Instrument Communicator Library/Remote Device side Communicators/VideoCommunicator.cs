@@ -1,11 +1,9 @@
-﻿using System;
-using Instrument_Communicator_Library.Helper_Class;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Net.Sockets;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading;
+using Instrument_Communicator_Library.Helper_Class;
 
-namespace Instrument_Communicator_Library {
+namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 
     /// <summary>
     /// Represents a socket line from a device to the server, intended to send video

@@ -1,7 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using Crestron_Library;
+﻿using Crestron_Library;
+using Instrument_Communicator_Library;
+using Instrument_Communicator_Library.Remote_Device_side_Communicators;
 using OpenCvSharp;
+using System;
+using System.Collections.Generic;
+using System.Threading;
 using Video_Library;
 
 namespace MAIN_Program {
@@ -12,38 +15,33 @@ namespace MAIN_Program {
 	/// Produces cli information about system/program status.
 	/// </summary>
 	/// <author>Andre Helland</author>
-	class Program {
+	internal class Program {
 		private readonly List<VideoDeviceInterface> videoDevices = new List<VideoDeviceInterface>();
 		private CommandParser commandParser;
+		private VideoCommunicator<string> videoCommunicator;
+		private CrestronCommunicator crestronCommunicator;
 
-
-		static void Main(string[] args) {
-
-
+		private static void Main(string[] args) {
 			//TODO: read config file here and pass it into "Program" constructor.
 
-
-			_ = new Program(new string[] {"test"});
-
+			_ = new Program(new string[] { "test" });
 		}
 
-
 		// TODO: make input config file.
-		private static string port = "com4";
+		private static string serialComPort = "com4";
+
 		private Program(string[] args) {
-			
+			//Setup communicators
+			setupVideoCommunicator("127.0.0.1", 5050, "device name", "device location", "device type", "access");
+			setupCrestronCommunicator("127.0.0.1", 5051, "device name", "device location", "device type", "access");
+
 			//TODO: pars config file:
-			
+
 			//TODO: construct/init based on config file
 
-			setupSerialCable(port);
+			setupSerialCable(serialComPort);
 			setupVideoDevice(0);
 			setupVideoDevice(2);
-
-
-
-
-
 		}
 
 		#region setup methods
@@ -58,7 +56,7 @@ namespace MAIN_Program {
 			try {
 				var serialPort = new SerialPortInterface(port);
 				//TODO: test if com port is a crestron cable (add test using getLEDStatus()).
-				
+
 				this.commandParser = new CommandParser(serialPort);
 
 				writeSuccess("Successfully connected to port: " + port);
@@ -91,7 +89,7 @@ namespace MAIN_Program {
 			// Checking if frame has more than 1 color channel (hacky way to check if frames are being produced properly)
 			if (temp.Channels() < 2) {
 				writeWarning("No output from video device or no device found");
-				
+
 				//Remove device to stop/prevent memory leak.
 				videoDevices[^1].Dispose();
 				videoDevices.Remove(videoDevices[^1]);
@@ -102,8 +100,45 @@ namespace MAIN_Program {
 			return true;
 		}
 
-		#endregion
+		public void setupVideoCommunicator(string ip, int port, string name, string location, string type, string accessHash) {
+			//Video networking info
+			string videoIP = ip;
+			int videoPort = port;
+			//Instrument Information
+			InstrumentInformation info = new InstrumentInformation(name, location, type);
+			//AccessToken -
+			AccessToken accessToken = new AccessToken(accessHash);
+			//cancellation tokens
+			CancellationToken videoCancellationToken = new CancellationToken(false);
 
+			//Video Communicator - <TYPE YOU WANT TO SEND>
+			videoCommunicator =
+				new VideoCommunicator<string>(videoIP, videoPort, info, accessToken, videoCancellationToken);
+
+			//TODO: refactor threading
+			Thread videoThread = new Thread(() => videoCommunicator.Start());
+			videoThread.Start();
+		}
+
+		public void setupCrestronCommunicator(string ip, int port, string name, string location, string type, string accessHash) {
+			//Video networking info
+			string crestronIP = ip;
+			int crestronPort = port;
+			//Instrument Information
+			InstrumentInformation info = new InstrumentInformation(name, location, type);
+			//AccessToken -
+			AccessToken accessToken = new AccessToken(accessHash);
+			//Crestron Cancellation Token
+			CancellationToken crestronCancellationToken = new CancellationToken(false);
+			//Crestron Communicator
+			crestronCommunicator = new CrestronCommunicator(crestronIP, crestronPort, info, accessToken, crestronCancellationToken);
+
+			//TODO: refactor threading
+			Thread crestronThread = new Thread(() => crestronCommunicator.Start());
+			crestronThread.Start();
+		}
+
+		#endregion setup methods
 
 		//TODO: make watchDog, checking if all components of the system is functioning as they should and reset components/classes not working.
 		private void watchDog() {

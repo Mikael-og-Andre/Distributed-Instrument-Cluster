@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using Instrument_Communicator_Library.Helper_Class;
 
-namespace Instrument_Communicator_Library {
+namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 
     /// <summary>
     /// Client for connecting and receiving commands from server unit to control a crestron Device

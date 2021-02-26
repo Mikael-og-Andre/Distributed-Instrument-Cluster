@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using Instrument_Communicator_Library.Information_Classes;
+using Instrument_Communicator_Library.Remote_Device_side_Communicators;
 
 namespace Server_And_Demo_Project {
 
