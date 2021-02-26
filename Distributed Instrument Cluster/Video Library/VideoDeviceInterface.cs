@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 
 //TODO: Handle Unplugging w/out crashing.
+//TODO: Make device health method (method for checking if device is working properly/producing frames).
 namespace Video_Library {
 
 	/// <summary>
@@ -17,10 +18,13 @@ namespace Video_Library {
 		private bool captureFrames;
 
 		//DSHOW: Windows api for video devices.
+		//TODO: refactor (deprecate resolution input)
 		public VideoDeviceInterface(int index = 0, VideoCaptureAPIs API = VideoCaptureAPIs.DSHOW, int frameWidth=1280, int frameHeight=720) {
 			capture = new VideoCapture(index, API);
 			capture.Set(VideoCaptureProperties.FrameWidth, frameWidth);
 			capture.Set(VideoCaptureProperties.FrameHeight, frameHeight);
+			//Console.WriteLine(capture.Get(3));
+
 
 			frameBuffer = new ConcurrentQueue<Mat>();
 			Thread thread = new Thread(FrameCaptureThread) { IsBackground = true };

@@ -27,7 +27,7 @@ namespace Crestron_Library {
 		/// Function returns all available serial ports.
 		/// </summary>
 		/// <returns>String array of all available serial ports.</returns>
-		public static String[] GetAvailablePorts() {
+		public static string[] GetAvailablePorts() {
 			return SerialPort.GetPortNames();
 		}
 

@@ -247,13 +247,11 @@ namespace Crestron_Library
 			byte horizontal = commands.getMakeByte("right");
 			byte vertical = commands.getMakeByte("down");
 
-			if (x < 0)
-			{
+			if (x < 0) {
 				horizontal = commands.getMakeByte("left");
 			}
 
-			if (y < 0)
-			{
+			if (y < 0) {
 				vertical = commands.getMakeByte("up");
 			}
 
@@ -310,8 +308,8 @@ namespace Crestron_Library
 
 
 		public void spamIn(object sender, DataReceivedEventArgs e) {
-			//cursorPosition.Push(e.Data);
-			test(e.Data);
+			cursorPosition.Push(e.Data);
+			//test(e.Data);
 		}
 
 		#endregion
