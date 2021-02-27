@@ -42,7 +42,7 @@ namespace Crestron_Library
 			}
 
 			string operation = split[0].ToLower();
-			string key = split[1].ToLower();
+			string key = toPars.Substring(operation.Length+1);
 
 			switch (operation) {
 				case "make":
@@ -66,21 +66,21 @@ namespace Crestron_Library
 		//Might be broken.
 		private int dx = 0;
 		private int dy = 0;
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="move"></param>
 		private void moveCursor(string move) {
-			try {
-				Console.WriteLine(move);
-				move = move.Substring(1, move.Length - 1);  // Trim off "( )"
-				string[] moves = move.Split(",");
-			
-				dx += int.Parse(moves[0]);
-				dy += int.Parse(moves[1]);
-			}
-			catch (Exception e) {
-				Console.WriteLine(e);
-				return;
-			}
+			Console.WriteLine(move);
+			move = move.Substring(move.IndexOf("(") + 1, move.IndexOf(")") - 1); // Trim off "( )"
+			string[] moves = move.Split(",");
+
+			//TODO: refactor or remove.
+			//dx += int.Parse(moves[0]);
+			//dy += int.Parse(moves[1]);
 
 
+			//Ignore move command if serial cable is still executing to avoid over filling command buffer.
 			if (serialPort.isExecuting()) return;
 
 			if (Math.Abs(dx) >= scaleFactorL) {
@@ -105,41 +105,6 @@ namespace Crestron_Library
 				dy -= (int) Math.Ceiling(scaleFactorS);
 			}
 		}
-
-
-		private int tempx = 0;
-		private int tempy = 0;
-
-		private void test(string s) {
-			try {
-				Console.WriteLine(s);
-				s = s.Substring(1, s.Length - 2); // Trim off "( )"
-				var moves = s.Split(",");
-
-				Console.WriteLine(moves[1]);
-
-				var dx = int.Parse(moves[0]);
-				var dy = int.Parse(moves[1]);
-			}
-			catch (Exception e) {
-				Console.WriteLine(e);
-				return;
-			}
-
-			dx -= tempx;
-			dy -= tempy;
-
-			tempx += dx;
-			tempy += dy;
-
-
-			Console.WriteLine("ok?");
-			;
-
-			var temp = "(" + this.dx + ", " + this.dy + ") ";
-			moveCursor(temp);
-		}
-
 
 		//TODO: refactor whole region/deprecate.
 		#region Cursor Movement

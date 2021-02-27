@@ -29,7 +29,7 @@ namespace Testing_Server {
 			}
 			Console.WriteLine("Found device");
 			//Get queue
-			ConcurrentQueue<Message> queue = connection.GetOutputQueue();
+			ConcurrentQueue<Message> queue = connection.GetInputQueue();
 
 			//loop for input
 			while (true) {
