@@ -16,14 +16,14 @@ namespace Communication_lib_Test {
     public class MessageTest {
 
         [TestMethod]
-        public void TestSendingNormalStringsVideo() {
+        public void testSendingNormalStringsVideo() {
             //init vid listener
             int portVideo = 5055;
             IPEndPoint endpointVid = new IPEndPoint(IPAddress.Parse("127.0.0.1"), portVideo);
 
             ListenerVideo<string> vidListener = new ListenerVideo<string>(endpointVid);
 
-            Thread videoListenerThread = new Thread(() => vidListener.Start());
+            Thread videoListenerThread = new Thread(() => vidListener.start());
             videoListenerThread.Start();
 
             //Communicator vid
@@ -42,7 +42,7 @@ namespace Communication_lib_Test {
                 inputQueue.Enqueue(s);
             }
             Thread.Sleep(50);
-            List<VideoConnection<string>> vidCons = vidListener.GetVideoConnectionList();
+            List<VideoConnection<string>> vidCons = vidListener.getVideoConnectionList();
             lock (vidCons) {
                 foreach (VideoConnection<string> con in vidCons) {
                     ConcurrentQueue<string> queue = con.GetOutputQueue();
@@ -57,13 +57,13 @@ namespace Communication_lib_Test {
         }
 
         [TestMethod]
-        public void TestSendingMessagesCrestron() {
+        public void testSendingMessagesCrestron() {
             //init crestron Listener
             int portCrest = 5050;
             IPEndPoint endpointCres = new IPEndPoint(IPAddress.Parse("127.0.0.1"), portCrest);
             ListenerCrestron crestronListener = new ListenerCrestron(endpointCres);
 
-            Thread crestronListenerThread = new Thread(() => crestronListener.Start());
+            Thread crestronListenerThread = new Thread(() => crestronListener.start());
             crestronListenerThread.Start();
 
             Thread.Sleep(500);
@@ -82,7 +82,7 @@ namespace Communication_lib_Test {
 
             string[] stringList = new string[] { "this is a test", "HASIDHASIDHAISDHIISDhi" };
 
-            List<CrestronConnection> listCons = crestronListener.GetCrestronConnectionList();
+            List<CrestronConnection> listCons = crestronListener.getCrestronConnectionList();
             Assert.AreNotEqual(listCons.Count, 0);
             lock (listCons) {
                 foreach (CrestronConnection con in listCons) {
@@ -94,7 +94,7 @@ namespace Communication_lib_Test {
             }
             
 
-            ConcurrentQueue<string> outputQueue = crestronCommunicator.GetCommandOutputQueue();
+            ConcurrentQueue<string> outputQueue = crestronCommunicator.getCommandOutputQueue();
 
             Assert.IsNotNull(outputQueue);
             Assert.IsTrue(crestronCommunicator.isSocketConnected);
@@ -120,7 +120,7 @@ namespace Communication_lib_Test {
         }
 
         [TestMethod]
-        public void TestExceptions() {
+        public void testExceptions() {
             CrestronCommunicator cCom = new CrestronCommunicator("127.0.0.1", 5090, new InstrumentInformation("name", "location", "type"), new AccessToken("access"),new CancellationToken(false));
             Action startCom = () => cCom.Start();
 

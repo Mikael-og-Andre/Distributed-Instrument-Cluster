@@ -21,7 +21,7 @@ namespace Server_And_Demo_Project {
 
             ListenerVideo<VideoObject> vidListener = new ListenerVideo<VideoObject>(endpointVid);
 
-            Thread videoListenerThread = new Thread(() => vidListener.Start());
+            Thread videoListenerThread = new Thread(() => vidListener.start());
             videoListenerThread.Start();
 
             //Wait so server runs before connecting
@@ -39,7 +39,7 @@ namespace Server_And_Demo_Project {
 
             ConcurrentQueue<VideoObject> inputQueue = vidCom.GetInputQueue();
 
-            List<VideoConnection<VideoObject>> listListenerConnections = vidListener.GetVideoConnectionList();
+            List<VideoConnection<VideoObject>> listListenerConnections = vidListener.getVideoConnectionList();
 
             for (int i = 0; i < 300; i++) {
                 

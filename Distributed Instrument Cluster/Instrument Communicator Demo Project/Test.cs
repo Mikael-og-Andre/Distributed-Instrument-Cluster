@@ -22,7 +22,7 @@ namespace Server_And_Demo_Project {
             IPEndPoint endpointVideo = new IPEndPoint(IPAddress.Parse("127.0.0.1"), portVideo);
 
             ListenerCrestron listenerCrestron = new ListenerCrestron(endpointCrestron);
-            Thread serverThread = new Thread(() => listenerCrestron.Start()) { IsBackground = false };
+            Thread serverThread = new Thread(() => listenerCrestron.start()) { IsBackground = false };
 
             serverThread.Start();
             Thread.Sleep(10000);
@@ -53,7 +53,7 @@ namespace Server_And_Demo_Project {
             clientThread3.Start();
 
             Thread.Sleep(2000);
-            List<CrestronConnection> crestronConnection = listenerCrestron.GetCrestronConnectionList();
+            List<CrestronConnection> crestronConnection = listenerCrestron.getCrestronConnectionList();
 
             Console.WriteLine("populating messages");
 

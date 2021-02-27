@@ -22,15 +22,15 @@ namespace Instrument_Communicator_Library.Server_Listener {
             listVideoConnections = new List<VideoConnection<T>>();
         }
 
-        protected override object CreateConnectionType(Socket socket, Thread thread) {
+        protected override object createConnectionType(Socket socket, Thread thread) {
             return new VideoConnection<T>(socket, thread);
         }
 
-        protected override void HandleIncomingConnection(object obj) {
+        protected override void handleIncomingConnection(object obj) {
             //Cast to video-connection
             VideoConnection<T> videoConnection = (VideoConnection<T>)obj;
             //add connection to list
-            AddVideoConnection(videoConnection);
+            addVideoConnection(videoConnection);
             
             //Get socket
             Socket connectionSocket = videoConnection.GetSocket();
@@ -63,13 +63,13 @@ namespace Instrument_Communicator_Library.Server_Listener {
                 }
             }
             //remove connection
-            RemoveVideoConnection(videoConnection);
+            removeVideoConnection(videoConnection);
         }
 
         /// <summary>
         /// Add item to the list
         /// </summary>
-        private void AddVideoConnection(VideoConnection<T> connection) {
+        private void addVideoConnection(VideoConnection<T> connection) {
             lock (listVideoConnections) {
                 listVideoConnections.Add(connection);
             }
@@ -80,7 +80,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
         /// </summary>
         /// <param name="connection"> Video Connection</param>
         /// <returns>Boolean representing successful removal</returns>
-        private bool RemoveVideoConnection(VideoConnection<T> connection) {
+        private bool removeVideoConnection(VideoConnection<T> connection) {
             //Lock list and remove the connection
             bool result = false;
             lock (listVideoConnections) {
@@ -96,7 +96,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
         /// Get the list of video connection objects
         /// </summary>
         /// <returns>List of video-connection objects of type T</returns>
-        public List<VideoConnection<T>> GetVideoConnectionList() {
+        public List<VideoConnection<T>> getVideoConnectionList() {
             lock (listVideoConnections) {
                 return listVideoConnections;
             }

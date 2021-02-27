@@ -25,14 +25,14 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// <param name="socket">Socket</param>
 		/// <param name="thread">Thread</param>
 		/// </summary>
-		protected override object CreateConnectionType(Socket socket, Thread thread) {
+		protected override object createConnectionType(Socket socket, Thread thread) {
 			return new CrestronConnection(socket, thread);
 		}
 
 		/// <summary>
 		/// Function for specifying specific type of ConnectionBase child the class should be returning and handing over to the HandleIncomingConnection
 		/// </summary>
-		protected override void HandleIncomingConnection(object obj) {
+		protected override void handleIncomingConnection(object obj) {
 			CrestronConnection clientConnection;
 			try {
 				//cast input object to Client Connection
@@ -43,10 +43,10 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			Console.WriteLine("SERVER - a Client Has Connected to Thread: {0}, thread {0} is running now", Thread.CurrentThread.ManagedThreadId);
 
 			//add a connection to the list of connections
-			AddClientConnection(clientConnection);
+			addClientConnection(clientConnection);
 
 			//Do authorization process
-			ServerProtocolAuthorization(clientConnection);
+			serverProtocolAuthorization(clientConnection);
 
 			ConcurrentQueue<Message> inputQueue = clientConnection.GetInputQueue();   //Get reference to the queue of inputs intended to send to the client
 			ConcurrentQueue<Message> outputQueue = clientConnection.GetOutputQueue();     //Get reference to the queue of things received by the client
@@ -87,20 +87,20 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				switch (currentMode) {
 					case protocolOption.ping:
 						//Preform ping protocol
-						this.ServerProtocolPing(clientConnection);
+						serverProtocolPing(clientConnection);
 						break;
 
 					case protocolOption.message:
 						//preform send protocol
-						this.ServerProtocolMessage(clientConnection);
+						this.serverProtocolMessage(clientConnection);
 						break;
 
 					case protocolOption.status:
-						this.ServerProtocolStatus(clientConnection);
+						this.serverProtocolStatus(clientConnection);
 						break;
 
 					case protocolOption.authorize:
-						this.ServerProtocolAuthorization(clientConnection);
+						this.serverProtocolAuthorization(clientConnection);
 						break;
 
 					default:
@@ -110,7 +110,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				stopwatch.Reset();
 				stopwatch.Start();
 			}
-			RemoveClientConnection(clientConnection);
+			removeClientConnection(clientConnection);
 			//Stop stopwatch if ending i guess
 			stopwatch.Stop();
 			//get socket and disconnect
@@ -124,7 +124,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// </summary>
 		/// <param name="connection"> the ClientConnection to be added</param>
 		/// <returns> Boolean value representing whether the adding was successful</returns>
-		private void AddClientConnection(CrestronConnection connection) {
+		private void addClientConnection(CrestronConnection connection) {
 			try {
 				//Lock the non thread-safe list, and then add object
 				lock (listCrestronConnections) {
@@ -142,7 +142,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// </summary>
 		/// <param name="connection">Connection to be removed</param>
 		/// <returns>Boolean representing successful removal</returns>
-		private bool RemoveClientConnection(CrestronConnection connection) {
+		private bool removeClientConnection(CrestronConnection connection) {
 			//lock the non thread-safe list and then remove object
 			lock (listCrestronConnections) {
 				return this.listCrestronConnections.Remove(connection);
@@ -153,7 +153,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// Starts predetermined sequence eof socket operations used to authorize a remote device
 		/// </summary>
 		/// <param name="clientConnection">Client Connection representing The current Connection</param>
-		private void ServerProtocolAuthorization(CrestronConnection clientConnection) {
+		private void serverProtocolAuthorization(CrestronConnection clientConnection) {
 			//get socket
 			Socket connectionSocket = clientConnection.GetSocket();
 			//Send protocol type to client
@@ -166,7 +166,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Create Token
 			AccessToken token = new AccessToken(receivedToken);
 			//Validate token
-			bool validationResult = ValidateAccessToken(token);
+			bool validationResult = validateAccessToken(token);
 			//Send success/failure to client
 			if (validationResult) {
 				//Send char y for success
@@ -199,7 +199,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// Send protocol type PING to client and receives answer
 		/// </summary>
 		/// <param name="clientConnection">Connected and authorized socket</param>
-		private void ServerProtocolPing(CrestronConnection clientConnection) {
+		private static void serverProtocolPing(CrestronConnection clientConnection) {
 			//Send protocol type "ping" to client
 			//get socket
 			Socket connectionSocket = clientConnection.GetSocket();
@@ -219,7 +219,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		}
 
 		//TODO: handle status protocol server
-		private void ServerProtocolStatus(CrestronConnection clientConnection) {
+		private void serverProtocolStatus(CrestronConnection clientConnection) {
 			throw new NotImplementedException();
 		}
 
@@ -227,7 +227,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// Sends an array of strings from the input queue in the client connection
 		/// </summary>
 		/// <param name="clientConnection">Client Connection Object</param>
-		private void ServerProtocolMessage(CrestronConnection clientConnection) {
+		private void serverProtocolMessage(CrestronConnection clientConnection) {
 			//Get reference to the queue
 			ConcurrentQueue<Message> inputQueue = clientConnection.GetInputQueue();
 			//Get Socket
@@ -269,7 +269,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// </summary>
 		/// <param name="token">Access token</param>
 		/// <returns>boolean representing a valid access token if true</returns>
-		private bool ValidateAccessToken(AccessToken token) {
+		private bool validateAccessToken(AccessToken token) {
 			//TODO: add Database checking
 			string hash = token.getAccessString();
 			Console.WriteLine("SERVER - Thread {0} is now checking hash. Hash: " + hash, Thread.CurrentThread.ManagedThreadId);
@@ -285,7 +285,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// Get the list of connected clients
 		/// </summary>
 		/// <returns>List of Client Connections</returns>
-		public List<CrestronConnection> GetCrestronConnectionList() {
+		public List<CrestronConnection> getCrestronConnectionList() {
 			lock (listCrestronConnections) {
 				return this.listCrestronConnections;
 			}

@@ -18,7 +18,7 @@ namespace Testing_Server {
 			ListenerCrestron listenerCrestron = new ListenerCrestron(ipEndPoint);
 
 			//Start thread
-			Thread thread = new Thread(() => listenerCrestron.Start());
+			Thread thread = new Thread(() => listenerCrestron.start());
 			thread.Start();
 			Thread.Sleep(1000);
 			CrestronConnection connection;

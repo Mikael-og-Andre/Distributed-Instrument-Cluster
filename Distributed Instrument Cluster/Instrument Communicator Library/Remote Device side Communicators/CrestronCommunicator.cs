@@ -33,7 +33,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
                     //receive the first authorization call from server
                     NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
                     //Start Authorization
-                    isAuthorized = ProtocolAuthorize(connectionSocket);
+                    isAuthorized = protocolAuthorize(connectionSocket);
                 }
                 //Check if successfully authorized
                 if (isAuthorized) {
@@ -41,7 +41,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
                     //Run main protocol Loop
                     while (!communicatorCancellationToken.IsCancellationRequested) {
                         //Read a protocol choice from the buffer and execute it
-                        StartAProtocol(connectionSocket);
+                        startAProtocol(connectionSocket);
                     }
                 }
             } catch (Exception) {
@@ -53,7 +53,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
         /// Listens for selected protocol sent by server and preforms correct response protocol
         /// </summary>
         /// <param name="connectionSocket"> Socket Connection to server</param>
-        private void StartAProtocol(Socket connectionSocket) {
+        private void startAProtocol(Socket connectionSocket) {
             //Receive protocol type from server
             string extractedString=NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
             //Parse Enum
@@ -62,19 +62,19 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
             //Select Protocol
             switch (option) {
                 case protocolOption.ping:
-                    ProtocolPing(connectionSocket);
+                    protocolPing(connectionSocket);
                     break;
 
                 case protocolOption.message:
-                    ProtocolMessage(connectionSocket);
+                    protocolMessage(connectionSocket);
                     break;
 
                 case protocolOption.status:
-                    ProtocolStatus(connectionSocket);
+                    protocolStatus(connectionSocket);
                     break;
 
                 case protocolOption.authorize:
-                    ProtocolAuthorize(connectionSocket);
+                    protocolAuthorize(connectionSocket);
                     break;
 
                 default:
@@ -89,7 +89,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
         /// </summary>
         /// <param name="connectionSocket"></param>
         /// <returns>Boolean representing if the authorization was successful or not</returns>
-        private bool ProtocolAuthorize(Socket connectionSocket) {
+        private bool protocolAuthorize(Socket connectionSocket) {
             try {
                 //Create accessToken
                 AccessToken accessToken = this.accessToken;
@@ -124,7 +124,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
                 string complete = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
 
                 return true;
-            } catch (Exception ex) {
+            } catch (Exception) {
                 return false;
             }
         }
@@ -133,7 +133,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
         /// Activates predetermined sequence of socket operations for a ping, to confirm both locations
         /// </summary>
         /// <param name="connectionSocket"> Authorized connection socket</param>
-        private void ProtocolPing(Socket connectionSocket) {
+        private void protocolPing(Socket connectionSocket) {
             //Send simple byte to server
             NetworkingOperations.SendStringWithSocket("y",connectionSocket);
         }
@@ -142,7 +142,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
         /// Activates predetermined sequence of socket operation for receiving an array of string from the server
         /// </summary>
         /// <param name="connectionSocket">Connected and authorized socket</param>
-        private void ProtocolMessage(Socket connectionSocket) {
+        private void protocolMessage(Socket connectionSocket) {
             //Loop boolean
             bool isAccepting = true;
             //Loop until end signal received by server
@@ -164,7 +164,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
         /// Activates predetermined sequence of socket operations for sending the status to the server
         /// </summary>
         /// <param name="connectionSocket">Authorized connection socket</param>
-        private void ProtocolStatus(Socket connectionSocket) {
+        private void protocolStatus(Socket connectionSocket) {
             //TODO: Implement Status Protocol
             throw new NotImplementedException();
         }
@@ -175,7 +175,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
         /// Returns a reference to queue of commands received by receive protocol in string format
         /// </summary>
         /// <returns>reference to Concurrent queue of type string</returns>
-        public ConcurrentQueue<string> GetCommandOutputQueue() {
+        public ConcurrentQueue<string> getCommandOutputQueue() {
             return commandOutputQueue;
         }
     }
