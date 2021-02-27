@@ -32,8 +32,9 @@ namespace MAIN_Program {
 
 		private Program(string[] args) {
 			//Setup communicators
-			setupVideoCommunicator("127.0.0.1", 5050, "device name", "device location", "device type", "access");
-			setupCrestronCommunicator("127.0.0.1", 5051, "device name", "device location", "device type", "access");
+			Thread.Sleep(1000);
+			//setupVideoCommunicator("127.0.0.1", 5050, "device name", "device location", "device type", "access");
+			setupCrestronCommunicator("127.0.0.1", 5051, "crestron", "device location", "device type", "access");
 
 			//TODO: pars config file:
 

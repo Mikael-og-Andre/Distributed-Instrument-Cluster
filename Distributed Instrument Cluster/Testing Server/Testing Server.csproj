@@ -6,4 +6,8 @@
     <RootNamespace>Testing_Server</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Instrument Communicator Library\Instrument Communicator Library.csproj" />
+  </ItemGroup>
+
 </Project>
