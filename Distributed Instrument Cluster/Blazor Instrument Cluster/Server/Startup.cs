@@ -38,7 +38,7 @@ namespace Blazor_Instrument_Cluster.Server {
 			//Add Connection tracker
 			services.AddSingleton<IRemoteDeviceConnections<string>, RemoteDeviceConnection<string>>();
 			services.AddHostedService<VideoListenerService<string>>();
-			services.AddSingleton<ISocketHandler,WebsocketConnection>();
+			services.AddSingleton<ISocketHandler, WebsocketConnection<string>>();
 			//services.AddHostedService<CrestronListenerService>();
 		}
 
@@ -60,15 +60,16 @@ namespace Blazor_Instrument_Cluster.Server {
 
 			app.UseWebSockets(webSocketOptions);
 
+			//Do this when a web socket connects
 			app.Use(async (context, next) => {
 				if (context.Request.Path == "/ws") {
 					if (context.WebSockets.IsWebSocketRequest) {
 						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
 							var socketFinishedTcs = new TaskCompletionSource<object>();
 
-							WebsocketConnection websocketConnection =
-								(WebsocketConnection) app.ApplicationServices.GetService<ISocketHandler>();
-							websocketConnection.addSocket(webSocket,socketFinishedTcs);
+							WebsocketConnection<string> websocketConnection =
+								(WebsocketConnection<string>)app.ApplicationServices.GetService<ISocketHandler>();
+							websocketConnection.AddSocket(webSocket, socketFinishedTcs);
 
 							await socketFinishedTcs.Task;
 						}
@@ -83,7 +84,6 @@ namespace Blazor_Instrument_Cluster.Server {
 			app.UseHttpsRedirection();
 			app.UseBlazorFrameworkFiles();
 			app.UseStaticFiles();
-
 			app.UseRouting();
 
 			app.UseEndpoints(endpoints => {

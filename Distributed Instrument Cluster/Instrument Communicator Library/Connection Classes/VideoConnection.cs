@@ -19,7 +19,7 @@ namespace Instrument_Communicator_Library {
         private Thread myThread;                     //Thread the conenction will run on
         private InstrumentInformation info;          //Information about the device
         private ConcurrentQueue<T> outputQueue;     //Queue of items received by the connection
-        private bool hasInstrument = false;                 
+        public bool hasInstrument { get; set; } = false;
 
         public VideoConnection(Socket socketConnection, Thread thread, InstrumentInformation info = null) {
             this.socketConnection = socketConnection;

@@ -1,4 +1,5 @@
-﻿using Instrument_Communicator_Library;
+﻿using Blazor_Instrument_Cluster.Server.Events;
+using Instrument_Communicator_Library;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
@@ -21,5 +22,7 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 		public bool GetCrestronConcurrentQueueWithName(out ConcurrentQueue<Message> queue, string name);
 
 		public bool GetVideoConcurrentQueueWithName(out ConcurrentQueue<T> queue, string name);
+
+		public bool SubscribeToVideoProviderWithName(string name, VideoConnectionFrameConsumer<T> consumer);
 	}
 }
