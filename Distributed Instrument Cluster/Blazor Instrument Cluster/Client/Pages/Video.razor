@@ -1,58 +1,42 @@
 ﻿@page "/video"
-@using Microsoft.AspNetCore.SignalR.Client
-@using System.Threading;
-@using System.Threading.Channels;
-@inject NavigationManager NavigationManager
-@implements IAsyncDisposable
+@layout NothingLayout
+@using System.Net.WebSockets
+@using System.Text
+@using System.Threading
+@implements IDisposable
 
-
-<button @onclick="Connect" disabled="@(!IsConnected)">Connect</button>
-
-<hr>
+<h3>State: @webSocket.State</h3>
 
 <p>@message</p>
 
+
 @code {
-    /// <summary>
-    /// Streaming data to clients
-    /// 
-    /// </summary>
-    private HubConnection hubConnection;
-    private string message;
-    private CancellationTokenSource cancellationTokenSource;
-    private ChannelReader<string> channel;
-    private bool run = true;
+    CancellationTokenSource disposalTokenSource = new CancellationTokenSource();
+    ClientWebSocket webSocket = new ClientWebSocket();
+    string message = "Ogga";
 
-    protected override async Task OnInitializedAsync() {
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/videohub"))
-            .Build();
-
-        await hubConnection.StartAsync();
-
-        cancellationTokenSource = new CancellationTokenSource();
-        channel = await hubConnection.StreamAsChannelAsync<string>("Counter",10, cancellationTokenSource.Token);
-
-
+    protected override async Task OnInitializedAsync()
+    {
+        await webSocket.ConnectAsync(new Uri("wss://localhost:44323/ws"), disposalTokenSource.Token);
+        _ = ReceiveLoop();
     }
 
-    protected async void Connect() {
-        // Wait asynchronously for data to become available
-        while (run) {
-            while (await channel.WaitToReadAsync()) {
-                // Read all currently available data synchronously, before waiting for more data
-                while (channel.TryRead(out var count)) {
-                    message = count;
-                    StateHasChanged();
-                }
-            }
+    async Task ReceiveLoop()
+    {
+        
+        while (!disposalTokenSource.IsCancellationRequested)
+        {
+            var buffer = new ArraySegment<byte>(new byte[1024]);
+            WebSocketReceiveResult received = await webSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
+            string receivedAsText = Encoding.ASCII.GetString(buffer.Array, 0, received.Count);
+            message = receivedAsText;
+            StateHasChanged();
         }
     }
 
-    public bool IsConnected =>
-        hubConnection.State == HubConnectionState.Connected;
-
-    public async ValueTask DisposeAsync() {
-        await hubConnection.DisposeAsync();
+    public void Dispose()
+    {
+        disposalTokenSource.Cancel();
+        _ = webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Bye", CancellationToken.None);
     }
 }
