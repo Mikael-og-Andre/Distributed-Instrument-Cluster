@@ -9,7 +9,10 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Threading;
 using System.Threading.Tasks;
+using Instrument_Communicator_Library.Information_Classes;
+using Instrument_Communicator_Library.Interface;
 
 namespace Blazor_Instrument_Cluster.Server {
 
@@ -36,9 +39,9 @@ namespace Blazor_Instrument_Cluster.Server {
 			});
 
 			//Add Connection tracker
-			services.AddSingleton<IRemoteDeviceConnections<string>, RemoteDeviceConnection<string>>();
-			services.AddHostedService<VideoListenerService<string>>();
-			services.AddSingleton<ISocketHandler, WebsocketConnection<string>>();
+			services.AddSingleton<IRemoteDeviceConnections, RemoteDeviceConnection>();
+			services.AddHostedService<VideoListenerService>();
+			services.AddSingleton<ISocketHandler, WebsocketConnection<VideoFrame>>();
 			//services.AddHostedService<CrestronListenerService>();
 		}
 
@@ -62,21 +65,33 @@ namespace Blazor_Instrument_Cluster.Server {
 
 			//Do this when a web socket connects
 			app.Use(async (context, next) => {
-				if (context.Request.Path == "/ws") {
+				if (context.Request.Path == "/videoStream") {
 					if (context.WebSockets.IsWebSocketRequest) {
 						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
 							var socketFinishedTcs = new TaskCompletionSource<object>();
 
-							WebsocketConnection<string> websocketConnection =
-								(WebsocketConnection<string>)app.ApplicationServices.GetService<ISocketHandler>();
-							websocketConnection.AddSocket(webSocket, socketFinishedTcs);
+							WebsocketConnection<VideoFrame> websocketConnection =
+								(WebsocketConnection<VideoFrame>)app.ApplicationServices.GetService<ISocketHandler>();
+
+							await websocketConnection.AddSocketVideo(webSocket,socketFinishedTcs);
+							await socketFinishedTcs.Task;
+						}
+					} else {
+						context.Response.StatusCode = 400;
+					}
+				}else if (context.Request.Path == "/crestronControl") {
+					if (context.WebSockets.IsWebSocketRequest) {
+						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
+							var socketFinishedTcs = new TaskCompletionSource<object>();
+							
 
 							await socketFinishedTcs.Task;
 						}
 					} else {
 						context.Response.StatusCode = 400;
 					}
-				} else {
+				} 
+				else {
 					await next();
 				}
 			});

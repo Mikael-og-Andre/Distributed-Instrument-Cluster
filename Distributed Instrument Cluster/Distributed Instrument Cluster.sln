@@ -37,7 +37,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HW side", "HW side", "{4F9E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MAIN Program", "MAIN Program\MAIN Program.csproj", "{BE38962B-5FCB-4F64-BE3F-C80ACB56BA1F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testing Server", "Testing Server\Testing Server.csproj", "{C360D64E-DDD4-413B-BD23-C387C3041579}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Testing Server", "Testing Server\Testing Server.csproj", "{C360D64E-DDD4-413B-BD23-C387C3041579}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

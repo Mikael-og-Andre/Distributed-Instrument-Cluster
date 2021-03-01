@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using Instrument_Communicator_Library.Information_Classes;
 
 namespace Blazor_Instrument_Cluster.Server.Events {
 	/// <summary>
 	/// Class for sending a frame to all subscribed listeners
 	/// </summary>
-	public class VideoConnectionFrameProvider<T> : IObservable<T> {
+	public class VideoConnectionFrameProvider : IObservable<VideoFrame> {
 		public string name { get; private set; }			//name of the device
-		private List<IObserver<T>> observers;				//observers of this provider
+		private List<IObserver<VideoFrame>> observers;				//observers of this provider
 
 		public VideoConnectionFrameProvider(string name) {
 			this.name = name;
-			observers = new List<IObserver<T>>();
+			observers = new List<IObserver<VideoFrame>>();
 		}
 
 		/// <summary>
@@ -19,16 +20,25 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		/// </summary>
 		/// <param name="observer"> VideoConnectionFrameConsumer</param>
 		/// <returns>Unsubscribe implementation of IDisposable</returns>
-		public IDisposable Subscribe(IObserver<T> observer) {
-			if (!observers.Contains(observer)) {
-				observers.Add(observer);
+		public IDisposable Subscribe(IObserver<VideoFrame> observer) {
+			lock (observers) {
+				if (!observers.Contains(observer)) {
+					observers.Add(observer);
+				}
+
+				return new Unsubscriber<VideoFrame>(observers, observer);
 			}
-
-			return new Unsubscriber<T>(observers, observer);
 		}
-
-		public void PushFrame(T frameResult) {
-			throw new NotImplementedException();
+		/// <summary>
+		/// Sends a frame to all observers
+		/// </summary>
+		/// <param name="frameResult"></param>
+		public void PushFrame(VideoFrame frameResult) {
+			lock (observers) {
+				foreach (var observer in observers) {
+					observer.OnNext(frameResult);
+				}
+			}
 		}
 	}
 

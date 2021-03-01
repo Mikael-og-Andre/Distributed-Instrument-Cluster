@@ -1,6 +1,7 @@
 ﻿using Blazor_Instrument_Cluster.Server.Events;
 using Blazor_Instrument_Cluster.Server.Injection;
 using Instrument_Communicator_Library;
+using Instrument_Communicator_Library.Information_Classes;
 using Instrument_Communicator_Library.Server_Listener;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,30 +19,30 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class VideoListenerService<T> : BackgroundService {
+	public class VideoListenerService : BackgroundService {
 		private const int Delay = 10;   //Delay after each loop
 
-		private readonly ILogger<VideoListenerService<T>> logger;      //Injected logger
+		private readonly ILogger<VideoListenerService> logger;      //Injected logger
 		private readonly IServiceProvider services;                     //Injected Service provider
-		private ListenerVideo<T> videoListener;                       //Video listener server accepting incoming device video connections
-		private RemoteDeviceConnection<T> remoteDeviceConnection;       //Remote device connection
+		private ListenerVideo videoListener;                       //Video listener server accepting incoming device video connections
+		private RemoteDeviceConnection remoteDeviceConnection;       //Remote device connection
 
 		/// <summary>
 		/// Inject the logger and the thing used to share information with hubs
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public VideoListenerService(ILogger<VideoListenerService<T>> logger, IServiceProvider services) {
+		public VideoListenerService(ILogger<VideoListenerService> logger, IServiceProvider services) {
 			this.logger = logger;
 			//Get Remote devices from services
-			remoteDeviceConnection = (RemoteDeviceConnection<T>)services.GetService(typeof(IRemoteDeviceConnections<T>));
+			remoteDeviceConnection = (RemoteDeviceConnection)services.GetService(typeof(IRemoteDeviceConnections));
 
 			//Create endpoint
 			IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 5051);
-			this.videoListener = new ListenerVideo<T>(ipEndPoint);
+			this.videoListener = new ListenerVideo(ipEndPoint);
 
 			//Set remoteDevice connections
-			List<VideoConnection<T>> videoConnections = videoListener.getVideoConnectionList();
+			List<VideoConnection> videoConnections = videoListener.getVideoConnectionList();
 			if (remoteDeviceConnection != null) {
 				remoteDeviceConnection.SetVideoConnectionList(videoConnections);
 			} else {
@@ -60,7 +61,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 			Thread videoListenerThread = new Thread(() => videoListener.start());
 			videoListenerThread.Start();
 			//Get concurrentQueue of incoming connections to the video listener thread
-			ConcurrentQueue<VideoConnection<T>> incomingConnections = videoListener.getIncomingConnectionQueue();
+			ConcurrentQueue<VideoConnection> incomingConnections = videoListener.getIncomingConnectionQueue();
 
 			//Start a provider for each new stream
 			while (!stoppingToken.IsCancellationRequested) {
@@ -68,8 +69,9 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 				//check if there is a connection in the queue
 				if (incomingConnections.TryPeek(out _)) {
 					//Start a new thread that pushes frames from the connection to a provider
-					incomingConnections.TryDequeue(out VideoConnection<T> connection);
-					ThreadPool.QueueUserWorkItem(providerStart, connection);
+					incomingConnections.TryDequeue(out VideoConnection connection);
+					Thread connectionThread = new Thread(providerStart);
+					connectionThread.Start(connection);
 				}
 
 				await Task.Delay(Delay, stoppingToken);
@@ -83,7 +85,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 		/// </summary>
 		private void providerStart(object input) {
 			//Cast connection
-			VideoConnection<T> connection = (VideoConnection<T>)input;
+			VideoConnection connection = (VideoConnection)input;
 			//Wait for the instrument to have done authorization and get the instrument information
 			while (!connection.hasInstrument) {
 				Thread.Sleep(100);
@@ -91,16 +93,17 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 			//Instrument information
 			InstrumentInformation info = connection.GetInstrumentInformation();
 			//Create Provider with the name of the device
-			VideoConnectionFrameProvider<T> provider = new VideoConnectionFrameProvider<T>(info.name);
+			VideoConnectionFrameProvider provider = new VideoConnectionFrameProvider(info.name);
 			//Add provider to list of running providers so i can be found by connecting ui's and subscribed to
 			remoteDeviceConnection.AddFrameProviderToListOfProviders(provider);
 			CancellationToken token = new CancellationToken();
 			//Get Queue
-			ConcurrentQueue<T> queue = connection.GetOutputQueue();
+			ConcurrentQueue<VideoFrame> queue = connection.GetOutputQueue();
 			while (!token.IsCancellationRequested) {
-				queue.TryDequeue(out T frameResult);
-				//Send frame to all subscribers
-				provider.PushFrame(frameResult);
+				if (queue.TryDequeue(out VideoFrame frameResult)) {
+					//Send frame to all subscribers
+					provider.PushFrame(frameResult);
+				}
 			}
 		}
 	}

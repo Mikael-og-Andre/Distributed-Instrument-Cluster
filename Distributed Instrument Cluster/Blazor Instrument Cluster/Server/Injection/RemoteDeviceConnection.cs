@@ -4,31 +4,34 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Blazor_Instrument_Cluster.Client.Pages;
+using Instrument_Communicator_Library.Information_Classes;
 
 namespace Blazor_Instrument_Cluster.Server.Injection {
 
 	/// <summary>
 	/// Class for storing connection list
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	public class RemoteDeviceConnection<T> : IRemoteDeviceConnections<T> {
+	public class RemoteDeviceConnection : IRemoteDeviceConnections {
 
 		//Injections
 		private IServiceProvider services;                      //Services
 
-		private ILogger<RemoteDeviceConnection<T>> logger;      //Logger
+		private ILogger<RemoteDeviceConnection> logger;      //Logger
 
 		//Providers
-		private List<VideoConnectionFrameProvider<T>> listFrameProviders;     //Frame Providers
+		private List<VideoConnectionFrameProvider> listFrameProviders;     //Frame Providers
 
 		//Connections
 		private List<CrestronConnection> listCrestronConnections;   //Crestron connections
-		private List<VideoConnection<T>> listVideoConnections;      //Video connections
+		private List<VideoConnection> listVideoConnections;      //Video connections
 
-		public RemoteDeviceConnection(ILogger<RemoteDeviceConnection<T>> logger, IServiceProvider services) {
+		public RemoteDeviceConnection(ILogger<RemoteDeviceConnection> logger, IServiceProvider services) {
 			this.services = services;
 			this.logger = logger;
-			listFrameProviders = new List<VideoConnectionFrameProvider<T>>();
+			listFrameProviders = new List<VideoConnectionFrameProvider>();
+			listCrestronConnections = new List<CrestronConnection>();
+			listVideoConnections = new List<VideoConnection>();
 		}
 
 		/// <summary>
@@ -37,16 +40,20 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 		/// <param name="listCrestronConnection"></param>
 		public void SetCrestronConnectionList(List<CrestronConnection> listCrestronConnection) {
 			//Set list
-			listCrestronConnections = listCrestronConnection;
+			lock (listCrestronConnections) {
+				listCrestronConnections = listCrestronConnection;
+			}
 		}
 
 		/// <summary>
 		/// Set the video connection list
 		/// </summary>
 		/// <param name="listVideoConnection">List of video connections</param>
-		public void SetVideoConnectionList(List<VideoConnection<T>> listVideoConnection) {
+		public void SetVideoConnectionList(List<VideoConnection> listVideoConnection) {
 			//Set list
-			listVideoConnections = listVideoConnection;
+			lock (listVideoConnections) {
+				listVideoConnections = listVideoConnection;
+			}
 		}
 
 		/// <summary>
@@ -74,7 +81,7 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 		/// </summary>
 		/// <param name="listVideoConnection"></param>
 		/// <returns></returns>
-		public bool GetVideoConnectionList(out List<VideoConnection<T>> listVideoConnection) {
+		public bool GetVideoConnectionList(out List<VideoConnection> listVideoConnection) {
 			//Lock list
 			lock (listVideoConnections) {
 				//check if list is null
@@ -120,7 +127,7 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 		/// <param name="queue"> Concurrent queue</param>
 		/// <param name="name"> name of the wanted device</param>
 		/// <returns>found or not bool</returns>
-		public bool GetVideoConcurrentQueueWithName(out ConcurrentQueue<T> queue, string name) {
+		public bool GetVideoConcurrentQueueWithName(out ConcurrentQueue<VideoFrame> queue, string name) {
 			//Lock list
 			lock (listVideoConnections) {
 				//Loop connection
@@ -147,13 +154,13 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 		/// <param name="name"> Name of the wanted provider</param>
 		/// <param name="consumer"> VideoConnectionFrameConsumer</param>
 		/// <returns>Found the device or not</returns>
-		public bool SubscribeToVideoProviderWithName(string name, VideoConnectionFrameConsumer<T> consumer) {
+		public bool SubscribeToVideoProviderWithName(string name, VideoConnectionFrameConsumer consumer) {
 			//Lock provider list
 			lock (listFrameProviders) {
-				foreach (VideoConnectionFrameProvider<T> provider in listFrameProviders) {
+				foreach (VideoConnectionFrameProvider provider in listFrameProviders) {
 					string providerName = provider.name;
 					//Check if its the name we are looking for
-					if (providerName.ToLower().Equals(name)) {
+					if (providerName.ToLower().Equals(name.ToLower())) {
 						//Subscribe the consumer to the provider
 						consumer.Subscribe(provider);
 						return true;
@@ -164,7 +171,7 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 			}
 		}
 
-		public void AddFrameProviderToListOfProviders(VideoConnectionFrameProvider<T> frameProvider) {
+		public void AddFrameProviderToListOfProviders(VideoConnectionFrameProvider frameProvider) {
 			lock (listFrameProviders) {
 				listFrameProviders.Add(frameProvider);
 			}

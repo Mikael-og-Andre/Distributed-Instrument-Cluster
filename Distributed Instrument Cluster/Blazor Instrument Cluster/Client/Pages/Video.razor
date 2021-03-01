@@ -3,40 +3,51 @@
 @using System.Net.WebSockets
 @using System.Text
 @using System.Threading
+@using Instrument_Communicator_Library.Information_Classes
 @implements IDisposable
 
-<h3>State: @webSocket.State</h3>
+<h3>State: @videoWebSocket.State</h3>
 
 <p>@message</p>
 
 
 @code {
     CancellationTokenSource disposalTokenSource = new CancellationTokenSource();
-    ClientWebSocket webSocket = new ClientWebSocket();
-    string message = "Ogga";
+    ClientWebSocket videoWebSocket = new ClientWebSocket();
+    string message = "No messages received";
+    string name = "Radar1";
 
     protected override async Task OnInitializedAsync()
     {
-        await webSocket.ConnectAsync(new Uri("wss://localhost:44323/ws"), disposalTokenSource.Token);
-        _ = ReceiveLoop();
+        await videoWebSocket.ConnectAsync(new Uri("wss://localhost:44323/videoStream"), disposalTokenSource.Token);
+
+        //byte[] encodingBuffer = Encoding.ASCII.GetBytes(name);
+        //ArraySegment<byte> seg = new ArraySegment<byte>(encodingBuffer);
+        //await videoWebSocket.SendAsync(seg,WebSocketMessageType.Text,true,disposalTokenSource.Token);
+
+        //Start the video receive loop
+        _ = ReceiveVideo();
     }
 
-    async Task ReceiveLoop()
+    async Task ReceiveVideo()
     {
-        
         while (!disposalTokenSource.IsCancellationRequested)
         {
-            var buffer = new ArraySegment<byte>(new byte[1024]);
-            WebSocketReceiveResult received = await webSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
-            string receivedAsText = Encoding.ASCII.GetString(buffer.Array, 0, received.Count);
-            message = receivedAsText;
+            var buffer = new ArraySegment<byte>(new byte[4096]);
+            WebSocketReceiveResult received = await videoWebSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
+            Console.WriteLine(buffer);
+            VideoFrame frame = new VideoFrame("");
+            frame = (VideoFrame) frame.getObject(buffer.ToArray());
+            Console.WriteLine(frame.value);
+            message = frame.value;
             StateHasChanged();
         }
     }
+    
 
     public void Dispose()
     {
         disposalTokenSource.Cancel();
-        _ = webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Bye", CancellationToken.None);
+        _ = videoWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Bye", CancellationToken.None);
     }
 }
