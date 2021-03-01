@@ -33,8 +33,6 @@ namespace Crestron_Library
 		/// </summary>
 		/// <param name="toPars">Command to pars.</param>
 		public void pars(string toPars) {
-			//List<byte> bytes = new List<byte>();
-
 			//Try to split string.
 			string[] split = toPars.Split(" ");
 			if (split.Length < 2) {
@@ -42,7 +40,7 @@ namespace Crestron_Library
 			}
 
 			string operation = split[0].ToLower();
-			string key = toPars.Substring(operation.Length+1);
+			string key = toPars.Substring(operation.Length+1).ToLower();
 
 			switch (operation) {
 				case "make":

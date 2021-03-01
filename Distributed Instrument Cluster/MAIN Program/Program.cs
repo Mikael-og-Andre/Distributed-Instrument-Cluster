@@ -151,7 +151,7 @@ namespace MAIN_Program {
 		/// Thread for relaying commands coming from internet socket to command parser.
 		/// </summary>
 		private void relayThread() {
-			var queue = crestronCommunicator.GetCommandOutputQueue();
+			var queue = crestronCommunicator.getCommandOutputQueue();
 			while (true) {
 				try {
 					if (queue.TryDequeue(out string temp)) {

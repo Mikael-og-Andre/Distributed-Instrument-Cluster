@@ -1,6 +1,28 @@
 ﻿@page "/mouse"
+@inject IJSRuntime JS
+
 <h3>KeyboardMouse</h3>
+
+<div id="canvas" style="width: 480px; height: 360px; border: 1px solid black" @onclick="click"></div>
+
+
 
 @code {
 
+    private async void click() {
+        await JS.InvokeVoidAsync("click");
+    }
+
+
+    [JSInvokable]
+    public static void updatePosition(int x, int y) {
+        Console.WriteLine(x + " " + y);
+    }
+
+    //Run setup when DOM is loaded.
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
+            await JS.InvokeVoidAsync("setup");
+        }
+    }
 }
