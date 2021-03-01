@@ -242,17 +242,10 @@ namespace Instrument_Communicator_Library.Server_Listener {
 					NetworkingOperations.SendStringWithSocket(protocolOption.message.ToString(), connectionSocket);
 
 					//Get string array from message object
-					string[] stringArray = msg.getMessageArray();
+					string messageString = msg.getMessage();
 
-					//Send all strings
-					foreach (string s in stringArray) {
-						//If s is "end" skip to avoid premature ending
-						if (s.Equals("end")) {
-							continue;
-						}
-						Console.WriteLine("SERVER - Thread {0} is sending " + s + " to the client", Thread.CurrentThread.ManagedThreadId);
-						NetworkingOperations.SendStringWithSocket(s, connectionSocket);
-					}
+					//Send string
+					NetworkingOperations.SendStringWithSocket(messageString,connectionSocket);
 					//Send end signal to client, singling no more strings are coming
 					NetworkingOperations.SendStringWithSocket("end", connectionSocket);
 				} else {
@@ -301,6 +294,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				foreach (var connection in listCrestronConnections) {
 					if (connection.hasInstrument) {
 						InstrumentInformation info = connection.GetInstrumentInformation();
+						//Check if the name is the same
 						if (info.name.ToLower().Equals(name.ToLower())) {
 							crestronConnection = connection;
 							return true;

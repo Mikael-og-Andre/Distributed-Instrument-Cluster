@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Net.Sockets;
 using System.Collections.Concurrent;
+using Instrument_Communicator_Library.Information_Classes;
 
 
 namespace Instrument_Communicator_Library {
@@ -13,18 +14,18 @@ namespace Instrument_Communicator_Library {
     /// <author>Mikael Nilssen</author>
     /// </summary>
 
-    public class VideoConnection<T> {
+    public class VideoConnection {
 
         private Socket socketConnection;            //Socket connection
         private Thread myThread;                     //Thread the conenction will run on
         private InstrumentInformation info;          //Information about the device
-        private ConcurrentQueue<T> outputQueue;     //Queue of items received by the connection
+        private ConcurrentQueue<VideoFrame> outputQueue;     //Queue of items received by the connection
         public bool hasInstrument { get; set; } = false;
 
         public VideoConnection(Socket socketConnection, Thread thread, InstrumentInformation info = null) {
             this.socketConnection = socketConnection;
             this.myThread = thread;
-            this.outputQueue = new ConcurrentQueue<T>();
+            this.outputQueue = new ConcurrentQueue<VideoFrame>();
             if (info!=null) {
                 hasInstrument = true;
             }
@@ -35,7 +36,7 @@ namespace Instrument_Communicator_Library {
         /// returns queue to store received objects in
         /// </summary>
         /// <returns>Concurrent queue</returns>
-        public ConcurrentQueue<T> GetOutputQueue() {
+        public ConcurrentQueue<VideoFrame> GetOutputQueue() {
             return outputQueue;
         }
 

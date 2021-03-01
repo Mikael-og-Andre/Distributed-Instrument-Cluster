@@ -1,5 +1,5 @@
 ﻿using Instrument_Communicator_Library.Helper_Class;
-using System;
+using Instrument_Communicator_Library.Information_Classes;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
@@ -7,27 +7,26 @@ using System.Net.Sockets;
 using System.Threading;
 
 namespace Instrument_Communicator_Library.Server_Listener {
-
 	/// <summary>
-	/// Base class for all listeners
+	/// Listener for incoming video connections
 	/// </summary>
-	/// <typeparam name="T">The type of object that will be sent through the socket</typeparam>
-	public class ListenerVideo<T> : ListenerBase {
-		private List<VideoConnection<T>> listVideoConnections;     //list of connected video streams
-		private ConcurrentQueue<VideoConnection<T>> incomingConnectionsQueue;   //queue of all incoming connections
+
+	public class ListenerVideo : ListenerBase {
+		private List<VideoConnection> listVideoConnections;     //list of connected video streams
+		private ConcurrentQueue<VideoConnection> incomingConnectionsQueue;   //queue of all incoming connections
 
 		public ListenerVideo(IPEndPoint ipEndPoint, int maxConnections = 30, int maxPendingConnections = 30) : base(ipEndPoint, maxConnections, maxPendingConnections) {
-			listVideoConnections = new List<VideoConnection<T>>();
-			incomingConnectionsQueue = new ConcurrentQueue<VideoConnection<T>>();
+			listVideoConnections = new List<VideoConnection>();
+			incomingConnectionsQueue = new ConcurrentQueue<VideoConnection>();
 		}
 
 		protected override object createConnectionType(Socket socket, Thread thread) {
-			return new VideoConnection<T>(socket, thread);
+			return new VideoConnection(socket, thread);
 		}
 
 		protected override void handleIncomingConnection(object obj) {
 			//Cast to video-connection
-			VideoConnection<T> videoConnection = (VideoConnection<T>)obj;
+			VideoConnection videoConnection = (VideoConnection)obj;
 			//add connection to list
 			addVideoConnection(videoConnection);
 			//Add connection to incoming connectionQueue
@@ -47,22 +46,14 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			videoConnection.SetInstrumentInformation(new InstrumentInformation(name, location, type));
 
 			//Get outputQueue
-			ConcurrentQueue<T> outputQueue = videoConnection.GetOutputQueue();
+			ConcurrentQueue<VideoFrame> outputQueue = videoConnection.GetOutputQueue();
 
 			//Do main loop
 			while (!listenerCancellationToken.IsCancellationRequested) {
 				//Get Incoming object
-				T newObj = NetworkingOperations.ReceiveObjectWithSocket<T>(connectionSocket);
+				VideoFrame newObj = NetworkingOperations.ReceiveVideoFrameWithSocket(connectionSocket);
 
-				try {
-					//try to cast newObj
-					T newObject = (T)newObj;
-					//Put in output-queue
-					outputQueue.Enqueue(newObject);
-				} catch (InvalidCastException) {
-					Console.WriteLine("could not cast T");
-					throw;
-				}
+				outputQueue.Enqueue(newObj);
 			}
 			//remove connection
 			removeVideoConnection(videoConnection);
@@ -71,7 +62,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// <summary>
 		/// Add item to the list
 		/// </summary>
-		private void addVideoConnection(VideoConnection<T> connection) {
+		private void addVideoConnection(VideoConnection connection) {
 			lock (listVideoConnections) {
 				listVideoConnections.Add(connection);
 			}
@@ -82,7 +73,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// </summary>
 		/// <param name="connection"> Video Connection</param>
 		/// <returns>Boolean representing successful removal</returns>
-		private bool removeVideoConnection(VideoConnection<T> connection) {
+		private bool removeVideoConnection(VideoConnection connection) {
 			//Lock list and remove the connection
 			bool result = false;
 			lock (listVideoConnections) {
@@ -97,7 +88,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// Get the list of video connection objects
 		/// </summary>
 		/// <returns>List of video-connection objects of type T</returns>
-		public List<VideoConnection<T>> getVideoConnectionList() {
+		public List<VideoConnection> getVideoConnectionList() {
 			lock (listVideoConnections) {
 				return listVideoConnections;
 			}
@@ -107,7 +98,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// Returns the queue containing each incoming connection
 		/// </summary>
 		/// <returns></returns>
-		public ConcurrentQueue<VideoConnection<T>> getIncomingConnectionQueue() {
+		public ConcurrentQueue<VideoConnection> getIncomingConnectionQueue() {
 			return incomingConnectionsQueue;
 		}
 	}

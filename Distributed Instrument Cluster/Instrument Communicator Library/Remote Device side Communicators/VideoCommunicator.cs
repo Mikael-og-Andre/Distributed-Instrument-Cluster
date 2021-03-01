@@ -2,6 +2,8 @@
 using System.Net.Sockets;
 using System.Threading;
 using Instrument_Communicator_Library.Helper_Class;
+using Instrument_Communicator_Library.Information_Classes;
+using Instrument_Communicator_Library.Interface;
 
 namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 
@@ -9,12 +11,12 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
     /// Represents a socket line from a device to the server, intended to send video
     /// <author>Mikael Nilssen</author>
     /// </summary>
-    public class VideoCommunicator<T> : CommunicatorBase {
-        private ConcurrentQueue<T> inputQueue; //queue of inputs meant to be sent to server
+    public class VideoCommunicator : CommunicatorBase{
+        private ConcurrentQueue<VideoFrame> inputQueue; //queue of inputs meant to be sent to server
 
         public VideoCommunicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken cancellationToken) : base(ip, port, informationAboutClient, accessToken, cancellationToken) {
             //initialize queue
-            inputQueue = new ConcurrentQueue<T>();
+            inputQueue = new ConcurrentQueue<VideoFrame>();
         }
 
         /// <summary>
@@ -34,12 +36,10 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
             //While not canceled push from queue to socket
             while (!communicatorCancellationToken.IsCancellationRequested) {
                 //get input form queue
-                bool hasInput = inputQueue.TryDequeue(out T objectFromQueue);
+                bool hasInput = inputQueue.TryDequeue(out VideoFrame frame);
                 if (!hasInput) continue;
-                //Get the object
-                T obj = objectFromQueue;
 
-                NetworkingOperations.SendObjectWithSocket<T>(obj, connectionSocket);
+                NetworkingOperations.SendObjectWithSocket(frame, connectionSocket);
             }
         }
 
@@ -47,7 +47,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
         /// Get the concurrent Queue
         /// </summary>
         /// <returns></returns>
-        public ConcurrentQueue<T> GetInputQueue() {
+        public ConcurrentQueue<VideoFrame> GetInputQueue() {
             return inputQueue;
         }
     }

@@ -60,8 +60,8 @@ namespace Server_And_Demo_Project {
             for (int i = 0; i < crestronConnection.Count; i++) {
                 CrestronConnection connection = crestronConnection[i];
                 ConcurrentQueue<Message> queue = connection.GetInputQueue();
-                string[] strings = new string[] { "Hello", "this", "is", "a", "test" };
-                Message newMessage = new Message(protocolOption.message, strings);
+                string stringy = "Hello this is a test";
+                Message newMessage = new Message(protocolOption.message, stringy);
 
                 queue.Enqueue(newMessage);
             }
@@ -69,8 +69,8 @@ namespace Server_And_Demo_Project {
 
             foreach (CrestronConnection connection in crestronConnection) {
                 ConcurrentQueue<Message> queue = connection.GetInputQueue();
-                string[] strings = new string[] { "wow", "i", "dont", "like", "greens" };
-                Message newMessage = new Message(protocolOption.message, strings);
+                string stringy = "Wow i dont like greens";
+                Message newMessage = new Message(protocolOption.message, stringy);
 
                 queue.Enqueue(newMessage);
             }

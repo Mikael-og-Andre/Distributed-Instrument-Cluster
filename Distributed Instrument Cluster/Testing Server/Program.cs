@@ -29,18 +29,15 @@ namespace Testing_Server {
 			}
 			Console.WriteLine("Found device");
 			//Get queue
-			ConcurrentQueue<Message> queue = connection.GetOutputQueue();
+			ConcurrentQueue<Message> queue = connection.GetInputQueue();
 
 			//loop for input
 			while (true) {
 				string input = Console.ReadLine();
-				string[] strings = new string[] { input};
-				Message message = new Message(protocolOption.message,strings);
+				Message message = new Message(protocolOption.message,input);
 				Console.WriteLine("Queueing message: "+input);
 				queue.Enqueue(message);
 			}
-
-
 		}
 	}
 }

@@ -5,6 +5,7 @@ using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Instrument_Communicator_Library.Interface;
 using Video_Library;
 
 namespace MAIN_Program {
@@ -18,7 +19,7 @@ namespace MAIN_Program {
 	internal class Program {
 		private readonly List<VideoDeviceInterface> videoDevices = new List<VideoDeviceInterface>();
 		private CommandParser commandParser;
-		private VideoCommunicator<string> videoCommunicator;
+		private VideoCommunicator videoCommunicator;
 		private CrestronCommunicator crestronCommunicator;
 
 		private static void Main(string[] args) {
@@ -114,7 +115,7 @@ namespace MAIN_Program {
 
 			//Video Communicator - <TYPE YOU WANT TO SEND>
 			videoCommunicator =
-				new VideoCommunicator<string>(videoIP, videoPort, info, accessToken, videoCancellationToken);
+				new VideoCommunicator(videoIP, videoPort, info, accessToken, videoCancellationToken);
 
 			//TODO: refactor threading
 			Thread videoThread = new Thread(() => videoCommunicator.Start());

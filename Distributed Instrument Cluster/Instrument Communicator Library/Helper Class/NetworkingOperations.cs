@@ -4,6 +4,8 @@ using System.Net.Sockets;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using Instrument_Communicator_Library.Information_Classes;
+using Instrument_Communicator_Library.Interface;
 
 namespace Instrument_Communicator_Library.Helper_Class {
 
@@ -13,12 +15,11 @@ namespace Instrument_Communicator_Library.Helper_Class {
         /// </summary>
         /// <param name="inObj"></param>
         /// <param name="connectionSocket"></param>
-        public static void SendObjectWithSocket<U>(U input, Socket connectionSocket) {
-            object obj = (object) input;
-            //Get bytes of object T
+        public static void SendObjectWithSocket<U>(U input, Socket connectionSocket) where U: ISerializeableObject {
+	        //Get bytes of object T
+	        byte[] bytes = input.getBytes();
             NetworkStream networkStream = new NetworkStream(connectionSocket);
-            BinaryFormatter br = new BinaryFormatter();
-            br.Serialize(networkStream,obj);
+            networkStream.Write(bytes);
             networkStream.Flush();
             
         }
@@ -28,22 +29,41 @@ namespace Instrument_Communicator_Library.Helper_Class {
         /// </summary>
         /// <param name="connectionSocket"></param>
         /// <returns></returns>
-        public static TU ReceiveObjectWithSocket<TU>(Socket connectionSocket) {
+        public static Message ReceiveMessageWithSocket(Socket connectionSocket) {
+
             //Create network stream
             NetworkStream networkStream = new NetworkStream(connectionSocket);
-            IFormatter br = new BinaryFormatter();
-            //Deserialize object from stream
-            TU deserialized = (TU) br.Deserialize(networkStream);
-            networkStream.Flush();
-            return (TU) deserialized;
+            byte[] buffer = new byte[4096];
+            networkStream.Read(buffer);
+			networkStream.Flush();
+			Message msg = new Message(protocolOption.ping, "");
+			msg = (Message) msg.getObject(buffer);
+			return msg;
         }
 
         /// <summary>
-        /// Receive an string with the given socket
+        /// Receive an object with socket
         /// </summary>
-        /// <param name="connectionSocket">Connected socket</param>
-        /// <returns>string</returns>
-        public static string ReceiveStringWithSocket(Socket connectionSocket) {
+        /// <param name="connectionSocket"></param>
+        /// <returns></returns>
+        public static VideoFrame ReceiveVideoFrameWithSocket(Socket connectionSocket) {
+
+	        //Create network stream
+	        NetworkStream networkStream = new NetworkStream(connectionSocket);
+	        byte[] buffer = new byte[4096];
+	        networkStream.Read(buffer);
+	        networkStream.Flush();
+	        VideoFrame frame = new VideoFrame("");
+	        frame = (VideoFrame)frame.getObject(buffer);
+	        return frame;
+        }
+
+		/// <summary>
+		/// Receive an string with the given socket
+		/// </summary>
+		/// <param name="connectionSocket">Connected socket</param>
+		/// <returns>string</returns>
+		public static string ReceiveStringWithSocket(Socket connectionSocket) {
             //Get size of incoming object
             byte[] sizeOfIncomingBuffer = new byte[sizeof(int)];
             connectionSocket.Blocking = true;
