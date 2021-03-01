@@ -42,8 +42,13 @@ namespace MAIN_Program {
 			//TODO: construct/init based on config file
 
 			setupSerialCable(serialComPort);
-			setupVideoDevice(0);
-			setupVideoDevice(2);
+			//setupVideoDevice(0);
+			//setupVideoDevice(2);
+
+			var relayThread = new Thread(this.relayThread) {IsBackground = true};
+			relayThread.Start();
+
+
 		}
 
 		#region setup methods
@@ -142,19 +147,40 @@ namespace MAIN_Program {
 
 		#endregion setup methods
 
+		/// <summary>
+		/// Thread for relaying commands coming from internet socket to command parser.
+		/// </summary>
+		private void relayThread() {
+			var queue = crestronCommunicator.GetCommandOutputQueue();
+			while (true) {
+				try {
+					if (queue.TryDequeue(out string temp)) {
+						Console.WriteLine(temp);
+						commandParser.pars(temp);
+					}
+				}
+				catch (Exception e) {
+					Console.WriteLine(e);
+				}
+			}
+		}
+
+
 		//TODO: make watchDog, checking if all components of the system is functioning as they should and reset components/classes not working.
 		private void watchDog() {
 			throw new NotImplementedException();
 		}
 
 		private void writeWarning(string s) {
-			Console.BackgroundColor = ConsoleColor.Red;
+			//Console.BackgroundColor = ConsoleColor.Red;
+			Console.ForegroundColor = ConsoleColor.Red;
 			Console.WriteLine(s);
 			Console.ResetColor();
 		}
 
 		private void writeSuccess(string s) {
-			Console.BackgroundColor = ConsoleColor.Green;
+			//Console.BackgroundColor = ConsoleColor.Green;
+			Console.ForegroundColor = ConsoleColor.Green;
 			Console.WriteLine(s);
 			Console.ResetColor();
 		}
