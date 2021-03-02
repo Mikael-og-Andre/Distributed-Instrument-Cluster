@@ -1,18 +1,98 @@
 ﻿@page "/mouse"
+@using System.Net.WebSockets
+@using System.Runtime.CompilerServices
+@using System.Text
+@using System.Threading
 @inject IJSRuntime JS
 
 <h3>KeyboardMouse</h3>
 
+<div>
+    <h3>@crestronWebSocket.State</h3>
+    <h4>@hasControl</h4>
+    <button style="width: 2em; height: 2em;" @onclick="ConnectToCrestronControl"></button>
+</div>
+
 <div id="canvas" style="width: 480px; height: 360px; border: 1px solid black" @onclick="click"></div>
 
-
-
 @code {
+
+    CancellationTokenSource disposalTokenSource = new CancellationTokenSource();
+    ClientWebSocket crestronWebSocket = new ClientWebSocket();
+    private string name = "Radar1";
+    private bool hasControl = false;
+
+    //TODO: pass position data to page in non static method
+    int xPos = 0;
+    int ypos = 0;
+
+    private async Task ConnectToCrestronControl() {
+        disposalTokenSource = new CancellationTokenSource();
+        crestronWebSocket = new ClientWebSocket();
+
+        await crestronWebSocket.ConnectAsync(new Uri("wss://localhost:44323/crestronControl"), disposalTokenSource.Token);
+
+        try {
+            hasControl = await SetupSocket();
+        } catch (Exception) {
+            hasControl = false;
+        }
+
+        if (hasControl) {
+            StateHasChanged();
+            await SendMouseData();
+        }
+
+    }
+
+    private async Task<bool> SetupSocket() {
+
+        //Receive start signal
+        byte[] bufferBytes = new byte[2048];
+        ArraySegment<byte> buffer = new ArraySegment<byte>(bufferBytes);
+        await crestronWebSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
+        string signal = Encoding.ASCII.GetString(buffer.ToArray());
+        //Trim nullbytes
+        signal.Trim('\0');
+        //TODO: Send name to crestron
+        ////if not start return false
+        //if (!signal.ToLower().Equals("start")) {
+        //    return false;
+        //}
+        ////Send name
+        //byte[] nameBytes = Encoding.ASCII.GetBytes(name);
+        //ArraySegment<byte> nameSeg = new ArraySegment<byte>(nameBytes);
+        //await crestronWebSocket.SendAsync(nameSeg, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+        ////receive result
+        //byte[] resultBytes = new byte[2048];
+        //ArraySegment<byte> bufferResult = new ArraySegment<byte>(resultBytes);
+        //await crestronWebSocket.ReceiveAsync(bufferResult, disposalTokenSource.Token);
+        //string result = Encoding.ASCII.GetString(bufferResult.ToArray());
+        ////Trim nullbytes
+        //result.Trim('\0');
+
+        //if (result.ToLower().Equals("yes")) {
+        //    return true;
+        //} else {
+        //    return false;
+        //}
+        return true;
+    }
+
+    private async Task SendMouseData() {
+
+        byte[] testStringBytes = Encoding.Unicode.GetBytes("test string crestron control");
+        ArraySegment<byte> testSeg = new ArraySegment<byte>(testStringBytes);
+        while (!disposalTokenSource.IsCancellationRequested) {
+            await crestronWebSocket.SendAsync(testSeg, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+            await Task.Delay(1000);
+        }
+
+    }
 
     private async void click() {
         await JS.InvokeVoidAsync("click");
     }
-
 
     [JSInvokable]
     public static void updatePosition(int x, int y) {

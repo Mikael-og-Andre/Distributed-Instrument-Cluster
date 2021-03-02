@@ -1,11 +1,11 @@
-﻿/// <summary>
-/// Class for storing and loading information about the client
-/// <author>Mikael Nilssen</author>
-/// </summary>
-
+﻿
 namespace Instrument_Communicator_Library {
+	/// <summary>
+	/// Class for storing and loading information about the client
+	/// <author>Mikael Nilssen</author>
+	/// </summary>
 
-    public class InstrumentInformation {
+	public class InstrumentInformation {
         
         public int id { get; private set; }         //id
         public string name { get; private set; }    //Designated name of client device

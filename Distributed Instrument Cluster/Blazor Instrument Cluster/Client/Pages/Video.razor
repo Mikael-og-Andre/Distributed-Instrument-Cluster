@@ -21,11 +21,11 @@
     {
         await videoWebSocket.ConnectAsync(new Uri("wss://localhost:44323/videoStream"), disposalTokenSource.Token);
 
-        //byte[] encodingBuffer = Encoding.ASCII.GetBytes(name);
-        //ArraySegment<byte> seg = new ArraySegment<byte>(encodingBuffer);
-        //await videoWebSocket.SendAsync(seg,WebSocketMessageType.Text,true,disposalTokenSource.Token);
+    //byte[] encodingBuffer = Encoding.ASCII.GetBytes(name);
+    //ArraySegment<byte> seg = new ArraySegment<byte>(encodingBuffer);
+    //await videoWebSocket.SendAsync(seg,WebSocketMessageType.Text,true,disposalTokenSource.Token);
 
-        //Start the video receive loop
+    //Start the video receive loop
         _ = ReceiveVideo();
     }
 

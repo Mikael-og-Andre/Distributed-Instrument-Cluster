@@ -52,6 +52,12 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 			}
 		}
 
+		/// <summary>
+		/// Method that launches when the Hosted service is initialized
+		/// Start the Video listener thread, and gets all incoming connections to the listener and starts a Video Frame provider for the incoming connection
+		/// </summary>
+		/// <param name="stoppingToken"></param>
+		/// <returns></returns>
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
 			logger.LogDebug($"VideoListenerService is starting.");
 
@@ -59,6 +65,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 
 			//Create a new thread for the listener and start it
 			Thread videoListenerThread = new Thread(() => videoListener.start());
+			videoListenerThread.IsBackground = false;
 			videoListenerThread.Start();
 			//Get concurrentQueue of incoming connections to the video listener thread
 			ConcurrentQueue<VideoConnection> incomingConnections = videoListener.getIncomingConnectionQueue();

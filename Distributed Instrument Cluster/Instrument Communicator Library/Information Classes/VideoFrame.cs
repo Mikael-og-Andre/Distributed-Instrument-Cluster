@@ -20,7 +20,7 @@ namespace Instrument_Communicator_Library.Information_Classes {
 		}
 
 		public object getObject(byte[] arrayBytes) {
-			string val = Encoding.ASCII.GetString(arrayBytes);
+			string val = Encoding.ASCII.GetString(arrayBytes).Trim('\0');
 			return new VideoFrame(val);
 		}
 	}

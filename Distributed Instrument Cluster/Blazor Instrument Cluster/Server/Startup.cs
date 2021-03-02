@@ -1,5 +1,7 @@
 using Blazor_Instrument_Cluster.Server.Injection;
+using Blazor_Instrument_Cluster.Server.WebSockets;
 using Blazor_Instrument_Cluster.Server.Worker;
+using Instrument_Communicator_Library.Information_Classes;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -9,15 +11,12 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Linq;
 using System.Net.WebSockets;
-using System.Threading;
 using System.Threading.Tasks;
-using Instrument_Communicator_Library.Information_Classes;
-using Instrument_Communicator_Library.Interface;
 
 namespace Blazor_Instrument_Cluster.Server {
 
 	/// <summary>
-	/// Configuration class
+	/// Class that sets up the services and configurations of the web system
 	/// </summary>
 	public class Startup {
 
@@ -40,9 +39,13 @@ namespace Blazor_Instrument_Cluster.Server {
 
 			//Add Connection tracker
 			services.AddSingleton<IRemoteDeviceConnections, RemoteDeviceConnection>();
+			//Start Connection listeners as background services
 			services.AddHostedService<VideoListenerService>();
-			services.AddSingleton<ISocketHandler, WebsocketConnection<VideoFrame>>();
-			//services.AddHostedService<CrestronListenerService>();
+			services.AddHostedService<CrestronListenerService>();
+			//Add singletons for socket handling
+			services.AddSingleton<IVideoSocketHandler, VideoWebsocketHandler<VideoFrame>>();
+			services.AddSingleton<ICrestronSocketHandler, CrestronWebsocketHandler>();
+
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -70,28 +73,29 @@ namespace Blazor_Instrument_Cluster.Server {
 						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
 							var socketFinishedTcs = new TaskCompletionSource<object>();
 
-							WebsocketConnection<VideoFrame> websocketConnection =
-								(WebsocketConnection<VideoFrame>)app.ApplicationServices.GetService<ISocketHandler>();
+							VideoWebsocketHandler<VideoFrame> videoWebsocketHandler =
+								(VideoWebsocketHandler<VideoFrame>)app.ApplicationServices.GetService<IVideoSocketHandler>();
 
-							await websocketConnection.AddSocketVideo(webSocket,socketFinishedTcs);
+							videoWebsocketHandler.StartWebSocketVideoProtocol(webSocket, socketFinishedTcs);
 							await socketFinishedTcs.Task;
 						}
 					} else {
 						context.Response.StatusCode = 400;
 					}
-				}else if (context.Request.Path == "/crestronControl") {
+				} else if (context.Request.Path == "/crestronControl") {
 					if (context.WebSockets.IsWebSocketRequest) {
 						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
 							var socketFinishedTcs = new TaskCompletionSource<object>();
-							
+
+							CrestronWebsocketHandler crestronWebsocketHandler = (CrestronWebsocketHandler)app.ApplicationServices.GetService<ICrestronSocketHandler>();
+							crestronWebsocketHandler.StartCrestronWebsocketProtocol(webSocket, socketFinishedTcs);
 
 							await socketFinishedTcs.Task;
 						}
 					} else {
 						context.Response.StatusCode = 400;
 					}
-				} 
-				else {
+				} else {
 					await next();
 				}
 			});

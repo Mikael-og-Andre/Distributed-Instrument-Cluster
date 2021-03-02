@@ -10,9 +10,9 @@ using Microsoft.Extensions.Hosting;
 
 namespace Blazor_Instrument_Cluster.Server.Worker {
 
-	public interface ISocketHandler {
+	public interface IVideoSocketHandler {
 
-		public Task AddSocketVideo(WebSocket webSocket, TaskCompletionSource<object> socketFinishedTcs);
+		public Task StartWebSocketVideoProtocol(WebSocket webSocket, TaskCompletionSource<object> socketFinishedTcs);
 
 	}
 }

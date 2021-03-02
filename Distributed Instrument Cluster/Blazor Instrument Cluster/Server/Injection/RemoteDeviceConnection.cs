@@ -97,12 +97,12 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 		}
 
 		/// <summary>
-		/// Get a concurrent queue with the device name of the input name
+		/// Get the connection with the matching name
 		/// </summary>
-		/// <param name="queue">Concurrent queue of messages coming from the crestron device</param>
+		/// <param name="con">Crestron connection output</param>
 		/// <param name="name">Name of the wanted device</param>
 		/// <returns>Successfully found or not</returns>
-		public bool GetCrestronConcurrentQueueWithName(out ConcurrentQueue<Message> queue, string name) {
+		public bool GetCrestronConnectionWithName(out CrestronConnection con, string name) {
 			//Lock list
 			lock (listCrestronConnections) {
 				//Loop connection
@@ -113,11 +113,11 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 					string infoName = instrumentInformation.name;
 					if (!infoName.ToLower().Equals(name.ToLower())) continue;
 					//Get queue and return true since it matched
-					queue = connection.GetOutputQueue();
+					con = connection;
 					return true;
 				}
 				//set null for object and return null
-				queue = null;
+				con = null;
 				return false;
 			}
 		}

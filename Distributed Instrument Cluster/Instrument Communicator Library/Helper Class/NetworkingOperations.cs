@@ -47,7 +47,6 @@ namespace Instrument_Communicator_Library.Helper_Class {
         /// <param name="connectionSocket"></param>
         /// <returns></returns>
         public static VideoFrame ReceiveVideoFrameWithSocket(Socket connectionSocket) {
-
 	        //Create network stream
 	        NetworkStream networkStream = new NetworkStream(connectionSocket);
 	        byte[] buffer = new byte[4096];
@@ -75,6 +74,8 @@ namespace Instrument_Communicator_Library.Helper_Class {
             connectionSocket.Receive(incomingObjectBuffer, 0, sizeOfIncoming, SocketFlags.None);
             //get string from object
             string receivedObj = Encoding.ASCII.GetString(incomingObjectBuffer);
+			//Trim null bytes
+            receivedObj.Trim('\0');
             return receivedObj;
         }
 

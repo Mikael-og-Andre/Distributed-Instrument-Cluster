@@ -14,16 +14,22 @@ using Instrument_Communicator_Library.Interface;
 
 namespace Blazor_Instrument_Cluster {
 
-	public class WebsocketConnection<T> : ISocketHandler where T : ISerializeableObject {
+	public class VideoWebsocketHandler<T> : IVideoSocketHandler where T : ISerializeableObject {
 		private RemoteDeviceConnection remoteDeviceConnections;     //remote Device connections
-		private ILogger<WebsocketConnection<T>> logger;
+		private ILogger<VideoWebsocketHandler<T>> logger;				//Logger
 
-		public WebsocketConnection(ILogger<WebsocketConnection<T>> logger, IServiceProvider services) {
+		public VideoWebsocketHandler(ILogger<VideoWebsocketHandler<T>> logger, IServiceProvider services) {
 			remoteDeviceConnections = (RemoteDeviceConnection) services.GetService(typeof(IRemoteDeviceConnections));
 			this.logger = logger;
 		}
 
-		public async Task AddSocketVideo(WebSocket webSocket, TaskCompletionSource<object> socketFinishedTcs) {
+		/// <summary>
+		/// Gets the wanted video device from the websocket client and subscribes to that device, and pushes incoming sockets to web client
+		/// </summary>
+		/// <param name="webSocket"></param>
+		/// <param name="socketFinishedTcs"></param>
+		/// <returns></returns>
+		public async Task StartWebSocketVideoProtocol(WebSocket webSocket, TaskCompletionSource<object> socketFinishedTcs) {
 			//Cancellation token
 			CancellationToken token = new CancellationToken(false);
 
@@ -49,10 +55,7 @@ namespace Blazor_Instrument_Cluster {
 				if (!providerQueue.TryPeek(out _)) continue;
 				//Dequeue and send
 				providerQueue.TryDequeue(out VideoFrame result);
-
-				//TODO: Make serializer for other things
-				ArraySegment<byte> bytesSegment = result.getBytes();
-
+				ArraySegment<byte> bytesSegment = new ArraySegment<byte>(result.getBytes());
 				await webSocket.SendAsync(bytesSegment, WebSocketMessageType.Binary, true, token);
 			}
 			socketFinishedTcs.TrySetResult(new object());

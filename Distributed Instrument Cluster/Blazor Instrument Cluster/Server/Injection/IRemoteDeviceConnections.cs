@@ -20,7 +20,7 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 
 		public bool GetVideoConnectionList(out List<VideoConnection> listVideoConnections);
 
-		public bool GetCrestronConcurrentQueueWithName(out ConcurrentQueue<Message> queue, string name);
+		public bool GetCrestronConnectionWithName(out CrestronConnection connection, string name);
 
 		public bool GetVideoConcurrentQueueWithName(out ConcurrentQueue<VideoFrame> queue, string name);
 
