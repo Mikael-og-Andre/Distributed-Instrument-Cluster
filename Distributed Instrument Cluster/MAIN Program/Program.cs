@@ -34,8 +34,8 @@ namespace MAIN_Program {
 		private Program(string[] args) {
 			//Setup communicators
 			Thread.Sleep(1000);
-			//setupVideoCommunicator("127.0.0.1", 5050, "device name", "device location", "device type", "access");
-			setupCrestronCommunicator("127.0.0.1", 5051, "crestron", "device location", "device type", "access");
+			//setupVideoCommunicator("127.0.0.1", 5051, "device name", "device location", "device type", "access");
+			setupCrestronCommunicator("127.0.0.1", 5050, "Radar1", "device location", "device type", "access");
 
 			//TODO: pars config file:
 
@@ -118,7 +118,7 @@ namespace MAIN_Program {
 			//cancellation tokens
 			CancellationToken videoCancellationToken = new CancellationToken(false);
 
-			//Video Communicator - <TYPE YOU WANT TO SEND>
+			//Video Communicator
 			videoCommunicator =
 				new VideoCommunicator(videoIP, videoPort, info, accessToken, videoCancellationToken);
 

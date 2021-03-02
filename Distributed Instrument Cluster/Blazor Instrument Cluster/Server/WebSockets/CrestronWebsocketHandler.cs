@@ -24,7 +24,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			//Create cancellation token
 			CancellationToken token = new CancellationToken(false);
 			//Send start signal
-			byte[] startBytes = Encoding.UTF8.GetBytes("start");
+			byte[] startBytes = Encoding.ASCII.GetBytes("start");
 			ArraySegment<byte> startSeg = new ArraySegment<byte>(startBytes);
 			await websocket.SendAsync(startSeg, WebSocketMessageType.Text, true, token);
 
@@ -32,7 +32,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			//byte[] bufferBytes = new byte[2048];
 			//ArraySegment<byte> nameBuffer = new ArraySegment<byte>(bufferBytes);
 			//await websocket.ReceiveAsync(nameBuffer, token);
-			//string name = Encoding.UTF8.GetString(nameBuffer.ToArray());
+			//string name = Encoding.ASCII.GetString(nameBuffer.ToArray());
 			////Trim Null btyes
 			//name.Trim('\0');
 			//TODO: Remove hardcoded names
@@ -46,7 +46,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				//Do connection exclusive control actions
 
 				////Tell websocket if they have the control
-				//byte[] yesBytes = Encoding.UTF8.GetBytes("yes");
+				//byte[] yesBytes = Encoding.ASCII.GetBytes("yes");
 				//ArraySegment<byte> yesSeg = new ArraySegment<byte>(yesBytes);
 				//await websocket.SendAsync(yesSeg, WebSocketMessageType.Text, true, token);
 
@@ -69,7 +69,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				socketFinishedTcs.TrySetResult(new object());
 			} else {
 				////Send does not exist and close
-				//byte[] noBytes = Encoding.UTF8.GetBytes("no");
+				//byte[] noBytes = Encoding.ASCII.GetBytes("no");
 				//ArraySegment<byte> noSeg = new ArraySegment<byte>(noBytes);
 				//await websocket.SendAsync(noSeg, WebSocketMessageType.Text, true, token);
 

@@ -81,7 +81,7 @@
 
     private async Task SendMouseData() {
 
-        byte[] testStringBytes = Encoding.Unicode.GetBytes("test string crestron control");
+        byte[] testStringBytes = Encoding.ASCII.GetBytes("test string crestron control");
         ArraySegment<byte> testSeg = new ArraySegment<byte>(testStringBytes);
         while (!disposalTokenSource.IsCancellationRequested) {
             await crestronWebSocket.SendAsync(testSeg, WebSocketMessageType.Text, true, disposalTokenSource.Token);

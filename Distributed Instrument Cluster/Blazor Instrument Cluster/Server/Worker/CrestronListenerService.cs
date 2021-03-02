@@ -46,13 +46,16 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 					"Class: VideoListenerService - remoteDeviceConnection Injection was null");
 			}
 		}
-
+		/// <summary>
+		/// Starts the listener thread for the crestron communicators
+		/// </summary>
+		/// <param name="stoppingToken"></param>
+		/// <returns></returns>
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
 			logger.LogDebug($"CrestronListenerService is starting.");
-			stoppingToken.Register(() => logger.LogDebug($" CrestronListener background task is stopping."));
-
-			Thread crestronThread = new Thread(() => crestronListener.start());
-			crestronThread.IsBackground = false;
+			stoppingToken.Register(() => logger.LogDebug($" Crestron Listener background task is stopping."));
+			//Create and start new thread
+			Thread crestronThread = new Thread(() => crestronListener.start()) {IsBackground = false};
 			crestronThread.Start();
 
 			await Task.Delay(10);

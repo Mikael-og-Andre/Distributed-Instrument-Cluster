@@ -11,7 +11,7 @@ namespace HardwareServer_Demo_Project {
 	internal class VideoCommunicatorTestingClass {
 
 		public static void Main(string[] args) {
-			Thread.Sleep(1000);
+			Thread.Sleep(10000);
 			//Communicator
 			InstrumentInformation info = new InstrumentInformation("Radar1", "loc", "type");
 			AccessToken accessToken = new AccessToken("access");
