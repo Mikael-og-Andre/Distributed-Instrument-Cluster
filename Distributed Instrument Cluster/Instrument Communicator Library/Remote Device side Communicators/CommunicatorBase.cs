@@ -54,7 +54,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 					HandleConnected(connectionSocket);
 				} else {
 					Console.WriteLine("Thread {0} says: " + "Connection failed", Thread.CurrentThread.ManagedThreadId);
-					Thread.Sleep(100);
+					Thread.Sleep(1000);
 				}
 			}
 		}
