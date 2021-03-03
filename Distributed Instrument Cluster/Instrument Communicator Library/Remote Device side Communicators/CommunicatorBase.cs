@@ -86,7 +86,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 		protected abstract void HandleConnected(Socket connectionSocket);
 
 		/// <summary>
-		/// returns the cnacelation token
+		/// returns the cancellation token
 		/// </summary>
 		/// <returns>Returns cancellation token</returns>
 		public CancellationToken GetCancellationToken() {

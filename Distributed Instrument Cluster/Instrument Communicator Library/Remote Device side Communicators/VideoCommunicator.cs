@@ -29,6 +29,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
             if (!response.ToLower().Equals("y")) {
                 
             }
+			//Send Information about device
             NetworkingOperations.SendStringWithSocket(information.name, connectionSocket);
             NetworkingOperations.SendStringWithSocket(information.location, connectionSocket);
             NetworkingOperations.SendStringWithSocket(information.type, connectionSocket);
@@ -44,7 +45,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
         }
 
         /// <summary>
-        /// Get the concurrent Queue
+        /// Get the concurrent Queue where you can enqueue frame to push them to the server
         /// </summary>
         /// <returns></returns>
         public ConcurrentQueue<VideoFrame> GetInputQueue() {

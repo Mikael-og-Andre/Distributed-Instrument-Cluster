@@ -1,10 +1,10 @@
-﻿/// <summary>
-/// Class that represents a authorization token for the server
-/// <author>Mikael Nilssen</author>
-/// </summary>
+﻿
 
 namespace Instrument_Communicator_Library {
-
+	/// <summary>
+	/// Class that represents a authorization token for the server
+	/// <author>Mikael Nilssen</author>
+	/// </summary>
     public class AccessToken {
 
         //Intended for use when connecting to remote server. Generate on website and put manually in app settings

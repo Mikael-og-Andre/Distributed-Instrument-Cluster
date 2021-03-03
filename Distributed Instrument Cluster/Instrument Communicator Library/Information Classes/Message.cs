@@ -38,7 +38,10 @@ namespace Instrument_Communicator_Library {
 		public protocolOption getProtocol() {
 			return this.option;
 		}
-
+		/// <summary>
+		/// Get a byte array representing the object
+		/// </summary>
+		/// <returns>byte array</returns>
 		public byte[] getBytes() {
 			//Byte array with the size of char for each element in
 			byte[] optionBytes = BitConverter.GetBytes((int)option);

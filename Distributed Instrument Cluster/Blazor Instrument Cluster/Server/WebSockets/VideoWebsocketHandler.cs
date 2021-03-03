@@ -14,6 +14,11 @@ using Instrument_Communicator_Library.Interface;
 
 namespace Blazor_Instrument_Cluster {
 
+	/// <summary>
+	/// Class that handles incoming video websocket connections
+	/// <author></author>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public class VideoWebsocketHandler<T> : IVideoSocketHandler where T : ISerializeableObject {
 		private RemoteDeviceConnection remoteDeviceConnections;     //remote Device connections
 		private ILogger<VideoWebsocketHandler<T>> logger;				//Logger

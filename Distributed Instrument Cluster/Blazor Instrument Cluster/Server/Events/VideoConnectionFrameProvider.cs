@@ -5,6 +5,8 @@ using Instrument_Communicator_Library.Information_Classes;
 namespace Blazor_Instrument_Cluster.Server.Events {
 	/// <summary>
 	/// Class for sending a frame to all subscribed listeners
+	/// <author>Mikael Nilssen</author>
+	/// Copied from Microsoft docs and modified
 	/// </summary>
 	public class VideoConnectionFrameProvider : IObservable<VideoFrame> {
 		public string name { get; private set; }			//name of the device
@@ -43,6 +45,7 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 	}
 
 	/// <summary>
+	/// Class that lets you unsubscribe from the provider
 	/// Copied from Microsoft Event docs
 	/// </summary>
 	public class Unsubscriber<U> : IDisposable {

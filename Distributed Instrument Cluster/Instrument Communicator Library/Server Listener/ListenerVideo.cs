@@ -9,6 +9,7 @@ using System.Threading;
 namespace Instrument_Communicator_Library.Server_Listener {
 	/// <summary>
 	/// Listener for incoming video connections
+	/// <author>Mikael Nilssen</author>
 	/// </summary>
 
 	public class ListenerVideo : ListenerBase {
@@ -20,10 +21,20 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			incomingConnectionsQueue = new ConcurrentQueue<VideoConnection>();
 		}
 
+		/// <summary>
+		/// Create connection of the appropriate type, is used in the base class.
+		/// </summary>
+		/// <param name="socket"></param>
+		/// <param name="thread"></param>
+		/// <returns>VideoConnection</returns>
 		protected override object createConnectionType(Socket socket, Thread thread) {
 			return new VideoConnection(socket, thread);
 		}
 
+		/// <summary>
+		/// Runs when a new connection is accepted by the listener
+		/// </summary>
+		/// <param name="obj">VideoConnection object</param>
 		protected override void handleIncomingConnection(object obj) {
 			//Cast to video-connection
 			VideoConnection videoConnection = (VideoConnection)obj;
@@ -60,8 +71,9 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		}
 
 		/// <summary>
-		/// Add item to the list
+		/// Add connection to list of connections
 		/// </summary>
+		/// <param name="connection">VideoConnection</param>
 		private void addVideoConnection(VideoConnection connection) {
 			lock (listVideoConnections) {
 				listVideoConnections.Add(connection);

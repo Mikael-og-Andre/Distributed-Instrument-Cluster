@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace Instrument_Communicator_Library {
     /// <summary>
-    /// Class that represents a Crestron connection to the server unit.
+    /// Class that contains All information about a Crestron connection
     /// <author>Mikael Nilssen</author>
     /// </summary>
     public class CrestronConnection {
@@ -52,7 +52,7 @@ namespace Instrument_Communicator_Library {
             if (this.accessToken != null) {
                 return this.accessToken;
             } else {
-                throw new NullReferenceException("AccessToken as not been set yet");
+                throw new NullReferenceException("AccessToken has not been set yet");
             }
         }
 
@@ -95,13 +95,16 @@ namespace Instrument_Communicator_Library {
             this.info = instrumentInformation;
             hasInstrument = true;
         }
-
+		/// <summary>
+		/// Get the Instrument information from Crestron connection
+		/// </summary>
+		/// <returns>Instrument Information</returns>
         public InstrumentInformation GetInstrumentInformation() {
             if (hasInstrument) {
                 return info;
             }
 
-            throw new NullReferenceException();
+            throw new NullReferenceException("Instrument information has not been set yet");
         }
     }
 }

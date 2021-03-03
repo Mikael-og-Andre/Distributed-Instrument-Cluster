@@ -9,7 +9,9 @@ using Instrument_Communicator_Library.Information_Classes;
 using Instrument_Communicator_Library.Interface;
 
 namespace Instrument_Communicator_Library.Helper_Class {
-
+	/// <summary>
+	/// Class with different Socket operations
+	/// </summary>
     public static class NetworkingOperations {
         /// <summary>
         /// Send an object with the socket
@@ -34,22 +36,23 @@ namespace Instrument_Communicator_Library.Helper_Class {
 
             //Create network stream
             NetworkStream networkStream = new NetworkStream(connectionSocket);
-            //Read all available data
-            List<byte> byteList = new List<byte>();
-            while (networkStream.DataAvailable) {
-	            int readInt = networkStream.ReadByte();
-				//Check if end of stream and skip
-				if (readInt==-1) {
-					continue;
-				}
-				//Cast back from output int32 to unsigned byte
-				byte readByte = (byte) readInt;
-				byteList.Add(readByte);
-            }
-			//Flush stream
+            byte[] buffer = new byte[2048];
+            networkStream.Read(buffer);
+            //Flush stream
 			networkStream.Flush();
-			//From list to bytearray
-			byte[] receivedBytes = byteList.ToArray();
+			//search for first non null byte
+			int bytesEndLocation = 0;
+			for (int i = buffer.Length;i>0;i--) {
+				byte current = buffer[i];
+				if (current!=(byte)0) {
+					bytesEndLocation = i;
+					break;
+				}
+			}
+			//create array of size needed to store non null bytes
+			byte[] receivedBytes = new byte[bytesEndLocation];
+			//Copy non null bytes to received bytes array
+			System.Buffer.BlockCopy(buffer,0,receivedBytes,0,bytesEndLocation);
 			//Create temporary object
 			Message msg = new Message(protocolOption.ping, "");
 			//Change object data to new data
@@ -91,7 +94,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
             //get string from object
             string receivedObj = Encoding.ASCII.GetString(incomingObjectBuffer);
 			//Trim null bytes
-            receivedObj.Trim('\0');
+			receivedObj=receivedObj.TrimEnd('\0');
             return receivedObj;
         }
 
@@ -112,17 +115,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
             //Send message string to client
             connectionSocket.Send(stringBuffer, stringBuffer.Length, SocketFlags.None);
         }
-
-        /// <summary>
-        /// https://stackoverflow.com/questions/1318933/c-sharp-int-to-byte
-        /// </summary>
-        /// <param name="i">int to convert</param>
-        /// <returns>byte array</returns>
-        public static byte[] GetBytesFromInt(int i) {
-            byte[] intBytes = BitConverter.GetBytes(i);
-            if (BitConverter.IsLittleEndian) Array.Reverse(intBytes);
-            return intBytes;
-        }
+		
         
     }
 }

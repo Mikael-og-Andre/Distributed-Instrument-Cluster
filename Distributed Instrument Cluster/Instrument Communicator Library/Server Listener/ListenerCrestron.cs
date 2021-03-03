@@ -37,7 +37,8 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			try {
 				//cast input object to Client Connection
 				clientConnection = (CrestronConnection)obj;
-			} catch (InvalidCastException) {
+			}
+			catch (InvalidCastException) {
 				throw;
 			}
 			Console.WriteLine("SERVER - a Client Has Connected to Thread: {0}, thread {0} is running now", Thread.CurrentThread.ManagedThreadId);
@@ -132,7 +133,8 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				}
 
 				return;
-			} catch (Exception) {
+			}
+			catch (Exception) {
 				// ignored
 			}
 		}
@@ -148,6 +150,8 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				return this.listCrestronConnections.Remove(connection);
 			}
 		}
+
+		#region Protocols
 
 		/// <summary>
 		/// Starts predetermined sequence eof socket operations used to authorize a remote device
@@ -173,7 +177,8 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				NetworkingOperations.SendStringWithSocket("y", connectionSocket);
 				//Add access Token to clientConnection
 				clientConnection.SetAccessToken(token);
-			} else {
+			}
+			else {
 				//Send char n for negative
 				NetworkingOperations.SendStringWithSocket("n", connectionSocket);
 				//authorization failed, set not clientConnection to not active and return
@@ -211,7 +216,8 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			if (receiveString.ToLower().Equals("y")) {
 				//Successful ping
 				Console.WriteLine("SERVER - Client Thread {0} says: Ping successful", Thread.CurrentThread.ManagedThreadId);
-			} else {
+			}
+			else {
 				//failed ping, stop connection
 				Console.WriteLine("SERVER - Client Thread {0} says: Ping failed, received wrong response", Thread.CurrentThread.ManagedThreadId);
 				clientConnection.SetIsConnectionActive(false);
@@ -245,17 +251,21 @@ namespace Instrument_Communicator_Library.Server_Listener {
 					string messageString = msg.getMessage();
 
 					//Send string
-					NetworkingOperations.SendStringWithSocket(messageString,connectionSocket);
+					NetworkingOperations.SendStringWithSocket(messageString, connectionSocket);
 					//Send end signal to client, singling no more strings are coming
 					NetworkingOperations.SendStringWithSocket("end", connectionSocket);
-				} else {
+				}
+				else {
 					Console.WriteLine("SERVER - Crestron Listener Message queue was empty when trying to  ");
 				}
-			} catch (Exception ex) {
+			}
+			catch (Exception ex) {
 				throw ex;
 				//return;
 			}
 		}
+
+		#endregion Protocols
 
 		/// <summary>
 		/// Validates an accessToken
@@ -265,7 +275,6 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		private bool validateAccessToken(AccessToken token) {
 			//TODO: add Database checking
 			string hash = token.getAccessString();
-			Console.WriteLine("SERVER - Thread {0} is now checking hash. Hash: " + hash, Thread.CurrentThread.ManagedThreadId);
 			if (hash.Equals("access")) {
 				Console.WriteLine("SERVER - Thread {0} is now authorized", Thread.CurrentThread.ManagedThreadId);
 				return true;

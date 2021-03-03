@@ -8,8 +8,8 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 
 	/// <summary>
 	/// Interface for sharing video connection lists between classes
+	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
 	public interface IRemoteDeviceConnections {
 
 		public void SetCrestronConnectionList(List<CrestronConnection> listCrestronConnections);

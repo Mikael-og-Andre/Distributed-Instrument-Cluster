@@ -1,7 +1,7 @@
 ﻿
 namespace Instrument_Communicator_Library {
 	/// <summary>
-	/// Class for storing and loading information about the client
+	/// Class for storing and loading information about the Instrument Device
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 

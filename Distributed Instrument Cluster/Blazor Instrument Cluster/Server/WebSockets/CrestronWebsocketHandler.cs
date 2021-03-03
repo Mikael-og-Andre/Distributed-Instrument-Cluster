@@ -10,6 +10,10 @@ using System.Threading.Tasks;
 
 namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
+	/// <summary>
+	/// Websocket handler for crestron control connections
+	/// <author>Mikael Nilssen</author>
+	/// </summary>
 	public class CrestronWebsocketHandler : ICrestronSocketHandler {
 		private ILogger<CrestronWebsocketHandler> logger;       //Logger
 		private IServiceProvider services;                      //Services
@@ -20,6 +24,11 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			remoteDeviceConnections = (RemoteDeviceConnection)services.GetService(typeof(IRemoteDeviceConnections));
 		}
 
+		/// <summary>
+		/// Handles the incoming connection
+		/// </summary>
+		/// <param name="websocket"></param>
+		/// <param name="socketFinishedTcs"></param>
 		public async void StartCrestronWebsocketProtocol(WebSocket websocket, TaskCompletionSource<object> socketFinishedTcs) {
 			//Create cancellation token
 			CancellationToken token = new CancellationToken(false);

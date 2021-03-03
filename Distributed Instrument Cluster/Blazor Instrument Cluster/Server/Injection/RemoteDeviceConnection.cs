@@ -10,7 +10,8 @@ using Instrument_Communicator_Library.Information_Classes;
 namespace Blazor_Instrument_Cluster.Server.Injection {
 
 	/// <summary>
-	/// Class for storing connection list
+	/// Class for storing connection lists
+	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	public class RemoteDeviceConnection : IRemoteDeviceConnections {
 
@@ -170,7 +171,10 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 				return false;
 			}
 		}
-
+		/// <summary>
+		/// Adds a provider for a specific video connection to the list of connections
+		/// </summary>
+		/// <param name="frameProvider"></param>
 		public void AddFrameProviderToListOfProviders(VideoConnectionFrameProvider frameProvider) {
 			lock (listFrameProviders) {
 				listFrameProviders.Add(frameProvider);

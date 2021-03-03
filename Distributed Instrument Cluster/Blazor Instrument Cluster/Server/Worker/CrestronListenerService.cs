@@ -13,6 +13,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 
 	/// <summary>
 	/// Background service for accepting incoming connections from controllers
+	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	public class CrestronListenerService : BackgroundService {
 		private const int Delay = 10;   //Delay after each loop
