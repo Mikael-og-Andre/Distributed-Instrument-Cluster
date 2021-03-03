@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Runtime.Serialization;
@@ -33,11 +34,26 @@ namespace Instrument_Communicator_Library.Helper_Class {
 
             //Create network stream
             NetworkStream networkStream = new NetworkStream(connectionSocket);
-            byte[] buffer = new byte[4096];
-            networkStream.Read(buffer);
+            //Read all available data
+            List<byte> byteList = new List<byte>();
+            while (networkStream.DataAvailable) {
+	            int readInt = networkStream.ReadByte();
+				//Check if end of stream and skip
+				if (readInt==-1) {
+					continue;
+				}
+				//Cast back from output int32 to unsigned byte
+				byte readByte = (byte) readInt;
+				byteList.Add(readByte);
+            }
+			//Flush stream
 			networkStream.Flush();
+			//From list to bytearray
+			byte[] receivedBytes = byteList.ToArray();
+			//Create temporary object
 			Message msg = new Message(protocolOption.ping, "");
-			msg = (Message) msg.getObject(buffer);
+			//Change object data to new data
+			msg = (Message) msg.getObject(receivedBytes);
 			return msg;
         }
 
