@@ -22,7 +22,7 @@ namespace Testing_Server {
 			thread.Start();
 			Thread.Sleep(1000);
 			CrestronConnection connection;
-			string name = "crestron";
+			string name = "Radar1";
 			Console.WriteLine("Searching for connection with name: "+name);
 			while (!listenerCrestron.getCrestronConnectionWithName(out connection, name)) {
 				Thread.Sleep(100);

@@ -1,4 +1,5 @@
 ﻿var canvas;
+var locked = false;
 
 //Setup function called when dom is loaded.
 function setup() {
@@ -12,22 +13,37 @@ function setup() {
 
 function click() {
     canvas.requestPointerLock();
+    return isLocked();
+}
+
+function isLocked() {
+    return locked;
 }
 
 function lockChange() {
     if (document.pointerLockElement === canvas || document.mozPointerLockElement === canvas) {
         document.addEventListener("mousemove", updatePosition, false);
+        locked = true;
     } else {
         document.removeEventListener("mousemove", updatePosition, false);
+        locked = false;
     }
 }
 
-var x = 50;
-var y = 50;
 
+var x = 0;
+var y = 0;
 function updatePosition(e) {
     x += e.movementX;
     y += e.movementY;
+}
 
-    DotNet.invokeMethodAsync("Blazor_Instrument_Cluster.Client", "updatePosition", x, y);
+function getPositionChange() {
+    var tempX = x;
+    var tempY = y;
+
+    x = 0;
+    y = 0;
+    
+    return [tempX, tempY];
 }

@@ -45,6 +45,8 @@ namespace MAIN_Program {
 			//setupVideoDevice(0);
 			//setupVideoDevice(2);
 
+
+
 			var relayThread = new Thread(this.relayThread) {IsBackground = true};
 			relayThread.Start();
 
@@ -67,6 +69,9 @@ namespace MAIN_Program {
 				this.commandParser = new CommandParser(serialPort);
 
 				writeSuccess("Successfully connected to port: " + port);
+
+				//Release any keys
+				serialPort.SendBytes(0x38);
 
 				return true;
 			} catch {

@@ -6,42 +6,127 @@
 @inject IJSRuntime JS
 
 <h3>KeyboardMouse</h3>
-
 <div>
     <h3>@crestronWebSocket.State</h3>
     <h4>@hasControl</h4>
     <button style="width: 2em; height: 2em;" @onclick="ConnectToCrestronControl"></button>
 </div>
 
-<div id="canvas" style="width: 480px; height: 360px; border: 1px solid black" @onclick="click"></div>
+<input
+    id="canvas"
+    style="width: 640px; height: 360px; border: 1px solid black"
+    @onclick="click"
+    @onmousemove="move"
+    @onmousedown="mouseDown"
+    @onmouseup="mouseUp"
+    @onkeydown="keyDown"
+    @onkeyup="keyUp">
+</input>
 
 @code {
+
+
+
+    private async void click(MouseEventArgs e) {
+        await JS.InvokeVoidAsync("click");
+    }
+
+    private async void mouseDown(MouseEventArgs e) {
+        Console.WriteLine(e.Button);
+        sendData("mouseClick (" + e.Button + ",1)");    // 1=make/down.
+    }
+
+    private async void mouseUp(MouseEventArgs e) {
+        Console.WriteLine(e.Button);
+        sendData("mouseClick (" + e.Button + ",0)");    // 0=break/up.
+    }
+
+    private async void keyDown(KeyboardEventArgs e) {
+        Console.WriteLine(e.Code);
+        switch (e.Code) {
+            case "Space":
+                sendData("make space");
+                return;
+            case "Tab":
+                return;
+            default:
+                sendData("make " + e.Key);
+                break;
+        }
+    }
+
+    private async void keyUp(KeyboardEventArgs e) {
+        Console.WriteLine(e.Code);
+        switch (e.Code) {
+            case "Space":
+                sendData("break space");
+                return;
+            case "Tab":
+                return;
+            default:
+                sendData("break " + e.Key);
+                break;
+        }
+    }
+
+    //TODO: FIX
+    private void scroll() {
+        Console.WriteLine("ok?");
+        //Console.WriteLine(e.Detail);
+    }
+
+    private async void move(MouseEventArgs e) {
+        int[] deltas = await JS.InvokeAsync<int[]>("getPositionChange");
+
+        int x = deltas[0];
+        int y = deltas[1];
+
+        sendData("movecursor (" + x + "," + y + ")");
+    }
+
+    private async void sendData(string s) {
+        if (!(await JS.InvokeAsync<bool>("isLocked"))) return;
+
+        //Convert string to byte sequence.
+        ArraySegment<byte> toSend = new ArraySegment<byte>(Encoding.ASCII.GetBytes(s));
+
+        //Send data to socket.
+        await crestronWebSocket.SendAsync(toSend, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+    }
+
+    //Run setup when DOM is loaded.
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
+            await JS.InvokeVoidAsync("setup");
+        }
+    }
+
+
+    #region socket
 
     CancellationTokenSource disposalTokenSource = new CancellationTokenSource();
     ClientWebSocket crestronWebSocket = new ClientWebSocket();
     private string name = "Radar1";
     private bool hasControl = false;
 
-    //TODO: pass position data to page in non static method
-    int xPos = 0;
-    int ypos = 0;
 
     private async Task ConnectToCrestronControl() {
         disposalTokenSource = new CancellationTokenSource();
         crestronWebSocket = new ClientWebSocket();
 
-        await crestronWebSocket.ConnectAsync(new Uri("wss://localhost:44323/crestronControl"), disposalTokenSource.Token);
+        await crestronWebSocket.ConnectAsync(new Uri("wss://localhost:5001/crestronControl"), disposalTokenSource.Token);
 
         try {
             hasControl = await SetupSocket();
-        } catch (Exception) {
+        }
+        catch (Exception) {
             hasControl = false;
         }
 
-        if (hasControl) {
-            StateHasChanged();
-            await SendMouseData();
-        }
+        //if (hasControl) {
+        //    StateHasChanged();
+        //    await SendMouseData();
+        //}
 
     }
 
@@ -79,30 +164,5 @@
         return true;
     }
 
-    private async Task SendMouseData() {
-
-        byte[] testStringBytes = Encoding.ASCII.GetBytes("test string crestron control");
-        ArraySegment<byte> testSeg = new ArraySegment<byte>(testStringBytes);
-        while (!disposalTokenSource.IsCancellationRequested) {
-            await crestronWebSocket.SendAsync(testSeg, WebSocketMessageType.Text, true, disposalTokenSource.Token);
-            await Task.Delay(1000);
-        }
-
-    }
-
-    private async void click() {
-        await JS.InvokeVoidAsync("click");
-    }
-
-    [JSInvokable]
-    public static void updatePosition(int x, int y) {
-        Console.WriteLine(x + " " + y);
-    }
-
-    //Run setup when DOM is loaded.
-    protected override async Task OnAfterRenderAsync(bool firstRender) {
-        if (firstRender) {
-            await JS.InvokeVoidAsync("setup");
-        }
-    }
+    #endregion
 }
