@@ -5,6 +5,7 @@ using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Instrument_Communicator_Library.Information_Classes;
 using Instrument_Communicator_Library.Interface;
 using Video_Library;
 
@@ -34,7 +35,7 @@ namespace MAIN_Program {
 		private Program(string[] args) {
 			//Setup communicators
 			Thread.Sleep(1000);
-			//setupVideoCommunicator("127.0.0.1", 5051, "device name", "device location", "device type", "access");
+			setupVideoCommunicator("127.0.0.1", 5051, "Radar1", "device location", "device type", "access");
 			setupCrestronCommunicator("127.0.0.1", 5050, "Radar1", "device location", "device type", "access");
 
 			//TODO: pars config file:
@@ -43,10 +44,25 @@ namespace MAIN_Program {
 
 			setupSerialCable(serialComPort);
 			//setupVideoDevice(0);
-			//setupVideoDevice(2);
+			setupVideoDevice(1);
+
+
 
 			var relayThread = new Thread(this.relayThread) {IsBackground = true};
 			relayThread.Start();
+
+			int i = 0;
+			while (true) {
+
+				//if (videoDevices[0].tryReadFrameBuffer(out Mat ooga)) {
+				if (videoDevices[0].tryReadJpg(out byte[] ooga)) {
+					Console.WriteLine(ooga);
+
+					videoCommunicator.GetInputQueue().Enqueue(new VideoFrame(ooga));
+					Console.WriteLine(ooga.Length);
+					i++;
+				}
+			}
 
 
 		}
@@ -67,6 +83,9 @@ namespace MAIN_Program {
 				this.commandParser = new CommandParser(serialPort);
 
 				writeSuccess("Successfully connected to port: " + port);
+
+				//Release any keys
+				serialPort.SendBytes(0x38);
 
 				return true;
 			} catch {

@@ -82,10 +82,9 @@ namespace Instrument_Communicator_Library.Helper_Class {
 			byte[] incomingObjectBytes = new byte[size];
 			connectionSocket.Receive(incomingObjectBytes);
 
-			//TODO: Update for new frame
-	        VideoFrame frame = new VideoFrame("");
-	        frame = (VideoFrame)frame.getObject(incomingObjectBytes);
-	        return frame;
+            VideoFrame frame = new VideoFrame(new byte[] {});
+            frame = (VideoFrame)frame.getObject(buffer);
+            return frame;
         }
 
 		/// <summary>

@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>HardwareServer_Demo_Project</RootNamespace>
-    <StartupObject>HardwareServer_Demo_Project.VideoCommunicatorTestingClass</StartupObject>
+    <StartupObject>Server_And_Demo_Project.CrestronCommunicatorTestingClass</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

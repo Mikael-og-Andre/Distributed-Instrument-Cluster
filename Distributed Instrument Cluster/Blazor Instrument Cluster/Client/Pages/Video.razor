@@ -7,19 +7,20 @@
 @implements IDisposable
 
 <h3>State: @videoWebSocket.State</h3>
+<img src="@imgsrc"/>
 
 <p>@message</p>
 
 
 @code {
-    CancellationTokenSource disposalTokenSource = new CancellationTokenSource();
-    ClientWebSocket videoWebSocket = new ClientWebSocket();
-    string message = "No messages received";
+    readonly CancellationTokenSource disposalTokenSource = new();
+    readonly ClientWebSocket videoWebSocket = new();
+    string message = "ok?";
     string name = "Radar1";
+    private string imgsrc = "";
 
-    protected override async Task OnInitializedAsync()
-    {
-        await videoWebSocket.ConnectAsync(new Uri("wss://localhost:44323/videoStream"), disposalTokenSource.Token);
+    protected override async Task OnInitializedAsync() {
+        await videoWebSocket.ConnectAsync(new Uri("wss://localhost:5001/videoStream"), disposalTokenSource.Token);
 
     //byte[] encodingBuffer = Encoding.ASCII.GetBytes(name);
     //ArraySegment<byte> seg = new ArraySegment<byte>(encodingBuffer);
@@ -29,25 +30,29 @@
         _ = ReceiveVideo();
     }
 
-    async Task ReceiveVideo()
-    {
-        while (!disposalTokenSource.IsCancellationRequested)
-        {
+    async Task ReceiveVideo() {
+        while (!disposalTokenSource.IsCancellationRequested) {
             var buffer = new ArraySegment<byte>(new byte[4096]);
-            WebSocketReceiveResult received = await videoWebSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
+            var received = await videoWebSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
             Console.WriteLine(buffer);
-            VideoFrame frame = new VideoFrame("");
+            var frame = new VideoFrame(new byte[] {});
             frame = (VideoFrame) frame.getObject(buffer.ToArray());
-            Console.WriteLine(frame.value);
-            message = frame.value;
+            Console.WriteLine(frame.value.Length);
+            message = frame.value.Length.ToString();
+
+
+            var base64 = Convert.ToBase64String(frame.value);
+            imgsrc = string.Format("data:image/jpg;base64,{0}", base64);
+
+
             StateHasChanged();
         }
     }
-    
 
-    public void Dispose()
-    {
+
+    public void Dispose() {
         disposalTokenSource.Cancel();
         _ = videoWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Bye", CancellationToken.None);
     }
+
 }

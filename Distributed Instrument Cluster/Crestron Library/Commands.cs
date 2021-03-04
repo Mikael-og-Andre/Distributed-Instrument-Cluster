@@ -16,14 +16,14 @@ namespace Crestron_Library {
 		public Commands() {
 			var keyCommands = getCSV("KeyCommands(edited).csv");
 
-			for (int i=1; i<keyCommands[0].Count-1 ; i++) {
+			for (int i=1; i<keyCommands[0].Count ; i++) {
 				commands.Add(keyCommands[0][i].ToLower(), new List<string>() { keyCommands[1][i], keyCommands[2][i] });
 			}
 
 			//Adds mice commands to command list (without break command).
 			var miceCommands = getCSV("MiceCommands(edited).csv");
 
-			for (int i = 1; i < miceCommands[0].Count - 1; i++) {
+			for (int i = 1; i < miceCommands[0].Count; i++) {
 				commands.Add(miceCommands[1][i].ToLower(),new List<string> {miceCommands[0][i]});
 			}
 		}
@@ -38,7 +38,7 @@ namespace Crestron_Library {
 				if (commands.TryGetValue(key.ToLower(), out var temp))
 					return Convert.ToByte(temp[0], 16);
 			} catch { }
-			throw new ArgumentException("Make byte not found.");
+			throw new ArgumentException("Make byte not found for: \"" + key +"\".");
 		}
 
 		/// <summary>
@@ -51,7 +51,7 @@ namespace Crestron_Library {
 				if (commands.TryGetValue(key.ToLower(), out var temp))
 					return Convert.ToByte(temp[1], 16);
 			} catch { }
-			throw new ArgumentException("Break byte not found.");
+			throw new ArgumentException("Break byte not found for: \"" + key + "\".");
 			}
 
 		public List<string> getAllCommands() {

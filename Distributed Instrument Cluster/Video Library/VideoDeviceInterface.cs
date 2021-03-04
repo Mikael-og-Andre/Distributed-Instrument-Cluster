@@ -53,6 +53,21 @@ namespace Video_Library {
 			return frameBuffer.TryDequeue(out framePointer);
 		}
 
+		public bool tryReadJpg(out byte[] buffer) {
+			if (frameBuffer.TryDequeue(out Mat frame)) {
+				Cv2.ImEncode(".jpg", frame, out buffer, new ImageEncodingParam(ImwriteFlags.JpegQuality, 90));
+
+				//TODO remove
+				Cv2.ImShow("test", Cv2.ImDecode(buffer,ImreadModes.Color));
+				Cv2.WaitKey(1);
+
+
+				return true;
+			}
+			buffer = new byte[] { };
+			return false;
+		}
+
 		/// <summary>
 		/// Stops capturing frames and release capture device resources.
 		/// </summary>

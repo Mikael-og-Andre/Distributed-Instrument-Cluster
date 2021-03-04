@@ -87,8 +87,9 @@ namespace Crestron_Library {
 				EnableRaisingEvents = true
 			};
 
-			process.ErrorDataReceived += commandParser.spamIn;
-			process.OutputDataReceived += commandParser.spamIn;
+			//Deprecated
+			//process.ErrorDataReceived += commandParser.spamIn;
+			//process.OutputDataReceived += commandParser.spamIn;
 
 			//process.ErrorDataReceived += Process_OutputDataReceived;
 			//process.OutputDataReceived += Process_OutputDataReceived;
