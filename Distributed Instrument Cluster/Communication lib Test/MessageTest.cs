@@ -53,7 +53,7 @@ namespace Communication_lib_Test {
 						VideoFrame qOut;
 						bool hasVal = queue.TryDequeue(out qOut);
 						Assert.IsTrue(hasVal);
-						Assert.AreEqual(s, qOut.value);
+						Assert.AreEqual(s, Encoding.ASCII.GetString(qOut.value));
 					}
 				}
 			}
