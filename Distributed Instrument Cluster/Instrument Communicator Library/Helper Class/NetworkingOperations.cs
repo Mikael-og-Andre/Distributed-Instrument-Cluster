@@ -19,19 +19,12 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		/// <param name="inObj"></param>
 		/// <param name="connectionSocket"></param>
 		public static void SendObjectWithSocket<U>(U input, Socket connectionSocket) where U : ISerializeableObject {
-			//Get bytes of object T
+
 			byte[] bytes = input.getBytes();
-			int size = bytes.Length;
-			byte[] sizeBytes = BitConverter.GetBytes(size);
-			//Create stream
-			NetworkStream networkStream = new NetworkStream(connectionSocket, false);
-			networkStream.Flush();
-			foreach (var b in sizeBytes) {
-				networkStream.WriteByte(b);
-			}
+            NetworkStream networkStream = new NetworkStream(connectionSocket);
 			networkStream.Write(bytes);
 			networkStream.Flush();
-		}
+        }
 
 		/// <summary>
 		/// Receive an object with socket
@@ -41,19 +34,26 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		public static VideoFrame ReceiveVideoFrameWithSocket(Socket connectionSocket) {
 			//First 4 bytes are size
 			NetworkStream networkStream = new NetworkStream(connectionSocket);
-			byte[] sizeBytes = new byte[sizeof(int)];
-			for (int i = 0;i<sizeof(int);i++) {
-				sizeBytes[i] = (byte) networkStream.ReadByte();
-			}
-			Array.Reverse(sizeBytes);
-			//Convert to size
-			int size = BitConverter.ToInt32(sizeBytes);
-			byte[] bufferBytes = new byte[size];
+            networkStream.Flush();
+			
+			byte[] bufferBytes = new byte[200000];
 			networkStream.Read(bufferBytes);
 			networkStream.Flush();
+            int endInt = 0;
+            for (int i = bufferBytes.Length; i>0;i--) {
+                byte currentByte = bufferBytes[i-1];
+                if (currentByte != byte.MinValue) {
+                    endInt = i;
+                    break;
+                }
+            }
+
+
+            byte[] bytes = new Byte[endInt];
+			System.Buffer.BlockCopy(bufferBytes, 0, bytes, 0, endInt);
 
 			VideoFrame frame = new VideoFrame(new byte[] { });
-			frame = (VideoFrame)frame.getObject(bufferBytes);
+			frame = (VideoFrame)frame.getObject(bytes);
 			return frame;
 		}
 

@@ -58,7 +58,7 @@ namespace MAIN_Program {
 				//if (videoDevices[0].tryReadFrameBuffer(out Mat ooga)) {
 				if (videoDevices[0].tryReadJpg(out byte[] ooga)) {
 					Console.WriteLine(ooga);
-
+					Thread.Sleep(100);
 					videoCommunicator.GetInputQueue().Enqueue(new VideoFrame(ooga));
 					Console.WriteLine(ooga.Length);
 					i++;
