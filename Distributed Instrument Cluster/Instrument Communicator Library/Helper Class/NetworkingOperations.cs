@@ -22,7 +22,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 	        //Get bytes of object T
 	        byte[] bytes = input.getBytes();
 	        int byteLength = bytes.Length;
-	        byte[] bytesByteLength = BitConverter.GetBytes(byteLength);
+	        byte[] bytesByteLength = GetBytesFromInt(byteLength);
 
 			//Send size of incoming bytes
 			connectionSocket.Send(bytesByteLength,sizeof(int),SocketFlags.None);
@@ -126,7 +126,19 @@ namespace Instrument_Communicator_Library.Helper_Class {
             //Send message string to client
             connectionSocket.Send(stringBuffer, stringBuffer.Length, SocketFlags.None);
         }
-		
-        
+
+		/// <summary>
+		/// Get bytes from an int
+		/// </summary>
+		/// <param name="i"></param>
+		/// <returns></returns>
+        private static byte[] GetBytesFromInt(int i) {
+			int intValue = i;
+	        byte[] intBytes = BitConverter.GetBytes(intValue);
+	        if (BitConverter.IsLittleEndian)
+		        Array.Reverse(intBytes);
+	        byte[] result = intBytes;
+	        return result;
+		}
     }
 }
