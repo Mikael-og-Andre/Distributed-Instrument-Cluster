@@ -71,7 +71,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 	        byte[] buffer = new byte[4096];
 	        networkStream.Read(buffer);
 	        networkStream.Flush();
-	        VideoFrame frame = new VideoFrame("");
+	        VideoFrame frame = new VideoFrame(new byte[] {});
 	        frame = (VideoFrame)frame.getObject(buffer);
 	        return frame;
         }

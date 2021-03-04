@@ -20,11 +20,13 @@
     @onmousedown="mouseDown"
     @onmouseup="mouseUp"
     @onkeydown="keyDown"
-    @onkeyup="keyUp">
-</input>
+    @onkeyup="keyUp"/>
 
 @code {
-
+    /// <summary>
+    /// Handles capturing pointer lock data, key events and sends it to a web socket.
+    /// </summary>
+    /// <author>Andre Helland</author>
 
 
     private async void click(MouseEventArgs e) {
