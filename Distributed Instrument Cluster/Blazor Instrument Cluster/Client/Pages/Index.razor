@@ -11,15 +11,26 @@
 <button class="btn btn-primary" @onclick="NavigateToKeyboardMouseComponent">
     Navigate to the cursor lock component
 </button>
+<br />
+<button class="btn btn-primary" @onclick="NavigateToCombinedComponent">
+    Navigate to combined component
+</button>
 
 
 @code {
-    private void NavigateToVideoComponent() {
+    private void NavigateToVideoComponent()
+    {
         NavigationManager.NavigateTo("video");
     }
 
-    private void NavigateToKeyboardMouseComponent() {
+    private void NavigateToKeyboardMouseComponent()
+    {
         NavigationManager.NavigateTo("mouse");
+    }
+
+    private void NavigateToCombinedComponent()
+    {
+        NavigationManager.NavigateTo("combined");
     }
 
 }
