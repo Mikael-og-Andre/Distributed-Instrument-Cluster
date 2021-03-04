@@ -21,10 +21,14 @@ namespace Instrument_Communicator_Library.Helper_Class {
         public static void SendObjectWithSocket<U>(U input, Socket connectionSocket) where U: ISerializeableObject {
 	        //Get bytes of object T
 	        byte[] bytes = input.getBytes();
-            NetworkStream networkStream = new NetworkStream(connectionSocket);
-            networkStream.Write(bytes);
-            networkStream.Flush();
-            
+	        int byteLength = bytes.Length;
+	        byte[] bytesByteLength = BitConverter.GetBytes(byteLength);
+
+			//Send size of incoming bytes
+			connectionSocket.Send(bytesByteLength,sizeof(int),SocketFlags.None);
+			//Send object bytes
+			connectionSocket.Send(bytes, byteLength, SocketFlags.None);
+
         }
 
         /// <summary>
@@ -34,16 +38,19 @@ namespace Instrument_Communicator_Library.Helper_Class {
         /// <returns></returns>
         public static Message ReceiveMessageWithSocket(Socket connectionSocket) {
 
-            //Create network stream
-            NetworkStream networkStream = new NetworkStream(connectionSocket);
-            byte[] buffer = new byte[2048];
-            networkStream.Read(buffer);
-            //Flush stream
-			networkStream.Flush();
+			//Receive size of incoming
+			byte[] sizeBuffer = new byte[sizeof(int)];
+			connectionSocket.Receive(sizeBuffer,sizeof(int),SocketFlags.None);
+			//Convert incoming size btyes to int
+			int size = BitConverter.ToInt32(sizeBuffer);
+			//Receive object bytes
+			byte[] incomingObjectBytes = new byte[size];
+			connectionSocket.Receive(incomingObjectBytes,size,SocketFlags.None);
+
 			//search for first non null byte
 			int bytesEndLocation = 0;
-			for (int i = buffer.Length;i>0;i--) {
-				byte current = buffer[i];
+			for (int i = incomingObjectBytes.Length;i>0;i--) {
+				byte current = incomingObjectBytes[i];
 				if (current!=(byte)0) {
 					bytesEndLocation = i;
 					break;
@@ -52,7 +59,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 			//create array of size needed to store non null bytes
 			byte[] receivedBytes = new byte[bytesEndLocation];
 			//Copy non null bytes to received bytes array
-			System.Buffer.BlockCopy(buffer,0,receivedBytes,0,bytesEndLocation);
+			System.Buffer.BlockCopy(incomingObjectBytes,0,receivedBytes,0,bytesEndLocation);
 			//Create temporary object
 			Message msg = new Message(protocolOption.ping, "");
 			//Change object data to new data
@@ -66,13 +73,18 @@ namespace Instrument_Communicator_Library.Helper_Class {
         /// <param name="connectionSocket"></param>
         /// <returns></returns>
         public static VideoFrame ReceiveVideoFrameWithSocket(Socket connectionSocket) {
-	        //Create network stream
-	        NetworkStream networkStream = new NetworkStream(connectionSocket);
-	        byte[] buffer = new byte[4096];
-	        networkStream.Read(buffer);
-	        networkStream.Flush();
+	        //Get size of incoming object
+	        byte[] sizeBuffer = new byte[sizeof(int)];
+	        connectionSocket.Receive(sizeBuffer,0,sizeof(int),SocketFlags.None);
+			//Convert size btyes to int
+			int size = BitConverter.ToInt32(sizeBuffer);
+			//Receive incoming object bytes
+			byte[] incomingObjectBytes = new byte[size];
+			connectionSocket.Receive(incomingObjectBytes);
+
+			//TODO: Update for new frame
 	        VideoFrame frame = new VideoFrame("");
-	        frame = (VideoFrame)frame.getObject(buffer);
+	        frame = (VideoFrame)frame.getObject(incomingObjectBytes);
 	        return frame;
         }
 
