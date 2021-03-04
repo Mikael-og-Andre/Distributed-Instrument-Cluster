@@ -34,7 +34,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 			remoteDeviceConnection = (RemoteDeviceConnection)services.GetService(typeof(IRemoteDeviceConnections));
 
 			//Create endpoint
-			IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 5050);
+			IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Parse("192.168.1.164"), 5050);
 			this.crestronListener = new ListenerCrestron(ipEndPoint);
 
 			//Set remoteDevice connections

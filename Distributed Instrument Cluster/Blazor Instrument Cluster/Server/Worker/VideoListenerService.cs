@@ -38,7 +38,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 			remoteDeviceConnection = (RemoteDeviceConnection)services.GetService(typeof(IRemoteDeviceConnections));
 
 			//Create endpoint
-			IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 5051);
+			IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Parse("192.168.1.164"), 5051);
 			this.videoListener = new ListenerVideo(ipEndPoint);
 
 			//Set remoteDevice connections

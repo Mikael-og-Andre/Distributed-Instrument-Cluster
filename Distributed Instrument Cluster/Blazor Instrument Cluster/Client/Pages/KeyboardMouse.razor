@@ -112,7 +112,7 @@
         disposalTokenSource = new CancellationTokenSource();
         crestronWebSocket = new ClientWebSocket();
 
-        await crestronWebSocket.ConnectAsync(new Uri("wss://localhost:5001/crestronControl"), disposalTokenSource.Token);
+        await crestronWebSocket.ConnectAsync(new Uri("wss://ooof.asuscomm.com:443/crestronControl"), disposalTokenSource.Token);
 
         try {
             hasControl = await SetupSocket();

@@ -17,7 +17,7 @@
     private string imgsrc = "";
 
     protected override async Task OnInitializedAsync() {
-        await videoWebSocket.ConnectAsync(new Uri("wss://localhost:5001/videoStream"), disposalTokenSource.Token);
+        await videoWebSocket.ConnectAsync(new Uri("wss://ooof.asuscomm.com:443/videoStream"), disposalTokenSource.Token);
 
     //byte[] encodingBuffer = Encoding.ASCII.GetBytes(name);
     //ArraySegment<byte> seg = new ArraySegment<byte>(encodingBuffer);

@@ -55,7 +55,7 @@ namespace Video_Library {
 
 		public bool tryReadJpg(out byte[] buffer) {
 			if (frameBuffer.TryDequeue(out Mat frame)) {
-				Cv2.ImEncode(".jpg", frame, out buffer, new ImageEncodingParam(ImwriteFlags.JpegQuality, 80));
+				Cv2.ImEncode(".jpg", frame, out buffer, new ImageEncodingParam(ImwriteFlags.JpegQuality, 95));
 
 				//TODO remove
 				//Cv2.ImShow("test", Cv2.ImDecode(buffer,ImreadModes.Color));
