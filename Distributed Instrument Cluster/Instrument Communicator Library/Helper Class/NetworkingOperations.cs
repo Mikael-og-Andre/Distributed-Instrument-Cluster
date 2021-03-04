@@ -45,6 +45,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 			for (int i = 0;i<sizeof(int);i++) {
 				sizeBytes[i] = (byte) networkStream.ReadByte();
 			}
+			Array.Reverse(sizeBytes);
 			//Convert to size
 			int size = BitConverter.ToInt32(sizeBytes);
 			byte[] bufferBytes = new byte[size];
@@ -101,5 +102,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 			return BitConverter.ToInt32(array);
 		}
 		
+		
+
 	}
 }
