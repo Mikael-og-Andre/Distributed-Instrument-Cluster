@@ -21,49 +21,16 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		public static void SendObjectWithSocket<U>(U input, Socket connectionSocket) where U : ISerializeableObject {
 			//Get bytes of object T
 			byte[] bytes = input.getBytes();
-			int byteLength = bytes.Length;
-			byte[] bytesByteLength = BitConverter.GetBytes(byteLength);
-
-			//Send size of incoming bytes
-			
-			connectionSocket.Send(bytesByteLength,0, sizeof(int), SocketFlags.None);
-			//Send object bytes
-			connectionSocket.Send(bytes, 0,byteLength, SocketFlags.None);
-		}
-
-		/// <summary>
-		/// Receive an object with socket
-		/// </summary>
-		/// <param name="connectionSocket"></param>
-		/// <returns></returns>
-		public static Message ReceiveMessageWithSocket(Socket connectionSocket) {
-			//Receive size of incoming
-			byte[] sizeBuffer = new byte[sizeof(int)];
-			connectionSocket.Receive(sizeBuffer, sizeof(int), SocketFlags.None);
-			//Convert incoming size btyes to int
-			int size = BitConverter.ToInt32(sizeBuffer);
-			//Receive object bytes
-			byte[] incomingObjectBytes = new byte[size];
-			connectionSocket.Receive(incomingObjectBytes, size, SocketFlags.None);
-
-			//search for first non null byte
-			int bytesEndLocation = 0;
-			for (int i = incomingObjectBytes.Length; i > 0; i--) {
-				byte current = incomingObjectBytes[i];
-				if (current != (byte)0) {
-					bytesEndLocation = i;
-					break;
-				}
+			int size = bytes.Length;
+			byte[] sizeBytes = BitConverter.GetBytes(size);
+			//Create stream
+			NetworkStream networkStream = new NetworkStream(connectionSocket, false);
+			networkStream.Flush();
+			foreach (var b in sizeBytes) {
+				networkStream.WriteByte(b);
 			}
-			//create array of size needed to store non null bytes
-			byte[] receivedBytes = new byte[bytesEndLocation];
-			//Copy non null bytes to received bytes array
-			System.Buffer.BlockCopy(incomingObjectBytes, 0, receivedBytes, 0, bytesEndLocation);
-			//Create temporary object
-			Message msg = new Message(protocolOption.ping, "");
-			//Change object data to new data
-			msg = (Message)msg.getObject(receivedBytes);
-			return msg;
+			networkStream.Write(bytes);
+			networkStream.Flush();
 		}
 
 		/// <summary>
@@ -72,18 +39,20 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		/// <param name="connectionSocket"></param>
 		/// <returns></returns>
 		public static VideoFrame ReceiveVideoFrameWithSocket(Socket connectionSocket) {
-			//Get size of incoming object
-			byte[] sizeBuffer = new byte[sizeof(int)];
-			connectionSocket.Blocking = true;
-			connectionSocket.Receive(sizeBuffer, 0, sizeof(int), SocketFlags.None);
-			//Convert size btyes to int
-			int size = GetIntFromBytes(sizeBuffer);
-			//Receive incoming object bytes
-			byte[] incomingObjectBytes = new byte[size];
-			connectionSocket.Receive(incomingObjectBytes);
+			//First 4 bytes are size
+			NetworkStream networkStream = new NetworkStream(connectionSocket);
+			byte[] sizeBytes = new byte[sizeof(int)];
+			for (int i = 0;i<sizeof(int);i++) {
+				sizeBytes[i] = (byte) networkStream.ReadByte();
+			}
+			//Convert to size
+			int size = BitConverter.ToInt32(sizeBytes);
+			byte[] bufferBytes = new byte[size];
+			networkStream.Read(bufferBytes);
+			networkStream.Flush();
 
 			VideoFrame frame = new VideoFrame(new byte[] { });
-			frame = (VideoFrame)frame.getObject(incomingObjectBytes);
+			frame = (VideoFrame)frame.getObject(bufferBytes);
 			return frame;
 		}
 
