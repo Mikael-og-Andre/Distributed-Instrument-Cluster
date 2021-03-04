@@ -16,6 +16,7 @@ namespace MAIN_Program {
 	/// and communication libraries.
 	/// Produces cli information about system/program status.
 	/// </summary>
+	/// <author>Mikael Nilssen</author>
 	/// <author>Andre Helland</author>
 	internal class Program {
 		private readonly List<VideoDeviceInterface> videoDevices = new List<VideoDeviceInterface>();

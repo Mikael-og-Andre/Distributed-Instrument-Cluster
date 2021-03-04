@@ -24,10 +24,7 @@ namespace HardwareServer_Demo_Project {
 			ConcurrentQueue<VideoFrame> inputQueue = vidCom.GetInputQueue();
 
 			while (true) {
-				string read = Console.ReadLine();
-				VideoFrame frame = new VideoFrame(read);
-				inputQueue.Enqueue(frame);
-				Console.WriteLine("Input Queue pushes: "+read);
+				Console.WriteLine("Fix with img");
 			}
 
 		}

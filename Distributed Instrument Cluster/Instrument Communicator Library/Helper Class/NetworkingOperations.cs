@@ -83,7 +83,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 			connectionSocket.Receive(incomingObjectBytes);
 
             VideoFrame frame = new VideoFrame(new byte[] {});
-            frame = (VideoFrame)frame.getObject(buffer);
+            frame = (VideoFrame)frame.getObject(incomingObjectBytes);
             return frame;
         }
 

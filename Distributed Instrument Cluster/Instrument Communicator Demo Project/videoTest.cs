@@ -45,7 +45,7 @@ namespace Server_And_Demo_Project {
 
             for (int i = 0; i < 300; i++) {
                 
-                inputQueue.Enqueue(new VideoFrame("int is "+i));
+                inputQueue.Enqueue(new VideoFrame(new byte[]{}));
                 Console.WriteLine("Queueing " + "int is " + i);
             }
 

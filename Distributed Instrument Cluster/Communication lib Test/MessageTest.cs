@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using Instrument_Communicator_Library.Information_Classes;
 
@@ -41,7 +42,7 @@ namespace Communication_lib_Test {
 
 			string[] strings = new string[] { "oooooooooooooooooooooooooooooooooooooooooooooooa long string", "s", "Hello !@$£@£$€@€@$${£€$", "12315127651294182491289049009++0" };
 			foreach (string s in strings) {
-				inputQueue.Enqueue(new VideoFrame(s));
+				inputQueue.Enqueue(new VideoFrame(Encoding.ASCII.GetBytes(s)));
 			}
 			Thread.Sleep(50);
 			List<VideoConnection> vidCons = vidListener.getVideoConnectionList();
