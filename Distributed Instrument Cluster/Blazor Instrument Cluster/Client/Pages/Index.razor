@@ -1,0 +1,36 @@
+﻿@page "/"
+@inject NavigationManager NavigationManager
+@using Microsoft.Extensions.Logging
+
+<h1>Blazor testing</h1>
+
+<button class="btn btn-primary" @onclick="NavigateToVideoComponent">
+    Navigate to the video component
+</button>
+<br />
+<button class="btn btn-primary" @onclick="NavigateToKeyboardMouseComponent">
+    Navigate to the cursor lock component
+</button>
+<br />
+<button class="btn btn-primary" @onclick="NavigateToCombinedComponent">
+    Navigate to combined component
+</button>
+
+
+@code {
+    private void NavigateToVideoComponent()
+    {
+        NavigationManager.NavigateTo("video");
+    }
+
+    private void NavigateToKeyboardMouseComponent()
+    {
+        NavigationManager.NavigateTo("mouse");
+    }
+
+    private void NavigateToCombinedComponent()
+    {
+        NavigationManager.NavigateTo("combined");
+    }
+
+}

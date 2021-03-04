@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Blazor Instrument Cluster.Server</RootNamespace>
+    <AssemblyName>$(AssemblyName.Replace(' ', '_'))</AssemblyName>
+    <StartupObject>Blazor_Instrument_Cluster.Server.Program</StartupObject>
+  </PropertyGroup>
+  
+
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Instrument Communicator Library\Instrument Communicator Library.csproj" />
+    <ProjectReference Include="..\Client\Blazor Instrument Cluster.Client.csproj" />
+    <ProjectReference Include="..\Shared\Blazor Instrument Cluster.Shared.csproj" />
+  </ItemGroup>
+</Project>
