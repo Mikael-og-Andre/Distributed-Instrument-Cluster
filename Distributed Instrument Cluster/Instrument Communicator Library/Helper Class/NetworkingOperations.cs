@@ -25,10 +25,9 @@ namespace Instrument_Communicator_Library.Helper_Class {
 			byte[] bytesByteLength = BitConverter.GetBytes(byteLength);
 
 			//Send size of incoming bytes
-			connectionSocket.SendBufferSize = sizeof(int);
+			
 			connectionSocket.Send(bytesByteLength,0, sizeof(int), SocketFlags.None);
 			//Send object bytes
-			connectionSocket.SendBufferSize = byteLength;
 			connectionSocket.Send(bytes, 0,byteLength, SocketFlags.None);
 		}
 
@@ -75,13 +74,12 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		public static VideoFrame ReceiveVideoFrameWithSocket(Socket connectionSocket) {
 			//Get size of incoming object
 			byte[] sizeBuffer = new byte[sizeof(int)];
-			connectionSocket.ReceiveBufferSize = sizeof(int);
-			connectionSocket.Receive(sizeBuffer, 0, sizeof(Int32), SocketFlags.None);
+			connectionSocket.Blocking = true;
+			connectionSocket.Receive(sizeBuffer, 0, sizeof(int), SocketFlags.None);
 			//Convert size btyes to int
 			int size = GetIntFromBytes(sizeBuffer);
 			//Receive incoming object bytes
 			byte[] incomingObjectBytes = new byte[size];
-			connectionSocket.ReceiveBufferSize = size;
 			connectionSocket.Receive(incomingObjectBytes);
 
 			VideoFrame frame = new VideoFrame(new byte[] { });
@@ -131,12 +129,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		
 
 		private static int GetIntFromBytes(byte[] array) {
-			if (BitConverter.IsLittleEndian) {
-				array = array.Reverse().ToArray();
-			}
-
-			int i = BitConverter.ToInt32(array);
-			return i;
+			return BitConverter.ToInt32(array);
 		}
 		
 	}
