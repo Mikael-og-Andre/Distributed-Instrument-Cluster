@@ -256,7 +256,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 					NetworkingOperations.SendStringWithSocket("end", connectionSocket);
 				}
 				else {
-					Console.WriteLine("SERVER - Crestron Listener Message queue was empty when trying to  ");
+					Console.WriteLine("SERVER - Crestron Listener Message queue was empty when trying to Send a message");
 				}
 			}
 			catch (Exception ex) {

@@ -23,7 +23,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
         }
 
         /// <summary>
-        /// Handles the conneceted device
+        /// Handles the connected device
         /// </summary>
         /// <param name="connectionSocket"></param>
         protected override void HandleConnected(Socket connectionSocket) {
@@ -58,7 +58,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
             string extractedString=NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
             //Parse Enum
             protocolOption option = (protocolOption)Enum.Parse(typeof(protocolOption), extractedString, true);
-            Console.WriteLine("thread {0} Client says: " + "Received option " + option, Thread.CurrentThread.ManagedThreadId);
+            Console.WriteLine("thread {0} Client says: " + "Received protocol request: {1} ", Thread.CurrentThread.ManagedThreadId,option);
             //Select Protocol
             switch (option) {
                 case protocolOption.ping:
@@ -112,7 +112,6 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 
                 //Receive Y for started instrument detailing
                 string response = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
-                Console.WriteLine("Response was " + response);
                 if (!response.ToLower().Equals("y")) {
                     return false;
                 }
@@ -120,7 +119,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
                 NetworkingOperations.SendStringWithSocket(information.location, connectionSocket);
                 NetworkingOperations.SendStringWithSocket(information.type, connectionSocket);
 
-                //Receive Y for started instrument detailing
+                //Receive Y for finished
                 string complete = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
 
                 return true;
@@ -148,13 +147,13 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
             //Loop until end signal received by server
             while (isAccepting) {
                 string received = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
-                Console.WriteLine("Thread {0} message received " + received, Thread.CurrentThread.ManagedThreadId);
                 //Check if end in messages
                 if (received.ToLower().Equals("end")) {
                     //Set protocol to be over
                     isAccepting = false;
                     break;
                 }
+                Console.WriteLine("Thread {0} message received " + received, Thread.CurrentThread.ManagedThreadId);
                 //Add Command To Concurrent queue
                 commandOutputQueue.Enqueue(received);
             }
