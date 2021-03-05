@@ -16,7 +16,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 	/// </summary>
 	public interface IVideoSocketHandler {
 
-		public Task StartWebSocketVideoProtocol(WebSocket webSocket, TaskCompletionSource<object> socketFinishedTcs);
+		public Task StartWebSocketVideoProtocol(WebSocket websocket, TaskCompletionSource<object> socketFinishedTcs);
 
 	}
 }
