@@ -38,33 +38,61 @@ namespace Blazor_Instrument_Cluster {
 			//Cancellation token
 			CancellationToken token = new CancellationToken(false);
 
+			//Send start signal
+			byte[] startBytes = Encoding.ASCII.GetBytes("start");
+			ArraySegment<byte> startSeg = new ArraySegment<byte>(startBytes);
+			await webSocket.SendAsync(startSeg, WebSocketMessageType.Text, true, token);
+
 			//Get name of video device that they want the video from
-			//ArraySegment<byte> buffer = new ArraySegment<byte>();
-			//WebSocketReceiveResult receive = await webSocket.ReceiveAsync(buffer, token);
-			string name = "Radar1";
+			byte[] bufferBytes = new byte[100];
+			ArraySegment<byte> buffer = new ArraySegment<byte>(bufferBytes);
+			await webSocket.ReceiveAsync(buffer, token);
+			byte[] nameBytes = buffer.ToArray();
+			string name = Encoding.ASCII.GetString(nameBytes).TrimEnd('\0');
 
 			logger.LogDebug("Websocket Video connection has asked for device with name: {0} ", name);
 			//Setup frame consumer to receive pushed frames from connection
 			VideoConnectionFrameConsumer consumer = new VideoConnectionFrameConsumer(name);
+			//Check for name
 			bool subbed = false;
-			while (!subbed) {
-				subbed = remoteDeviceConnections.SubscribeToVideoProviderWithName("Radar1", consumer);
+			int maxLoops = 20;
+			int looped = 0;
+			while (!subbed&&(looped<maxLoops)) {
+				subbed = remoteDeviceConnections.SubscribeToVideoProviderWithName(name, consumer);
 				logger.LogCritical("WebSocket tried to subscribe to {0} but i could not be found in the provider queue", name);
+				looped++;
+				await Task.Delay(100, token);
 			}
-			//Get consumer queue
-			ConcurrentQueue<VideoFrame> providerQueue = consumer.GetConcurrentQueue();
 
-			//Do main loop
-			while (!token.IsCancellationRequested) {
-				//Check if something in queue
-				if (!providerQueue.TryPeek(out _)) continue;
-				//Dequeue and send
-				providerQueue.TryDequeue(out VideoFrame result);
-				ArraySegment<byte> bytesSegment = new ArraySegment<byte>(result.getBytes());
-				await webSocket.SendAsync(bytesSegment, WebSocketMessageType.Binary, true, token);
+			//if the device was found send found, and continue
+			if (subbed) {
+
+				ArraySegment<byte> foundBytes = Encoding.ASCII.GetBytes("found");
+				await webSocket.SendAsync(foundBytes, WebSocketMessageType.Text, true, token);
+
+				//Get consumer queue
+				ConcurrentQueue<VideoFrame> providerQueue = consumer.GetConcurrentQueue();
+
+				//Do main loop
+				while (!token.IsCancellationRequested) {
+					//Check if something in queue
+					if (!providerQueue.TryPeek(out _)) continue;
+					//Dequeue and send
+					providerQueue.TryDequeue(out VideoFrame result);
+					ArraySegment<byte> bytesSegment = new ArraySegment<byte>(result.getBytes());
+					await webSocket.SendAsync(bytesSegment, WebSocketMessageType.Binary, true, token);
+				}
+				//After loop end websokcet connection
+				socketFinishedTcs.TrySetResult(new object());
+				return;
 			}
+
+			//Not subbed, send fail and close
+			ArraySegment<byte> failedBytes = new ArraySegment<byte>(Encoding.ASCII.GetBytes("failed"));
+			await webSocket.SendAsync(failedBytes, WebSocketMessageType.Text, true, token);
+
+			//end websokcet connection
 			socketFinishedTcs.TrySetResult(new object());
-
 		}
 		
 	}

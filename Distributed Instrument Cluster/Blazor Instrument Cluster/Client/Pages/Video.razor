@@ -6,25 +6,32 @@
 @using Instrument_Communicator_Library.Information_Classes
 @implements IDisposable
 
-<img src="@imgsrc" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0"/>
-
+<img src="@imgsrc" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0" />
 
 @code {
     readonly CancellationTokenSource disposalTokenSource = new();
     readonly ClientWebSocket videoWebSocket = new();
-    string message = "ok?";
+    bool foundDevice = false;
     string name = "Radar1";
     private string imgsrc = "";
+    //Temp
+    int port = 44323;
 
     protected override async Task OnInitializedAsync() {
-        await videoWebSocket.ConnectAsync(new Uri("wss://localhost:5001/videoStream"), disposalTokenSource.Token);
 
-    //byte[] encodingBuffer = Encoding.ASCII.GetBytes(name);
-    //ArraySegment<byte> seg = new ArraySegment<byte>(encodingBuffer);
-    //await videoWebSocket.SendAsync(seg,WebSocketMessageType.Text,true,disposalTokenSource.Token);
+        await videoWebSocket.ConnectAsync(new Uri("wss://localhost:" + port + "/videoStream"), disposalTokenSource.Token);
 
-    //Start the video receive loop
-        _ = ReceiveVideo();
+        //Sends name and setsup socket
+        foundDevice = await SetupSocket();
+
+        //Start the video receive loop
+        if (foundDevice) {
+            Console.WriteLine("Found device, Accepting incoming frames");
+            _ = ReceiveVideo();
+        }
+        else {
+            Console.WriteLine("Device was with name {0} was not found by server, Or another error occurred with the websocket",name);
+        }
     }
 
     async Task ReceiveVideo() {
@@ -32,20 +39,40 @@
             var buffer = new ArraySegment<byte>(new byte[200000]);
             var received = await videoWebSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
             Console.WriteLine(buffer);
-            var frame = new VideoFrame(new byte[] {});
-            frame = (VideoFrame) frame.getObject(buffer.ToArray());
+            var frame = new VideoFrame(new byte[] { });
+            frame = (VideoFrame)frame.getObject(buffer.ToArray());
             Console.WriteLine(frame.value.Length);
-            message = frame.value.Length.ToString();
-
 
             var base64 = Convert.ToBase64String(frame.value);
             imgsrc = string.Format("data:image/jpg;base64,{0}", base64);
-
 
             StateHasChanged();
         }
     }
 
+    private async Task<bool> SetupSocket() {
+        try {
+            //Receive start signal
+            byte[] startBuffer = new byte[200];
+            ArraySegment<byte> startSignalBuffer = new ArraySegment<byte>(startBuffer);
+            await videoWebSocket.ReceiveAsync(startSignalBuffer, disposalTokenSource.Token);
+
+            //Get send name
+            ArraySegment<byte> nameBytes = new ArraySegment<byte>(Encoding.ASCII.GetBytes(name));
+            await videoWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+            //Get found or not
+            byte[] foundBuffer = new byte[200];
+            ArraySegment<byte> foundBytes = new ArraySegment<byte>(foundBuffer);
+            await videoWebSocket.ReceiveAsync(foundBytes, disposalTokenSource.Token);
+            string found = Encoding.ASCII.GetString(foundBytes).TrimEnd('\0');
+
+            return found.ToLower().Equals("found".ToLower());
+        }
+        catch (Exception) {
+            return false;
+        }
+
+    }
 
     public void Dispose() {
         disposalTokenSource.Cancel();

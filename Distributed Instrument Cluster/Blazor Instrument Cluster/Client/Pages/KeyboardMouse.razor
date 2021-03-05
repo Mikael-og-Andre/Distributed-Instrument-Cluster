@@ -5,22 +5,21 @@
 @using System.Threading
 @inject IJSRuntime JS
 
-<input
-    id="canvas"
-    style="width: 100%; height: 100%; border: 1px solid black;  position: absolute; top: 0; left: 0; z-index: 100; opacity: 0;  cursor: pointer"
-    @onclick="click"
-    @onmousemove="move"
-    @onmousedown="mouseDown"
-    @onmouseup="mouseUp"
-    @onkeydown="keyDown"
-    @onkeyup="keyUp"/>
+<input id="canvas"
+       style="width: 100%; height: 100%; border: 1px solid black;  position: absolute; top: 0; left: 0; z-index: 100; opacity: 0;  cursor: pointer"
+       @onclick="click"
+       @onmousemove="move"
+       @onmousedown="mouseDown"
+       @onmouseup="mouseUp"
+       @onkeydown="keyDown"
+       @onkeyup="keyUp" />
 
 @code {
     /// <summary>
     /// Handles capturing pointer lock data, key events and sends it to a web socket.
     /// </summary>
+    /// <author>Mikael Nilssen</author>
     /// <author>Andre Helland</author>
-
 
     private async void click(MouseEventArgs e) {
         await JS.InvokeVoidAsync("click");
@@ -105,61 +104,47 @@
     CancellationTokenSource disposalTokenSource = new CancellationTokenSource();
     ClientWebSocket crestronWebSocket = new ClientWebSocket();
     private string name = "Radar1";
-    private bool hasControl = false;
-
+    private bool deviceFound = false;
+    //temp port
+    int port = 44323;
 
     private async Task ConnectToCrestronControl() {
         disposalTokenSource = new CancellationTokenSource();
         crestronWebSocket = new ClientWebSocket();
 
-        await crestronWebSocket.ConnectAsync(new Uri("wss://localhost:5001/crestronControl"), disposalTokenSource.Token);
-
+        await crestronWebSocket.ConnectAsync(new Uri("wss://localhost:" + port + "/crestronControl"), disposalTokenSource.Token);
+        //Check if the device requested exists
         try {
-            hasControl = await SetupSocket();
+            deviceFound = await SetupSocket();
         }
         catch (Exception) {
-            hasControl = false;
+            deviceFound = false;
         }
-
-        //if (hasControl) {
-        //    StateHasChanged();
-        //    await SendMouseData();
-        //}
 
     }
 
     private async Task<bool> SetupSocket() {
+        try {
+            //Receive start signal
+            byte[] startBuffer = new byte[200];
+            ArraySegment<byte> startSignalBuffer = new ArraySegment<byte>(startBuffer);
+            await crestronWebSocket.ReceiveAsync(startSignalBuffer, disposalTokenSource.Token);
 
-        //Receive start signal
-        byte[] bufferBytes = new byte[2048];
-        ArraySegment<byte> buffer = new ArraySegment<byte>(bufferBytes);
-        await crestronWebSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
-        string signal = Encoding.ASCII.GetString(buffer.ToArray());
-        //Trim nullbytes
-        signal.Trim('\0');
-        //TODO: Send name to crestron
-        ////if not start return false
-        //if (!signal.ToLower().Equals("start")) {
-        //    return false;
-        //}
-        ////Send name
-        //byte[] nameBytes = Encoding.ASCII.GetBytes(name);
-        //ArraySegment<byte> nameSeg = new ArraySegment<byte>(nameBytes);
-        //await crestronWebSocket.SendAsync(nameSeg, WebSocketMessageType.Text, true, disposalTokenSource.Token);
-        ////receive result
-        //byte[] resultBytes = new byte[2048];
-        //ArraySegment<byte> bufferResult = new ArraySegment<byte>(resultBytes);
-        //await crestronWebSocket.ReceiveAsync(bufferResult, disposalTokenSource.Token);
-        //string result = Encoding.ASCII.GetString(bufferResult.ToArray());
-        ////Trim nullbytes
-        //result.Trim('\0');
+            //Get send name
+            ArraySegment<byte> nameBytes = new ArraySegment<byte>(Encoding.ASCII.GetBytes(name));
+            await crestronWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+            //Get found or not
+            byte[] foundBuffer = new byte[200];
+            ArraySegment<byte> foundBytes = new ArraySegment<byte>(foundBuffer);
+            await crestronWebSocket.ReceiveAsync(foundBytes, disposalTokenSource.Token);
+            string found = Encoding.ASCII.GetString(foundBytes).TrimEnd('\0');
 
-        //if (result.ToLower().Equals("yes")) {
-        //    return true;
-        //} else {
-        //    return false;
-        //}
-        return true;
+            return found.ToLower().Equals("found".ToLower());
+        }
+        catch (Exception) {
+            return false;
+        }
+
     }
 
     #endregion

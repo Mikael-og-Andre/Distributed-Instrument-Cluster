@@ -37,27 +37,33 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			ArraySegment<byte> startSeg = new ArraySegment<byte>(startBytes);
 			await websocket.SendAsync(startSeg, WebSocketMessageType.Text, true, token);
 
-			////Get name of device
-			//byte[] bufferBytes = new byte[2048];
-			//ArraySegment<byte> nameBuffer = new ArraySegment<byte>(bufferBytes);
-			//await websocket.ReceiveAsync(nameBuffer, token);
-			//string name = Encoding.ASCII.GetString(nameBuffer.ToArray());
-			////Trim Null btyes
-			//name.Trim('\0');
-			//TODO: Remove hardcoded names
-			string name = "Radar1";
+			//Get name of device'
+			byte[] nameBufferBytes = new byte[100];
+			ArraySegment<byte> nameBuffer = new ArraySegment<byte>(nameBufferBytes);
+			await websocket.ReceiveAsync(nameBuffer, token);
+			string name = Encoding.ASCII.GetString(nameBufferBytes).TrimEnd('\0');
 
-			//Check if device exists
-			bool exists = remoteDeviceConnections.GetCrestronConnectionWithName(out CrestronConnection con, name);
+			//Check if connection with he name exists and is available
+			bool exists = false;
+			int maxLoops = 20;
+			int looped = 0;
+			CrestronConnection con = null;
+			while (!exists&&(looped<maxLoops)) {
+				exists = remoteDeviceConnections.GetCrestronConnectionWithName(out con, name);
+				logger.LogCritical("WebSocket tried to Find {0} but Crestron connection queue was not found", name);
+				looped++;
+				await Task.Delay(100, token);
+			}
+
 			//If it does not exist close connection
 			if (exists) {
 				//TODO: add exclusive control
 				//Do connection exclusive control actions
 
-				////Tell websocket if they have the control
-				//byte[] yesBytes = Encoding.ASCII.GetBytes("yes");
-				//ArraySegment<byte> yesSeg = new ArraySegment<byte>(yesBytes);
-				//await websocket.SendAsync(yesSeg, WebSocketMessageType.Text, true, token);
+				////Tell device found
+				byte[] yesBytes = Encoding.ASCII.GetBytes("found");
+				ArraySegment<byte> yesSeg = new ArraySegment<byte>(yesBytes);
+				await websocket.SendAsync(yesSeg, WebSocketMessageType.Text, true, token);
 
 				ConcurrentQueue<Message> messageInputQueue = con.GetInputQueue();
 
@@ -78,9 +84,9 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				socketFinishedTcs.TrySetResult(new object());
 			} else {
 				////Send does not exist and close
-				//byte[] noBytes = Encoding.ASCII.GetBytes("no");
-				//ArraySegment<byte> noSeg = new ArraySegment<byte>(noBytes);
-				//await websocket.SendAsync(noSeg, WebSocketMessageType.Text, true, token);
+				byte[] noBytes = Encoding.ASCII.GetBytes("failed");
+				ArraySegment<byte> noSeg = new ArraySegment<byte>(noBytes);
+				await websocket.SendAsync(noSeg, WebSocketMessageType.Text, true, token);
 
 				socketFinishedTcs.TrySetResult(new object());
 			}
