@@ -1,4 +1,4 @@
-﻿@page "/mouse"
+﻿@page "/mouse/{name}"
 @using System.Net.WebSockets
 @using System.Runtime.CompilerServices
 @using System.Text
@@ -23,7 +23,8 @@
 
     CancellationTokenSource disposalTokenSource = new CancellationTokenSource();
     ClientWebSocket crestronWebSocket = new ClientWebSocket();
-    private string name = "Radar1";
+    [Parameter]
+    public string name { get; set; } = "Radar1";
     private bool deviceFound = false;
     //temp port
     int port = 44323;

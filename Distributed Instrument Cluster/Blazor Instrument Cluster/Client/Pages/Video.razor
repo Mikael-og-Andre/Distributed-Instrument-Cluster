@@ -1,4 +1,4 @@
-﻿@page "/video"
+﻿@page "/video/{name}"
 @layout NothingLayout
 @using System.Net.WebSockets
 @using System.Text
@@ -12,7 +12,8 @@
     readonly CancellationTokenSource disposalTokenSource = new();
     readonly ClientWebSocket videoWebSocket = new();
     bool foundDevice = false;
-    string name = "Radar1";
+    [Parameter]
+    public string name { get; set; } = "Radar1";
     private string imgsrc = "";
     //Temp
     int port = 44323;
@@ -35,19 +36,25 @@
     }
 
     async Task ReceiveVideo() {
-        while (!disposalTokenSource.IsCancellationRequested) {
-            var buffer = new ArraySegment<byte>(new byte[200000]);
-            var received = await videoWebSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
-            Console.WriteLine(buffer);
-            var frame = new VideoFrame(new byte[] { });
-            frame = (VideoFrame)frame.getObject(buffer.ToArray());
-            Console.WriteLine(frame.value.Length);
+        try {
+            while (!disposalTokenSource.IsCancellationRequested) {
+                var buffer = new ArraySegment<byte>(new byte[200000]);
+                var received = await videoWebSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
+                Console.WriteLine(buffer);
+                var frame = new VideoFrame(new byte[] {});
+                frame = (VideoFrame) frame.getObject(buffer.ToArray());
+                Console.WriteLine(frame.value.Length);
 
-            var base64 = Convert.ToBase64String(frame.value);
-            imgsrc = string.Format("data:image/jpg;base64,{0}", base64);
+                var base64 = Convert.ToBase64String(frame.value);
+                imgsrc = string.Format("data:image/jpg;base64,{0}", base64);
 
-            StateHasChanged();
+                StateHasChanged();
+            }
         }
+        catch (Exception ex) {
+            Console.WriteLine("Exception thrown: "+ex.Message);
+        }
+        
     }
 
     private async Task<bool> SetupSocket() {
