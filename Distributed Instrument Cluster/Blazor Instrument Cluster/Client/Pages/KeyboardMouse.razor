@@ -21,13 +21,13 @@
     /// <author>Mikael Nilssen</author>
     /// <author>Andre Helland</author>
 
-    CancellationTokenSource disposalTokenSource = new CancellationTokenSource();
-    ClientWebSocket crestronWebSocket = new ClientWebSocket();
+    CancellationTokenSource disposalTokenSource = new CancellationTokenSource();    //Disposal token used in websocket communication
+    ClientWebSocket crestronWebSocket = new ClientWebSocket();                      //Websocket client
     [Parameter]
-    public string name { get; set; } = "Radar1";
-    private bool deviceFound = false;
+    public string name { get; set; } = "Radar1";                                    //Name of the wanted Device
+    private bool deviceFound = false;                                               //Bool representing if the control of the device has been granted
     //temp port
-    int port = 44323;
+    int port = 44323;                                                               //Port of the backend
 
     private async void click(MouseEventArgs e) {
         await JS.InvokeVoidAsync("click");
@@ -109,6 +109,10 @@
 
     #region socket
 
+    /// <summary>
+    /// Connect to the backend device
+    /// </summary>
+    /// <returns></returns>
     private async Task ConnectToCrestronControl() {
         disposalTokenSource = new CancellationTokenSource();
         crestronWebSocket = new ClientWebSocket();
@@ -123,7 +127,10 @@
         }
 
     }
-
+    /// <summary>
+    /// Does setup with backend websocket, sends name to server, and returns if it was found or not
+    /// </summary>
+    /// <returns></returns>
     private async Task<bool> SetupSocket() {
         try {
             //Receive start signal
@@ -131,7 +138,7 @@
             ArraySegment<byte> startSignalBuffer = new ArraySegment<byte>(startBuffer);
             await crestronWebSocket.ReceiveAsync(startSignalBuffer, disposalTokenSource.Token);
 
-            //Get send name
+            //send name
             ArraySegment<byte> nameBytes = new ArraySegment<byte>(Encoding.ASCII.GetBytes(name));
             await crestronWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
             //Get found or not
