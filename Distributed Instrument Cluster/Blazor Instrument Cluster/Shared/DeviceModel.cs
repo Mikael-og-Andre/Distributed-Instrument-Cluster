@@ -8,6 +8,7 @@ namespace Blazor_Instrument_Cluster.Shared {
 
 	/// <summary>
 	/// Represents a device that can be connected to
+	/// <author>Mikael Nilssen</author>
 	/// </summary>
     public class DeviceModel {
 

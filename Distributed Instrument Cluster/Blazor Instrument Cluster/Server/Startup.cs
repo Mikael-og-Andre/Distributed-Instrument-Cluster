@@ -31,7 +31,6 @@ namespace Blazor_Instrument_Cluster.Server {
 		public void configureServices(IServiceCollection services) {
 			//Use controller
 			services.AddControllers();
-			services.AddRazorPages();
 			services.AddResponseCompression(opts => {
 				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
 					new[] { "application/octet-stream" });
@@ -106,7 +105,6 @@ namespace Blazor_Instrument_Cluster.Server {
 			app.UseRouting();
 
 			app.UseEndpoints(endpoints => {
-				endpoints.MapRazorPages();
 				endpoints.MapControllers();
 				endpoints.MapFallbackToFile("index.html");
 			});
