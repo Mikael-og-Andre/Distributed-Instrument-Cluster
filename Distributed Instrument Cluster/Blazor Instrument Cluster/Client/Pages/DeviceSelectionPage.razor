@@ -1,11 +1,21 @@
 ﻿@using System.Net.Http
 @using Blazor_Instrument_Cluster.Shared
 @using Blazor_Instrument_Cluster.Client.Components
+@layout NothingLayout
 @inject HttpClient Http
 
 @page "/DeviceSelect"
 
-<h3>DeviceListPage</h3>
+<div class="container alert">
+    <div class="row">
+        <div class="col">
+            <h2>
+                Remote Devices
+            </h2>
+        </div>
+    </div>
+</div>
+
 <div id="ListConnected" class="" style="list-style: none">
     <ul>
         @if (devices != null) {

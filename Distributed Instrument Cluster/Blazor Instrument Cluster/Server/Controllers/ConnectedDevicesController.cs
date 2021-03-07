@@ -12,7 +12,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 
 	[Route("api/ConnectedDevices")]
 	[ApiController]
-	public class ConnectedDevicesController : Controller {
+	public class ConnectedDevicesController : ControllerBase {
 		private RemoteDeviceConnection remoteDeviceConnection;     //Handler for connected devices
 
 		public ConnectedDevicesController(IServiceProvider services) {

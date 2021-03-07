@@ -1,4 +1,5 @@
 ﻿@inherits ComponentBase
+@inject NavigationManager navigationManager
 @using Blazor_Instrument_Cluster.Shared
 
 <li id="DeviceItem" class="list-group-item container" style="width: 100%">
@@ -13,7 +14,7 @@
             <b>Type: </b> @deviceInfo.type
         </div>
         <div class="col">
-            <button class="btn-dark">Select</button>
+            <button @onclick="navigateToDevicePage" class="btn-dark">Select</button>
         </div>
     </div>
 </li>
@@ -24,4 +25,10 @@
     /// </summary>
     [Parameter]
     public DeviceModel deviceInfo { get; set; }
+
+    private string basePath = "VideoAndControl/";
+
+    private void navigateToDevicePage() {
+        navigationManager.NavigateTo(basePath+deviceInfo.name);
+    }
 }

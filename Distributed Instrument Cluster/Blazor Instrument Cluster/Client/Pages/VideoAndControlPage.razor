@@ -1,4 +1,4 @@
-﻿@page "/combined"
+﻿@page "/VideoAndControl/{name}"
 @layout NothingLayout
 
 <h3>Combined</h3>
@@ -10,7 +10,7 @@
 
 
 @code {
-
-    public string name { get; set; } = "Radar1";        //Name of wanted device
+    [Parameter]
+    public string name { get; set; }      //Name of wanted device
 
 }
