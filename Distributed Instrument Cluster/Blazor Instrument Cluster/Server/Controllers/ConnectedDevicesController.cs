@@ -10,13 +10,13 @@ using System.Linq;
 
 namespace Blazor_Instrument_Cluster.Server.Controllers {
 
-	[Route("api/[ConnectedDevices]")]
+	[Route("api/ConnectedDevices")]
 	[ApiController]
 	public class ConnectedDevicesController : Controller {
-		private RemoteDeviceConnection remtoeDeviceConnections;     //Handler for connected devices
+		private RemoteDeviceConnection remoteDeviceConnection;     //Handler for connected devices
 
 		public ConnectedDevicesController(IServiceProvider services) {
-			this.remtoeDeviceConnections = (RemoteDeviceConnection)services.GetService<IRemoteDeviceConnections>();
+			this.remoteDeviceConnection = (RemoteDeviceConnection)services.GetService<IRemoteDeviceConnections>();
 		}
 
 		/// <summary>
@@ -29,7 +29,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		public IEnumerable<DeviceModel> GetVideoConnections() {
 			//Get list of video connections
 			List<VideoConnection> listVideoConnections;
-			if (remtoeDeviceConnections.GetVideoConnectionList(out listVideoConnections)) {
+			if (remoteDeviceConnection.GetVideoConnectionList(out listVideoConnections)) {
 				//Create an IEnumerable with device models
 				IEnumerable<DeviceModel> enumerableDeviceModels = new DeviceModel[] { };
 				//Lock unsafe list

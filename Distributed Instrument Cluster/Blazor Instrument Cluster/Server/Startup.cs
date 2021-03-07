@@ -74,8 +74,8 @@ namespace Blazor_Instrument_Cluster.Server {
 
 							VideoWebsocketHandler<VideoFrame> videoWebsocketHandler =
 								(VideoWebsocketHandler<VideoFrame>)app.ApplicationServices.GetService<IVideoSocketHandler>();
-
-							videoWebsocketHandler.StartWebSocketVideoProtocol(webSocket, socketFinishedTcs);
+							//Start if socketHandler is not null
+							videoWebsocketHandler?.StartWebSocketVideoProtocol(webSocket, socketFinishedTcs);
 							await socketFinishedTcs.Task;
 						}
 					} else {
