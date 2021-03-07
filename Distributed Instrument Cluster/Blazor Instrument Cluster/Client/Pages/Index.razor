@@ -15,6 +15,10 @@
 <button class="btn btn-primary" @onclick="NavigateToCombinedComponent">
     Navigate to combined component
 </button>
+<br />
+<button class="btn btn-primary" @onclick="NavigateToDeviceSelectionComponent">
+    Navigate to Device Select component
+</button>
 
 
 @code {
@@ -22,7 +26,7 @@
     {
         NavigationManager.NavigateTo("video/Radar1");
     }
-
+    //Radar1 is the name of the wanted device
     private void NavigateToKeyboardMouseComponent()
     {
         NavigationManager.NavigateTo("mouse/Radar1");
@@ -32,5 +36,9 @@
     {
         NavigationManager.NavigateTo("combined");
     }
+    private void NavigateToDeviceSelectionComponent() {
+        NavigationManager.NavigateTo("DeviceSelect");
+    }
+
 
 }
