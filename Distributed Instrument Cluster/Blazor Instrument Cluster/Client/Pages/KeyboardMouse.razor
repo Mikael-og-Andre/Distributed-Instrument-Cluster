@@ -5,6 +5,7 @@
 @using System.Text
 @using System.Threading
 @inject IJSRuntime JS
+@inject NavigationManager navigationManager
 
 <input id="canvas"
        style="width: 100%; height: 100%; border: 1px solid black;  position: absolute; top: 0; left: 0; z-index: 100; opacity: 0;  cursor: pointer"
@@ -27,8 +28,7 @@
     [Parameter]
     public string name { get; set; } = "Radar1";                                    //Name of the wanted Device
     private bool deviceFound = false;                                               //Bool representing if the control of the device has been granted
-    //temp port
-    int port = 44323;                                                               //Port of the backend
+    private string pathToCrestronWebsocket = "crestronControl";
 
     private async void click(MouseEventArgs e) {
         await JS.InvokeVoidAsync("click");
@@ -118,7 +118,11 @@
         disposalTokenSource = new CancellationTokenSource();
         crestronWebSocket = new ClientWebSocket();
 
-        await crestronWebSocket.ConnectAsync(new Uri("wss://localhost:" + port + "/crestronControl"), disposalTokenSource.Token);
+        //Get base uri and connect to that
+        string basePath = navigationManager.BaseUri;
+        basePath = basePath.Replace("https://", "wss://");
+
+        await crestronWebSocket.ConnectAsync(new Uri(basePath+pathToCrestronWebsocket), disposalTokenSource.Token);
         //Check if the device requested exists
         try {
             deviceFound = await SetupSocket();

@@ -3,6 +3,8 @@
 @using Blazor_Instrument_Cluster.Client.Components
 @layout NothingLayout
 @inject HttpClient Http
+@inject NavigationManager navigationManager
+
 
 @page "/DeviceSelect"
 
@@ -28,13 +30,13 @@
 
 @code {
 
-    public int port { get; set; } = 44323;
-    public string basePath = "https://localhost:";
-    public string pathToApi = "/api/ConnectedDevices";
+    public string pathToApi = "api/ConnectedDevices";
     IEnumerable<DeviceModel> devices = null;
+    
 
     protected override async Task OnInitializedAsync() {
-        string path = basePath + port + pathToApi;
+        string uriBase = navigationManager.BaseUri;
+        string path = uriBase + pathToApi;
         try {
             devices = await Http.GetFromJsonAsync<IEnumerable<DeviceModel>>(new Uri(path));
         }

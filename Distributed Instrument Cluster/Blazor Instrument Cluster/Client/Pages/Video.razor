@@ -5,6 +5,7 @@
 @using System.Threading
 @using Instrument_Communicator_Library
 @implements IDisposable
+@inject NavigationManager navigationManager
 
 <img src="@imgsrc" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0" />
 
@@ -16,14 +17,16 @@
     public string name { get; set; } = "Radar1";                            //Name of the wanted device
     private string imgsrc = "";                                             //img to show
     private int frameBufferSize = 200000;                                   //Buffer for incoming msg's
-    //Temp
-    int port = 44323;                                                       //Port of the backend device
 
+    string pathToVideoWebsocket = "videoStream";
 
 
     protected override async Task OnInitializedAsync() {
+        //Get base uri and connect to that
+        string basePath = navigationManager.BaseUri;
+        basePath = basePath.Replace("https://", "wss://");
 
-        await videoWebSocket.ConnectAsync(new Uri("wss://localhost:" + port + "/videoStream"), disposalTokenSource.Token);
+        await videoWebSocket.ConnectAsync(new Uri(basePath+pathToVideoWebsocket), disposalTokenSource.Token);
 
         //Sends name and setsup socket
         foundDevice = await SetupSocket();
