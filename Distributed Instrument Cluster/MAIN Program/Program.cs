@@ -5,8 +5,6 @@ using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Instrument_Communicator_Library.Information_Classes;
-using Instrument_Communicator_Library.Interface;
 using Video_Library;
 
 namespace MAIN_Program {
@@ -16,8 +14,7 @@ namespace MAIN_Program {
 	/// and communication libraries.
 	/// Produces cli information about system/program status.
 	/// </summary>
-	/// <author>Mikael Nilssen</author>
-	/// <author>Andre Helland</author>
+	/// <author>Andre Helland, Mikael Nilssen</author>
 	internal class Program {
 		private readonly List<VideoDeviceInterface> videoDevices = new List<VideoDeviceInterface>();
 		private CommandParser commandParser;
@@ -52,16 +49,13 @@ namespace MAIN_Program {
 			var relayThread = new Thread(this.relayThread) {IsBackground = true};
 			relayThread.Start();
 
-			int i = 0;
-			while (true) {
 
+			while (true) {
+				//TODO RENAME
 				//if (videoDevices[0].tryReadFrameBuffer(out Mat ooga)) {
-				if (videoDevices[0].tryReadJpg(out byte[] ooga)) {
-					Console.WriteLine(ooga);
+				if (videoDevices[0].tryReadJpg(out byte[] ooga, 70)) {
 					Thread.Sleep(100);
 					videoCommunicator.GetInputQueue().Enqueue(new VideoFrame(ooga));
-					Console.WriteLine(ooga.Length);
-					i++;
 				}
 			}
 
