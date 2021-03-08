@@ -6,13 +6,36 @@ using System.Threading;
 namespace Instrument_Communicator_Library.Server_Listener {
 
 	public abstract class ListenerBase {
-		protected IPEndPoint ipEndPoint; //Access location of listener
-		protected int maxConnections;   //Max number of connections to server
-		protected int maxPendingConnections;    //Max number of connections waiting in the accepting socket
-		protected Socket listeningSocket;       //Socket used for accepting incoming requests
-		protected CancellationToken listenerCancellationToken;  //Token for telling server to stop
 
-		protected int currentConnectionCount;       //Amount of current Connections
+		/// <summary>
+		/// The Ip EndPoint of the listener
+		/// </summary>
+		private readonly IPEndPoint ipEndPoint;
+
+		/// <summary>
+		/// Max number of connections to server
+		/// </summary>
+		private int maxConnections;
+
+		/// <summary>
+		/// Max number of connections waiting in the accepting socket
+		/// </summary>
+		private readonly int maxPendingConnections;
+
+		/// <summary>
+		/// Socket used for accepting incoming requests
+		/// </summary>
+		private Socket listeningSocket;
+
+		/// <summary>
+		/// Token for telling server to stop
+		/// </summary>
+		protected CancellationToken listenerCancellationToken;
+
+		/// <summary>
+		/// Amount of current Connections
+		/// </summary>
+		private int currentConnectionCount;
 
 		public ListenerBase(IPEndPoint ipEndPoint, int _maxConnections = 30, int _maxPendingConnections = 30) {
 			this.ipEndPoint = ipEndPoint;
@@ -50,7 +73,8 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				try {
 					//Pass in ClientConnection and start a new thread ThreadProtocol
 					newThread.Start(newClientConnection);
-				} catch (Exception) {
+				}
+				catch (Exception) {
 					//Lower Connection number
 					this.currentConnectionCount -= 1;
 					newSocket.Disconnect(false);
@@ -63,7 +87,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// <summary>
 		/// Function to handle the new incoming connection on a new thread
 		/// </summary>
-		/// <param name="obj">Subclass of ConnectionBase, Should be the corresponsind type returned from createConnectionType</param>
+		/// <param name="obj">Subclass of ConnectionBase, Should be the corresponding type returned from createConnectionType</param>
 		protected abstract void handleIncomingConnection(object obj);
 
 		/// <summary>

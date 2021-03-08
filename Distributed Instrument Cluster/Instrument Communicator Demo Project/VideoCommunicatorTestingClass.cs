@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using Instrument_Communicator_Library;
 using Instrument_Communicator_Library.Remote_Device_side_Communicators;
 using System.Threading;
-using Instrument_Communicator_Library.Information_Classes;
 using Instrument_Communicator_Library.Interface;
 
 namespace HardwareServer_Demo_Project {

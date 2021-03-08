@@ -1,9 +1,6 @@
-﻿using Instrument_Communicator_Library.Information_Classes;
-using Instrument_Communicator_Library.Interface;
+﻿using Instrument_Communicator_Library.Interface;
 using System;
-using System.Linq;
 using System.Net.Sockets;
-using System.Numerics;
 using System.Text;
 
 namespace Instrument_Communicator_Library.Helper_Class {
@@ -12,13 +9,12 @@ namespace Instrument_Communicator_Library.Helper_Class {
 	/// Class with different Socket operations
 	/// </summary>
 	public static class NetworkingOperations {
-
 		/// <summary>
 		/// Send an object with the socket
 		/// </summary>
-		/// <param name="inObj"></param>
+		/// <param name="input">Object inheriting ISerializableObject</param>
 		/// <param name="connectionSocket"></param>
-		public static void SendObjectWithSocket<U>(U input, Socket connectionSocket) where U : ISerializeableObject {
+		public static void sendObjectWithSocket<TU>(TU input, Socket connectionSocket) where TU : ISerializable {
 
 			byte[] bytes = input.getBytes();
             NetworkStream networkStream = new NetworkStream(connectionSocket);
@@ -31,7 +27,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		/// </summary>
 		/// <param name="connectionSocket"></param>
 		/// <returns></returns>
-		public static VideoFrame ReceiveVideoFrameWithSocket(Socket connectionSocket) {
+		public static VideoFrame receiveVideoFrameWithSocket(Socket connectionSocket) {
 			//First 4 bytes are size
 			NetworkStream networkStream = new NetworkStream(connectionSocket);
             networkStream.Flush();
@@ -50,7 +46,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 
 
             byte[] bytes = new Byte[endInt];
-			System.Buffer.BlockCopy(bufferBytes, 0, bytes, 0, endInt);
+			Buffer.BlockCopy(bufferBytes, 0, bytes, 0, endInt);
 
 			VideoFrame frame = new VideoFrame(new byte[] { });
 			frame = (VideoFrame)frame.getObject(bytes);
@@ -62,7 +58,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		/// </summary>
 		/// <param name="connectionSocket">Connected socket</param>
 		/// <returns>string</returns>
-		public static string ReceiveStringWithSocket(Socket connectionSocket) {
+		public static string receiveStringWithSocket(Socket connectionSocket) {
 			//Get size of incoming object
 			byte[] sizeOfIncomingBuffer = new byte[sizeof(int)];
 			connectionSocket.Blocking = true;
@@ -84,12 +80,11 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		/// </summary>
 		/// <param name="str">String to send</param>
 		/// <param name="connectionSocket">Connected socket</param>
-		public static void SendStringWithSocket(string str, Socket connectionSocket) {
+		public static void sendStringWithSocket(string str, Socket connectionSocket) {
 			//Send name
 			string encodingTarget = str;
 			byte[] stringBuffer = Encoding.ASCII.GetBytes(encodingTarget);
-			byte[] sizeBuffer = new byte[sizeof(int)];
-			sizeBuffer = BitConverter.GetBytes(stringBuffer.Length);
+			byte[] sizeBuffer = BitConverter.GetBytes(stringBuffer.Length);
 			connectionSocket.Blocking = true;
 			connectionSocket.Send(sizeBuffer, sizeof(int), SocketFlags.None);
 
@@ -98,7 +93,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		}
 		
 
-		private static int GetIntFromBytes(byte[] array) {
+		private static int getIntFromBytes(byte[] array) {
 			return BitConverter.ToInt32(array);
 		}
 		

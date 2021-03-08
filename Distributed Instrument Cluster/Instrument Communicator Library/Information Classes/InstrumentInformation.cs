@@ -7,15 +7,27 @@ namespace Instrument_Communicator_Library {
 
 	public class InstrumentInformation {
         
-        public int id { get; private set; }         //id
-        public string name { get; private set; }    //Designated name of client device
-        public string location { get; private set; }    //Location of the device
-        public string type { get; private set; }   //Type of device, e.g GPS
+		/// <summary>
+		/// id
+		/// </summary>
+		private int Id { get; set; }
+		/// <summary>
+		/// Designated name of client device
+		/// </summary>
+        public string Name { get; private set; }
+		/// <summary>
+		/// Location of the device
+		/// </summary>
+        public string Location { get; private set; }
+		/// <summary>
+		/// Type of device, e.g GPS
+		/// </summary>
+        public string Type { get; private set; }
 
         public InstrumentInformation(string name, string location, string type) {
-            this.name = name;
-            this.location = location;
-            this.type = type;
+            this.Name = name;
+            this.Location = location;
+            this.Type = type;
         }
 
         /// <summary>
@@ -26,10 +38,10 @@ namespace Instrument_Communicator_Library {
         public bool Equals(InstrumentInformation info) {
             //Check if fields match
             if (
-                (this.name.Equals(info.name))
-                && (this.location.Equals(info.location))
-                && (this.type.Equals(info.type))
-                && (this.id.Equals(info.id))
+                (this.Name.Equals(info.Name))
+                && (this.Location.Equals(info.Location))
+                && (this.Type.Equals(info.Type))
+                && (this.Id.Equals(info.Id))
                 ) {
                 return true;
             } else {

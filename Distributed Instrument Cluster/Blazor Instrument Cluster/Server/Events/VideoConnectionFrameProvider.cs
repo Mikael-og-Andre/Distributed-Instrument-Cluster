@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Instrument_Communicator_Library.Information_Classes;
+using Instrument_Communicator_Library;
 
 namespace Blazor_Instrument_Cluster.Server.Events {
 	/// <summary>

@@ -1,7 +1,6 @@
 ﻿using Blazor_Instrument_Cluster.Server.Events;
 using Blazor_Instrument_Cluster.Server.Injection;
 using Instrument_Communicator_Library;
-using Instrument_Communicator_Library.Information_Classes;
 using Instrument_Communicator_Library.Server_Listener;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -100,7 +99,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 			//Instrument information
 			InstrumentInformation info = connection.GetInstrumentInformation();
 			//Create Provider with the name of the device
-			VideoConnectionFrameProvider provider = new VideoConnectionFrameProvider(info.name);
+			VideoConnectionFrameProvider provider = new VideoConnectionFrameProvider(info.Name);
 			//Add provider to list of running providers so i can be found by connecting ui's and subscribed to
 			remoteDeviceConnection.AddFrameProviderToListOfProviders(provider);
 			CancellationToken token = new CancellationToken();

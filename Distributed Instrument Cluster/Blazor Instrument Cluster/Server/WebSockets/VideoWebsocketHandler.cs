@@ -1,7 +1,6 @@
 ﻿using Blazor_Instrument_Cluster.Server.Events;
 using Blazor_Instrument_Cluster.Server.Injection;
 using Blazor_Instrument_Cluster.Server.Worker;
-using Instrument_Communicator_Library.Information_Classes;
 using Instrument_Communicator_Library.Interface;
 using Microsoft.Extensions.Logging;
 using System;
@@ -10,6 +9,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Instrument_Communicator_Library;
 
 namespace Blazor_Instrument_Cluster {
 
@@ -18,7 +18,7 @@ namespace Blazor_Instrument_Cluster {
 	/// <author></author>
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class VideoWebsocketHandler<T> : IVideoSocketHandler where T : ISerializeableObject {
+	public class VideoWebsocketHandler<T> : IVideoSocketHandler where T : ISerializable {
 		private RemoteDeviceConnection remoteDeviceConnections;     //remote Device connections
 		private ILogger<VideoWebsocketHandler<T>> logger;               //Logger
 

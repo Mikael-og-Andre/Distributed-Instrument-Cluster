@@ -10,9 +10,21 @@ using System.Threading;
 namespace Instrument_Communicator_Library.Server_Listener {
 
 	public class ListenerCrestron : ListenerBase {
-		private int timeToWait;     //Time to wait between pings
-		private int timeToSleep;      // Time to sleep after nothing happens
-		private List<CrestronConnection> listCrestronConnections;   //List of crestron Connections
+
+		/// <summary>
+		/// Time to wait between pings
+		/// </summary>
+		private readonly int timeToWait;
+
+		/// <summary>
+		/// Time to sleep after nothing happens
+		/// </summary>
+		private readonly int timeToSleep;
+
+		/// <summary>
+		/// List of crestron Connections
+		/// </summary>
+		private List<CrestronConnection> listCrestronConnections;
 
 		public ListenerCrestron(IPEndPoint ipEndPoint, int pingWaitTime = 1000 * 60, int sleepTime = 100, int maxConnections = 30, int maxPendingConnections = 30) : base(ipEndPoint, maxConnections, maxPendingConnections) {
 			this.timeToWait = pingWaitTime;
@@ -161,9 +173,9 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//get socket
 			Socket connectionSocket = clientConnection.GetSocket();
 			//Send protocol type to client
-			NetworkingOperations.SendStringWithSocket(protocolOption.authorize.ToString(), connectionSocket);
+			NetworkingOperations.sendStringWithSocket(protocolOption.authorize.ToString(), connectionSocket);
 			//receive token
-			string receivedToken = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
+			string receivedToken = NetworkingOperations.receiveStringWithSocket(connectionSocket);
 
 			//TODO: Add Encryption to accessTokens
 
@@ -174,13 +186,13 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Send success/failure to client
 			if (validationResult) {
 				//Send char y for success
-				NetworkingOperations.SendStringWithSocket("y", connectionSocket);
+				NetworkingOperations.sendStringWithSocket("y", connectionSocket);
 				//Add access Token to clientConnection
 				clientConnection.SetAccessToken(token);
 			}
 			else {
 				//Send char n for negative
-				NetworkingOperations.SendStringWithSocket("n", connectionSocket);
+				NetworkingOperations.sendStringWithSocket("n", connectionSocket);
 				//authorization failed, set not clientConnection to not active and return
 				clientConnection.SetIsConnectionActive(false);
 				return;
@@ -188,14 +200,14 @@ namespace Instrument_Communicator_Library.Server_Listener {
 
 			//Get instrument Information
 			//Send signal to start instrumentCommunication
-			NetworkingOperations.SendStringWithSocket("y", connectionSocket);
+			NetworkingOperations.sendStringWithSocket("y", connectionSocket);
 
-			string name = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
-			string location = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
-			string type = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
+			string name = NetworkingOperations.receiveStringWithSocket(connectionSocket);
+			string location = NetworkingOperations.receiveStringWithSocket(connectionSocket);
+			string type = NetworkingOperations.receiveStringWithSocket(connectionSocket);
 
 			//Send signal to for successful finish instrumentCommunication
-			NetworkingOperations.SendStringWithSocket("y", connectionSocket);
+			NetworkingOperations.sendStringWithSocket("y", connectionSocket);
 
 			clientConnection.SetInstrumentInformation(new InstrumentInformation(name, location, type));
 		}
@@ -208,9 +220,9 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Send protocol type "ping" to client
 			//get socket
 			Socket connectionSocket = clientConnection.GetSocket();
-			NetworkingOperations.SendStringWithSocket(protocolOption.ping.ToString(), connectionSocket);
+			NetworkingOperations.sendStringWithSocket(protocolOption.ping.ToString(), connectionSocket);
 			//Receive answer
-			string receiveString = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
+			string receiveString = NetworkingOperations.receiveStringWithSocket(connectionSocket);
 			//Check if correct Response
 
 			if (receiveString.ToLower().Equals("y")) {
@@ -245,15 +257,15 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				//Check if success and start sending messages
 				if (isSuccess) {
 					//Say protocol type to client
-					NetworkingOperations.SendStringWithSocket(protocolOption.message.ToString(), connectionSocket);
+					NetworkingOperations.sendStringWithSocket(protocolOption.message.ToString(), connectionSocket);
 
 					//Get string array from message object
 					string messageString = msg.getMessage();
 
 					//Send string
-					NetworkingOperations.SendStringWithSocket(messageString, connectionSocket);
+					NetworkingOperations.sendStringWithSocket(messageString, connectionSocket);
 					//Send end signal to client, singling no more strings are coming
-					NetworkingOperations.SendStringWithSocket("end", connectionSocket);
+					NetworkingOperations.sendStringWithSocket("end", connectionSocket);
 				}
 				else {
 					Console.WriteLine("SERVER - Crestron Listener Message queue was empty when trying to Send a message");
@@ -304,7 +316,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 					if (connection.hasInstrument) {
 						InstrumentInformation info = connection.GetInstrumentInformation();
 						//Check if the name is the same
-						if (info.name.ToLower().Equals(name.ToLower())) {
+						if (info.Name.ToLower().Equals(name.ToLower())) {
 							crestronConnection = connection;
 							return true;
 						}

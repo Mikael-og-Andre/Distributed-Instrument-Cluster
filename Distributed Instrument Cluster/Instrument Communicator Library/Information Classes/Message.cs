@@ -9,9 +9,16 @@ namespace Instrument_Communicator_Library {
 	/// Represents a message to put in the queue concurrent queue when sending to the client
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class Message : ISerializeableObject {
-		private protocolOption option = protocolOption.ping;  //protocol option enum that tells server what protocol to use when sending
-		private string messageString;   //String to be sent to the server
+	public class Message : ISerializable {
+
+		/// <summary>
+		/// protocol option enum that tells server what protocol to use when sending
+		/// </summary>
+		private readonly protocolOption option = protocolOption.ping;
+		/// <summary>
+		/// String to be sent to the server
+		/// </summary>
+		private string messageString;
 
 		/// <summary>
 		/// Constructor

@@ -7,14 +7,19 @@ namespace Instrument_Communicator_Library {
 	/// </summary>
     public class AccessToken {
 
-        //Intended for use when connecting to remote server. Generate on website and put manually in app settings
-        public string connectionHash { get; private set; }
+        /// <summary>
+		/// Intended for use when connecting to remote server. Generate on website and put manually in app settings
+		/// </summary>
+        private string connectionHash { get; set; }
 
         public AccessToken(string connectionHash) {
             this.connectionHash = connectionHash;
         }
-
-        internal string getAccessString() {
+		/// <summary>
+		/// Returns the string used for authentication
+		/// </summary>
+		/// <returns></returns>
+        public string getAccessString() {
             return connectionHash;
         }
     }

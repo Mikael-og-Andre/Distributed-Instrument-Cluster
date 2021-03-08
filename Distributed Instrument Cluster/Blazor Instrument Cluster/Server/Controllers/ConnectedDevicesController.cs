@@ -38,7 +38,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 						InstrumentInformation info = videoConnection.GetInstrumentInformation();
 						//TODO: Add has crestron boolean to instrument information
 						enumerableDeviceModels =
-							enumerableDeviceModels.Append(new DeviceModel(info.name, info.location, info.type, true));
+							enumerableDeviceModels.Append(new DeviceModel(info.Name, info.Location, info.Type, true));
 					}
 				}
 

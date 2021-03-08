@@ -5,7 +5,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Blazor_Instrument_Cluster.Client.Pages;
-using Instrument_Communicator_Library.Information_Classes;
 
 namespace Blazor_Instrument_Cluster.Server.Injection {
 
@@ -111,7 +110,7 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 					//Check name of connection
 					InstrumentInformation instrumentInformation = connection.GetInstrumentInformation();
 					if (instrumentInformation == null) continue;
-					string infoName = instrumentInformation.name;
+					string infoName = instrumentInformation.Name;
 					if (!infoName.ToLower().Equals(name.ToLower())) continue;
 					//Get queue and return true since it matched
 					con = connection;
@@ -136,7 +135,7 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 					//Check name of connection
 					InstrumentInformation instrumentInformation = connection.GetInstrumentInformation();
 					if (instrumentInformation == null) continue;
-					string infoName = instrumentInformation.name;
+					string infoName = instrumentInformation.Name;
 					if (!infoName.ToLower().Equals(name.ToLower())) continue;
 					//Get queue and return true since it matched
 					queue = connection.GetOutputQueue();

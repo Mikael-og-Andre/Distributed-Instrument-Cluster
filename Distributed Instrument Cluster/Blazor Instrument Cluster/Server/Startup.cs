@@ -1,7 +1,6 @@
 using Blazor_Instrument_Cluster.Server.Injection;
 using Blazor_Instrument_Cluster.Server.WebSockets;
 using Blazor_Instrument_Cluster.Server.Worker;
-using Instrument_Communicator_Library.Information_Classes;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -12,6 +11,7 @@ using System;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
+using Instrument_Communicator_Library;
 
 namespace Blazor_Instrument_Cluster.Server {
 
