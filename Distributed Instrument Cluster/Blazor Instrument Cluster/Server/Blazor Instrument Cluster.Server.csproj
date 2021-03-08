@@ -6,7 +6,7 @@
     <AssemblyName>$(AssemblyName.Replace(' ', '_'))</AssemblyName>
     <StartupObject>Blazor_Instrument_Cluster.Server.Program</StartupObject>
     <UserSecretsId>cfb59845-7d28-4516-8c33-bda3650153ed</UserSecretsId>
-    <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
   </PropertyGroup>
 

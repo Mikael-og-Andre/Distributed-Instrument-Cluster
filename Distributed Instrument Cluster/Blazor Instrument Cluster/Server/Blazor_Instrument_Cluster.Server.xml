@@ -215,6 +215,28 @@
             <author>Mikael Nilssen</author>
             </summary>
         </member>
+        <member name="F:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection.services">
+            <summary>
+            Services
+            </summary>
+        </member>
+        <member name="F:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection.logger">
+            <summary>
+            Logger
+            </summary>
+        </member>
+        <member name="F:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection.listFrameProviders">
+            <summary>
+            Frame Providers
+            </summary>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection.#ctor(Microsoft.Extensions.Logging.ILogger{Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection},System.IServiceProvider)">
+            <summary>
+            Constructor, Injects logger and service provider
+            </summary>
+            <param name="logger"></param>
+            <param name="services"></param>
+        </member>
         <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection.SetCrestronConnectionList(System.Collections.Generic.List{Instrument_Communicator_Library.CrestronConnection})">
             <summary>
             Set the crestron connection list
@@ -331,6 +353,25 @@
             </summary>
             <param name="configuration"></param>
         </member>
+        <member name="P:Blazor_Instrument_Cluster.Server.Startup.Configuration">
+            <summary>
+            Configuration
+            </summary>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Startup.configureServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            This method gets called by the runtime. Use this method to add services to the container.
+            For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+            </summary>
+            <param name="services"></param>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Startup.configure(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.AspNetCore.Hosting.IWebHostEnvironment)">
+            <summary>
+            This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+            </summary>
+            <param name="app"></param>
+            <param name="env"></param>
+        </member>
         <member name="T:Blazor_Instrument_Cluster.Server.WebSockets.CrestronWebsocketHandler">
             <summary>
             Websocket handler for crestron control connections
@@ -371,6 +412,13 @@
             Interface for a crestron connection handler
             <author>Mikael Nilssen</author>
             </summary>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.WebSockets.ICrestronSocketHandler.StartCrestronWebsocketProtocol(System.Net.WebSockets.WebSocket,System.Threading.Tasks.TaskCompletionSource{System.Object})">
+            <summary>
+            Start Crestron websocket handler
+            </summary>
+            <param name="websocket"></param>
+            <param name="socketFinishedTcs"></param>
         </member>
         <member name="T:Blazor_Instrument_Cluster.Server.Worker.IVideoSocketHandler">
             <summary>
