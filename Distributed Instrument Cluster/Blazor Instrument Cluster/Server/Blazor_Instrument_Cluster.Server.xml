@@ -1,0 +1,243 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Blazor_Instrument_Cluster.Server</name>
+    </assembly>
+    <members>
+        <member name="M:Blazor_Instrument_Cluster.Server.Controllers.ConnectedDevicesController.GetVideoConnections">
+            <summary>
+            Get request for connected video Connections
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Blazor_Instrument_Cluster.Server.Events.VideoConnectionFrameConsumer">
+            <summary>
+            A class that can subscribe the a video frame queue and receive incoming video frames
+            <author>Mikael Nilssen</author>
+            Copied from Microsoft docs and modified
+            </summary>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoConnectionFrameConsumer.Subscribe(System.IObservable{Instrument_Communicator_Library.VideoFrame})">
+             <summary>
+             Adds this consumer to the providers list. and sets unsubscribe object
+            
+             </summary>
+             <param name="provider">VideoConnectionFrameProvider</param>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoConnectionFrameConsumer.Unsubscribe">
+            <summary>
+            Unsubscribes this consumer from the provider
+            </summary>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoConnectionFrameConsumer.OnCompleted">
+            <summary>
+            What to do when the provider is done
+            </summary>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoConnectionFrameConsumer.OnError(System.Exception)">
+            <summary>
+            What to do when an error occurs
+            </summary>
+            <param name="error"></param>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoConnectionFrameConsumer.OnNext(Instrument_Communicator_Library.VideoFrame)">
+            <summary>
+            Pushes a VideoFrame from the provider to the queue
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoConnectionFrameConsumer.GetConcurrentQueue">
+            <summary>
+            Get the concurrent queue
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Blazor_Instrument_Cluster.Server.Events.VideoConnectionFrameProvider">
+            <summary>
+            Class for sending a frame to all subscribed listeners
+            <author>Mikael Nilssen</author>
+            Copied from Microsoft docs and modified
+            </summary>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoConnectionFrameProvider.Subscribe(System.IObserver{Instrument_Communicator_Library.VideoFrame})">
+            <summary>
+            Add observer to observer list
+            </summary>
+            <param name="observer"> VideoConnectionFrameConsumer</param>
+            <returns>Unsubscribe implementation of IDisposable</returns>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoConnectionFrameProvider.PushFrame(Instrument_Communicator_Library.VideoFrame)">
+            <summary>
+            Sends a frame to all observers
+            </summary>
+            <param name="frameResult"></param>
+        </member>
+        <member name="T:Blazor_Instrument_Cluster.Server.Events.Unsubscriber`1">
+            <summary>
+            Class that lets you unsubscribe from the provider
+            Copied from Microsoft Event docs
+            </summary>
+        </member>
+        <member name="T:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceConnections">
+            <summary>
+            Interface for sharing video connection lists between classes
+            <author>Mikael Nilssen</author>
+            </summary>
+        </member>
+        <member name="T:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection">
+            <summary>
+            Class for storing connection lists
+            <author>Mikael Nilssen</author>
+            </summary>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection.SetCrestronConnectionList(System.Collections.Generic.List{Instrument_Communicator_Library.CrestronConnection})">
+            <summary>
+            Set the crestron connection list
+            </summary>
+            <param name="listCrestronConnection"></param>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection.SetVideoConnectionList(System.Collections.Generic.List{Instrument_Communicator_Library.VideoConnection})">
+            <summary>
+            Set the video connection list
+            </summary>
+            <param name="listVideoConnection">List of video connections</param>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection.GetCrestronConnectionList(System.Collections.Generic.List{Instrument_Communicator_Library.CrestronConnection}@)">
+            <summary>
+            Get the crestron connection list
+            </summary>
+            <param name="listCrestronConnection"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection.GetVideoConnectionList(System.Collections.Generic.List{Instrument_Communicator_Library.VideoConnection}@)">
+            <summary>
+            Get the list of video connections
+            </summary>
+            <param name="listVideoConnection"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection.GetCrestronConnectionWithName(Instrument_Communicator_Library.CrestronConnection@,System.String)">
+            <summary>
+            Get the connection with the matching name
+            </summary>
+            <param name="con">Crestron connection output</param>
+            <param name="name">Name of the wanted device</param>
+            <returns>Successfully found or not</returns>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection.GetVideoConcurrentQueueWithName(System.Collections.Concurrent.ConcurrentQueue{Instrument_Communicator_Library.VideoFrame}@,System.String)">
+            <summary>
+            Gets the output queue of the the video connection device of the same name
+            </summary>
+            <param name="queue"> Concurrent queue</param>
+            <param name="name"> name of the wanted device</param>
+            <returns>found or not bool</returns>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection.SubscribeToVideoProviderWithName(System.String,Blazor_Instrument_Cluster.Server.Events.VideoConnectionFrameConsumer)">
+            <summary>
+            Subscribes to the appropriate video provider with the name passed in
+            </summary>
+            <param name="unsubscriber"> IDisposable to remove subscription</param>
+            <param name="name"> Name of the wanted provider</param>
+            <param name="consumer"> VideoConnectionFrameConsumer</param>
+            <returns>Found the device or not</returns>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnection.AddFrameProviderToListOfProviders(Blazor_Instrument_Cluster.Server.Events.VideoConnectionFrameProvider)">
+            <summary>
+            Adds a provider for a specific video connection to the list of connections
+            </summary>
+            <param name="frameProvider"></param>
+        </member>
+        <member name="T:Blazor_Instrument_Cluster.Server.Startup">
+            <summary>
+            Class that sets up the services and configurations of the web system
+            </summary>
+        </member>
+        <member name="T:Blazor_Instrument_Cluster.Server.WebSockets.CrestronWebsocketHandler">
+            <summary>
+            Websocket handler for crestron control connections
+            <author>Mikael Nilssen</author>
+            </summary>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.WebSockets.CrestronWebsocketHandler.StartCrestronWebsocketProtocol(System.Net.WebSockets.WebSocket,System.Threading.Tasks.TaskCompletionSource{System.Object})">
+            <summary>
+            Handles the incoming connection
+            </summary>
+            <param name="websocket"></param>
+            <param name="socketFinishedTcs"></param>
+        </member>
+        <member name="T:Blazor_Instrument_Cluster.Server.WebSockets.ICrestronSocketHandler">
+            <summary>
+            Interface for a crestron connection handler
+            <author>Mikael Nilssen</author>
+            </summary>
+        </member>
+        <member name="T:Blazor_Instrument_Cluster.Server.Worker.IVideoSocketHandler">
+            <summary>
+            Interface for video websocket connection
+            <author>Mikael Nilssen</author>
+            </summary>
+        </member>
+        <member name="T:Blazor_Instrument_Cluster.Server.Worker.CrestronListenerService">
+            <summary>
+            Background service for accepting incoming connections from controllers
+            <author>Mikael Nilssen</author>
+            </summary>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Worker.CrestronListenerService.#ctor(Microsoft.Extensions.Logging.ILogger{Blazor_Instrument_Cluster.Server.Worker.VideoListenerService},System.IServiceProvider)">
+            <summary>
+            Inject the logger and the thing used to share information with hubs
+            </summary>
+            <param name="logger"></param>
+            <param name="services"></param>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Worker.CrestronListenerService.ExecuteAsync(System.Threading.CancellationToken)">
+            <summary>
+            Starts the listener thread for the crestron communicators
+            </summary>
+            <param name="stoppingToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Blazor_Instrument_Cluster.Server.Worker.VideoListenerService">
+            <summary>
+            Background service for running the video listener for the remote devices
+            <author>Mikael Nilssen</author>
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Worker.VideoListenerService.#ctor(Microsoft.Extensions.Logging.ILogger{Blazor_Instrument_Cluster.Server.Worker.VideoListenerService},System.IServiceProvider)">
+            <summary>
+            Inject the logger and the thing used to share information with hubs
+            </summary>
+            <param name="logger"></param>
+            <param name="services"></param>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Worker.VideoListenerService.ExecuteAsync(System.Threading.CancellationToken)">
+            <summary>
+            Method that launches when the Hosted service is initialized
+            Start the Video listener thread, and gets all incoming connections to the listener and starts a Video Frame provider for the incoming connection
+            </summary>
+            <param name="stoppingToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.Server.Worker.VideoListenerService.providerStart(System.Object)">
+            <summary>
+            Starts a new provider and push frames from connection queue
+            </summary>
+        </member>
+        <member name="T:Blazor_Instrument_Cluster.VideoWebsocketHandler`1">
+            <summary>
+            Class that handles incoming video websocket connections
+            <author></author>
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Blazor_Instrument_Cluster.VideoWebsocketHandler`1.StartWebSocketVideoProtocol(System.Net.WebSockets.WebSocket,System.Threading.Tasks.TaskCompletionSource{System.Object})">
+            <summary>
+            Gets the wanted video device from the websocket client and subscribes to that device, and pushes incoming sockets to web client
+            </summary>
+            <param name="websocket"></param>
+            <param name="socketFinishedTcs"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

@@ -6,6 +6,10 @@
     <AssemblyName>$(AssemblyName.Replace(' ', '_'))</AssemblyName>
     <StartupObject>Blazor_Instrument_Cluster.Server.Program</StartupObject>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>C:\Users\Mikael\Source\Repos\Mikael-og-Andre\Distributed-Instrument-Cluster\Distributed Instrument Cluster\Blazor Instrument Cluster\Server\Blazor_Instrument_Cluster.Server.xml</DocumentationFile>
+  </PropertyGroup>
   
 
 
