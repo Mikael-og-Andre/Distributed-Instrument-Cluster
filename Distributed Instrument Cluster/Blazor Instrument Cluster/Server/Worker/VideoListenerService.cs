@@ -17,14 +17,32 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 	/// Background service for running the video listener for the remote devices
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
 	public class VideoListenerService : BackgroundService {
-		private const int Delay = 10;   //Delay after each loop
 
-		private readonly ILogger<VideoListenerService> logger;      //Injected logger
-		private readonly IServiceProvider services;                     //Injected Service provider
-		private ListenerVideo videoListener;                       //Video listener server accepting incoming device video connections
-		private RemoteDeviceConnection remoteDeviceConnection;       //Remote device connection
+		/// <summary>
+		/// Delay after each loop
+		/// </summary>
+		private const int Delay = 10;
+
+		/// <summary>
+		/// Injected logger
+		/// </summary>
+		private readonly ILogger<VideoListenerService> logger;
+
+		/// <summary>
+		/// Injected Service provider
+		/// </summary>
+		private readonly IServiceProvider services;
+
+		/// <summary>
+		/// Video listener server accepting incoming device video connections
+		/// </summary>
+		private ListenerVideo videoListener;
+
+		/// <summary>
+		/// Remote device connection
+		/// </summary>
+		private RemoteDeviceConnection remoteDeviceConnection;
 
 		/// <summary>
 		/// Inject the logger and the thing used to share information with hubs
@@ -44,7 +62,8 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 			List<VideoConnection> videoConnections = videoListener.getVideoConnectionList();
 			if (remoteDeviceConnection != null) {
 				remoteDeviceConnection.SetVideoConnectionList(videoConnections);
-			} else {
+			}
+			else {
 				this.logger.LogError("Remote Device connection input was null");
 				throw new NullReferenceException(
 					"Class: VideoListenerService - remoteDeviceConnection Injection was null");

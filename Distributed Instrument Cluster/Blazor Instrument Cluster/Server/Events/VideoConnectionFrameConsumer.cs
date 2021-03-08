@@ -10,9 +10,22 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 	/// </summary>
 	public class VideoConnectionFrameConsumer :IObserver<VideoFrame> {
 
-		private IDisposable unsubscriber;								//Object used to unsubscribe from provider
-		private string name;											//Name of the device it wants a queue from
-		private ConcurrentQueue<VideoFrame> frameConcurrentQueue;		//Concurrent queue of incoming frames
+		/// <summary>
+		/// Object used to unsubscribe from provider
+		/// </summary>
+		private IDisposable unsubscriber;
+		/// <summary>
+		/// Name of the device it wants a queue from
+		/// </summary>
+		private string name;
+		/// <summary>
+		/// Concurrent queue of incoming frames
+		/// </summary>
+		private ConcurrentQueue<VideoFrame> frameConcurrentQueue;
+		/// <summary>
+		/// Constructor, sets name and initializes queue
+		/// </summary>
+		/// <param name="name"></param>
 		public VideoConnectionFrameConsumer(string name) {
 			this.name = name;
 			this.frameConcurrentQueue = new ConcurrentQueue<VideoFrame>();

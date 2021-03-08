@@ -15,10 +15,27 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	public class CrestronWebsocketHandler : ICrestronSocketHandler {
-		private ILogger<CrestronWebsocketHandler> logger;       //Logger
-		private IServiceProvider services;                      //Services
-		private RemoteDeviceConnection remoteDeviceConnections; //Remote devices
 
+		/// <summary>
+		/// Logger
+		/// </summary>
+		private ILogger<CrestronWebsocketHandler> logger;
+
+		/// <summary>
+		///Services
+		/// </summary>
+		private IServiceProvider services;
+
+		/// <summary>
+		/// Remote devices
+		/// </summary>
+		private RemoteDeviceConnection remoteDeviceConnections;
+
+		/// <summary>
+		/// Constructor, Injects Logger and service provider and gets Remote device connection Singleton
+		/// </summary>
+		/// <param name="logger"></param>
+		/// <param name="services"></param>
 		public CrestronWebsocketHandler(ILogger<CrestronWebsocketHandler> logger, IServiceProvider services) {
 			this.logger = logger;
 			remoteDeviceConnections = (RemoteDeviceConnection)services.GetService(typeof(IRemoteDeviceConnections));
@@ -58,7 +75,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 				//If it does not exist close connection
 				if (exists) {
-					logger.LogDebug("Crestron device with name {0} was found",name);
+					logger.LogDebug("Crestron device with name {0} was found", name);
 					//TODO: add exclusive control
 					//Do connection exclusive control actions
 
@@ -87,7 +104,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 					socketFinishedTcs.TrySetResult(new object());
 				}
 				else {
-					logger.LogDebug("Crestron Websocket requested a device: {0} that did not exist",name);
+					logger.LogDebug("Crestron Websocket requested a device: {0} that did not exist", name);
 					////Send does not exist and close
 					byte[] noBytes = Encoding.ASCII.GetBytes("failed");
 					ArraySegment<byte> noSeg = new ArraySegment<byte>(noBytes);
@@ -99,12 +116,11 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			catch (Exception ex) {
 				//if websocket is running send close, and close socket pipeline
 				if (websocket.State != WebSocketState.Closed) {
-					await websocket.CloseAsync(WebSocketCloseStatus.InternalServerError,"Closing socket",token);
+					await websocket.CloseAsync(WebSocketCloseStatus.InternalServerError, "Closing socket", token);
 				}
-				logger.LogError(ex,"Exception Thrown in CrestronWebSocketHandler");
+				logger.LogError(ex, "Exception Thrown in CrestronWebSocketHandler");
 				socketFinishedTcs.TrySetResult(new object());
 			}
-
 		}
 	}
 }

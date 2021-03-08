@@ -19,9 +19,20 @@ namespace Blazor_Instrument_Cluster {
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	public class VideoWebsocketHandler<T> : IVideoSocketHandler where T : ISerializable {
-		private RemoteDeviceConnection remoteDeviceConnections;     //remote Device connections
-		private ILogger<VideoWebsocketHandler<T>> logger;               //Logger
+		/// <summary>
+		/// remote Device connections
+		/// </summary>
+		private RemoteDeviceConnection remoteDeviceConnections;
+		/// <summary>
+		/// Logger
+		/// </summary>
+		private ILogger<VideoWebsocketHandler<T>> logger;
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="logger"></param>
+		/// <param name="services"></param>
 		public VideoWebsocketHandler(ILogger<VideoWebsocketHandler<T>> logger, IServiceProvider services) {
 			remoteDeviceConnections = (RemoteDeviceConnection)services.GetService(typeof(IRemoteDeviceConnections));
 			this.logger = logger;

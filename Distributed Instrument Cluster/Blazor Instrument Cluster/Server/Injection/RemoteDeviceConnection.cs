@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Blazor_Instrument_Cluster.Client.Pages;
 
 namespace Blazor_Instrument_Cluster.Server.Injection {
 
@@ -14,18 +13,31 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 	/// </summary>
 	public class RemoteDeviceConnection : IRemoteDeviceConnections {
 
-		//Injections
-		private IServiceProvider services;                      //Services
+		/// <summary>
+		/// Services
+		/// </summary>
+		private IServiceProvider services;
 
-		private ILogger<RemoteDeviceConnection> logger;      //Logger
+		/// <summary>
+		/// Logger
+		/// </summary>
+		private ILogger<RemoteDeviceConnection> logger;
 
-		//Providers
-		private List<VideoConnectionFrameProvider> listFrameProviders;     //Frame Providers
+		/// <summary>
+		/// Frame Providers
+		/// </summary>
+		private List<VideoConnectionFrameProvider> listFrameProviders;
 
 		//Connections
 		private List<CrestronConnection> listCrestronConnections;   //Crestron connections
+
 		private List<VideoConnection> listVideoConnections;      //Video connections
 
+		/// <summary>
+		/// Constructor, Injects logger and service provider
+		/// </summary>
+		/// <param name="logger"></param>
+		/// <param name="services"></param>
 		public RemoteDeviceConnection(ILogger<RemoteDeviceConnection> logger, IServiceProvider services) {
 			this.services = services;
 			this.logger = logger;
@@ -69,7 +81,8 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 					//return crestron connections
 					listCrestronConnection = null;
 					return false;
-				} else {
+				}
+				else {
 					listCrestronConnection = listCrestronConnections;
 					return true;
 				}
@@ -88,7 +101,8 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 				if (listCrestronConnections == null) {
 					listVideoConnection = null;
 					return false;
-				} else {
+				}
+				else {
 					//if not null set as output
 					listVideoConnection = listVideoConnections;
 					return true;
@@ -121,6 +135,7 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 				return false;
 			}
 		}
+
 		/// <summary>
 		/// Gets the output queue of the the video connection device of the same name
 		/// </summary>
@@ -150,7 +165,6 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 		/// <summary>
 		/// Subscribes to the appropriate video provider with the name passed in
 		/// </summary>
-		/// <param name="unsubscriber"> IDisposable to remove subscription</param>
 		/// <param name="name"> Name of the wanted provider</param>
 		/// <param name="consumer"> VideoConnectionFrameConsumer</param>
 		/// <returns>Found the device or not</returns>
@@ -166,10 +180,11 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 						return true;
 					}
 				}
-				
+
 				return false;
 			}
 		}
+
 		/// <summary>
 		/// Adds a provider for a specific video connection to the list of connections
 		/// </summary>

@@ -10,11 +10,21 @@ using System.Linq;
 
 namespace Blazor_Instrument_Cluster.Server.Controllers {
 
+	/// <summary>
+	/// Api Controller for accessing data about connected devices
+	/// </summary>
 	[Route("api/ConnectedDevices")]
 	[ApiController]
 	public class ConnectedDevicesController : ControllerBase {
-		private RemoteDeviceConnection remoteDeviceConnection;     //Handler for connected devices
+		/// <summary>
+		/// Remote Device connections
+		/// </summary>
+		private RemoteDeviceConnection remoteDeviceConnection;
 
+		/// <summary>
+		/// Constructor, Injects Service provider and get remote device connection
+		/// </summary>
+		/// <param name="services"></param>
 		public ConnectedDevicesController(IServiceProvider services) {
 			this.remoteDeviceConnection = (RemoteDeviceConnection)services.GetService<IRemoteDeviceConnections>();
 		}

@@ -34,17 +34,17 @@
         await JS.InvokeVoidAsync("click");
     }
 
-    private async void mouseDown(MouseEventArgs e) {
+    private void mouseDown(MouseEventArgs e) {
         Console.WriteLine(e.Button);
         sendData("mouseClick (" + e.Button + ",1)");    // 1=make/down.
     }
 
-    private async void mouseUp(MouseEventArgs e) {
+    private void mouseUp(MouseEventArgs e) {
         Console.WriteLine(e.Button);
         sendData("mouseClick (" + e.Button + ",0)");    // 0=break/up.
     }
 
-    private async void keyDown(KeyboardEventArgs e) {
+    private void keyDown(KeyboardEventArgs e) {
         Console.WriteLine(e.Code);
         switch (e.Code) {
             case "Space":
@@ -58,7 +58,7 @@
         }
     }
 
-    private async void keyUp(KeyboardEventArgs e) {
+    private void keyUp(KeyboardEventArgs e) {
         Console.WriteLine(e.Code);
         switch (e.Code) {
             case "Space":
