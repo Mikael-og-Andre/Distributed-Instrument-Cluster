@@ -93,8 +93,10 @@
         //Convert string to byte sequence.
         ArraySegment<byte> toSend = new ArraySegment<byte>(Encoding.ASCII.GetBytes(s));
 
+
         //Send data to socket.
         await crestronWebSocket.SendAsync(toSend, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+
     }
 
     //Run setup when DOM is loaded.
