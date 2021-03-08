@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Crestron_Library;
 using System;
+using Crestron_Library;
 
 namespace Crestron_Test {
 	[TestClass]
