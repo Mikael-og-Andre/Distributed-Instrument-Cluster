@@ -35,7 +35,7 @@ namespace Communication_lib_Test {
 			AccessToken accessTokenVid = new AccessToken("access");
 			CancellationToken cancellationToken = new CancellationToken(false);
 
-			VideoCommunicator vidCom = new VideoCommunicator("127.0.0.1", portVideo, infoVid, accessTokenVid, cancellationToken);
+			VideoClient vidCom = new VideoClient("127.0.0.1", portVideo, infoVid, accessTokenVid, cancellationToken);
 			Thread vidComThread = new Thread(() => vidCom.Start());
 			vidComThread.Start();
 
@@ -77,8 +77,8 @@ namespace Communication_lib_Test {
 			AccessToken accessTokenCrest = new AccessToken("access");
 			CancellationToken cancellationToken = new CancellationToken(false);
 
-			CrestronCommunicator crestronCommunicator = new CrestronCommunicator("127.0.0.1", portCrest, infoCrest, accessTokenCrest, cancellationToken);
-			Thread crestronComThread = new Thread(() => crestronCommunicator.Start());
+			CrestronClient crestronClient = new CrestronClient("127.0.0.1", portCrest, infoCrest, accessTokenCrest, cancellationToken);
+			Thread crestronComThread = new Thread(() => crestronClient.Start());
 			crestronComThread.Start();
 
 			//wait for auth
@@ -97,10 +97,10 @@ namespace Communication_lib_Test {
 				}
 			}
 
-			ConcurrentQueue<string> outputQueue = crestronCommunicator.getCommandOutputQueue();
+			ConcurrentQueue<string> outputQueue = crestronClient.getCommandOutputQueue();
 
 			Assert.IsNotNull(outputQueue);
-			Assert.IsTrue(crestronCommunicator.isSocketConnected);
+			Assert.IsTrue(crestronClient.isSocketConnected);
 
 			string outs;
 			bool hasVal = outputQueue.TryDequeue(out outs);
@@ -122,7 +122,7 @@ namespace Communication_lib_Test {
 
 		[TestMethod]
 		public void testExceptions() {
-			CrestronCommunicator cCom = new CrestronCommunicator("127.0.0.1", 5090, new InstrumentInformation("name", "location", "type"), new AccessToken("access"), new CancellationToken(false));
+			CrestronClient cCom = new CrestronClient("127.0.0.1", 5090, new InstrumentInformation("name", "location", "type"), new AccessToken("access"), new CancellationToken(false));
 			Action startCom = () => cCom.Start();
 
 			Assert.ThrowsException<SocketException>(startCom);

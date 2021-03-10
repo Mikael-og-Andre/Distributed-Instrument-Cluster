@@ -14,12 +14,12 @@ namespace Server_And_Demo_Project {
 
 			Thread.Sleep(10000);
 			CancellationToken token = new CancellationToken(false);
-			CrestronCommunicator crestronCommunicator = new CrestronCommunicator("127.0.0.1",5050,new InstrumentInformation("Radar1","location","Type"),new AccessToken("access"),token);
+			CrestronClient crestronClient = new CrestronClient("127.0.0.1",5050,new InstrumentInformation("Radar1","location","Type"),new AccessToken("access"),token);
 
-			Thread crestronThread = new Thread(() => crestronCommunicator.Start());
+			Thread crestronThread = new Thread(() => crestronClient.Start());
 			crestronThread.Start();
 			Console.WriteLine("Started Server and now pushing from queue");
-			ConcurrentQueue<string> queue = crestronCommunicator.getCommandOutputQueue();
+			ConcurrentQueue<string> queue = crestronClient.getCommandOutputQueue();
 
 			while (!token.IsCancellationRequested) {
 

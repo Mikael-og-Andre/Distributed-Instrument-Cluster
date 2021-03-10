@@ -17,7 +17,7 @@ namespace HardwareServer_Demo_Project {
 			AccessToken accessToken = new AccessToken("access");
 			CancellationToken comCancellationToken = new CancellationToken(false);
 
-			VideoCommunicator vidCom = new VideoCommunicator("127.0.0.1", 5051, info, accessToken, comCancellationToken);
+			VideoClient vidCom = new VideoClient("127.0.0.1", 5051, info, accessToken, comCancellationToken);
 			Thread vidComThread = new Thread(() => vidCom.Start());
 			vidComThread.Start();
 

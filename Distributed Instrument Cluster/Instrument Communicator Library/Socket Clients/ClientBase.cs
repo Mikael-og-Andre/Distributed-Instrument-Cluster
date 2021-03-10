@@ -9,7 +9,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 	/// Base class for communicator classes, intended to be on the remote side of the instrument cluster
 	/// <Author>Mikael Nilssen</Author>
 	/// </summary>
-	public abstract class CommunicatorBase {
+	public abstract class ClientBase {
 
 		/// <summary>
 		/// Ip address of target server
@@ -47,7 +47,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 		/// </summary>
 		protected CancellationToken communicatorCancellationToken;
 
-		protected CommunicatorBase(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken communicatorCancellationToken) {
+		protected ClientBase(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken communicatorCancellationToken) {
 			this.Ip = ip;
 			this.Port = port;
 			this.information = informationAboutClient;

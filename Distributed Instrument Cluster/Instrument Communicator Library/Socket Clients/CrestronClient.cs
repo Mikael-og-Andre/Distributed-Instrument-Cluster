@@ -12,7 +12,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 	/// Client for connecting and receiving commands from server unit to control a crestron Device
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class CrestronCommunicator : CommunicatorBase {
+	public class CrestronClient : ClientBase {
 
 		/// <summary>
 		/// Queue representing commands received by receive protocol
@@ -27,7 +27,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 
 		//TODO: add buffer size limits to queue
 
-		public CrestronCommunicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken cancellationToken) : base(ip, port, informationAboutClient, accessToken, cancellationToken) {
+		public CrestronClient(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken cancellationToken) : base(ip, port, informationAboutClient, accessToken, cancellationToken) {
 			this.commandOutputQueue = new ConcurrentQueue<string>();    //Init queue
 		}
 

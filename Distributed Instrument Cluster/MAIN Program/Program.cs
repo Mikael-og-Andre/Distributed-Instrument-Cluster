@@ -19,8 +19,8 @@ namespace MAIN_Program {
 	internal class Program {
 		private readonly List<VideoDeviceInterface> videoDevices = new List<VideoDeviceInterface>();
 		private CommandParser commandParser;
-		private VideoCommunicator videoCommunicator;
-		private CrestronCommunicator crestronCommunicator;
+		private VideoClient videoClient;
+		private CrestronClient crestronClient;
 
 		private static void Main(string[] args) {
 			//TODO: read config file here and pass it into "Program" constructor.
@@ -56,7 +56,7 @@ namespace MAIN_Program {
 				//if (videoDevices[0].tryReadFrameBuffer(out Mat ooga)) {
 				if (videoDevices[0].tryReadJpg(out byte[] ooga, 70)) {
 					Thread.Sleep(100);
-					videoCommunicator.GetInputQueue().Enqueue(new VideoFrame(ooga));
+					videoClient.GetInputQueue().Enqueue(new VideoFrame(ooga));
 				}
 			}
 
@@ -134,11 +134,11 @@ namespace MAIN_Program {
 			CancellationToken videoCancellationToken = new CancellationToken(false);
 
 			//Video Communicator
-			videoCommunicator =
-				new VideoCommunicator(videoIP, videoPort, info, accessToken, videoCancellationToken);
+			videoClient =
+				new VideoClient(videoIP, videoPort, info, accessToken, videoCancellationToken);
 
 			//TODO: refactor threading
-			Thread videoThread = new Thread(() => videoCommunicator.Start());
+			Thread videoThread = new Thread(() => videoClient.Start());
 			videoThread.Start();
 		}
 
@@ -153,10 +153,10 @@ namespace MAIN_Program {
 			//Crestron Cancellation Token
 			CancellationToken crestronCancellationToken = new CancellationToken(false);
 			//Crestron Communicator
-			crestronCommunicator = new CrestronCommunicator(crestronIP, crestronPort, info, accessToken, crestronCancellationToken);
+			crestronClient = new CrestronClient(crestronIP, crestronPort, info, accessToken, crestronCancellationToken);
 
 			//TODO: refactor threading
-			Thread crestronThread = new Thread(() => crestronCommunicator.Start());
+			Thread crestronThread = new Thread(() => crestronClient.Start());
 			crestronThread.Start();
 		}
 
@@ -166,7 +166,7 @@ namespace MAIN_Program {
 		/// Thread for relaying commands coming from internet socket to command parser.
 		/// </summary>
 		private void relayThread() {
-			var queue = crestronCommunicator.getCommandOutputQueue();
+			var queue = crestronClient.getCommandOutputQueue();
 			while (true) {
 				try {
 					if (queue.TryDequeue(out string temp)) {

@@ -10,14 +10,14 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
     /// Represents a socket line from a device to the server, intended to send video
     /// <author>Mikael Nilssen</author>
     /// </summary>
-    public class VideoCommunicator : CommunicatorBase{
+    public class VideoClient : ClientBase{
 
 		/// <summary>
 		/// queue of inputs meant to be sent to server
 		/// </summary>
         private ConcurrentQueue<VideoFrame> inputQueue;
 
-        public VideoCommunicator(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken cancellationToken) : base(ip, port, informationAboutClient, accessToken, cancellationToken) {
+        public VideoClient(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken cancellationToken) : base(ip, port, informationAboutClient, accessToken, cancellationToken) {
             //initialize queue
             inputQueue = new ConcurrentQueue<VideoFrame>();
         }
