@@ -1,9 +1,8 @@
-﻿using Instrument_Communicator_Library.Interface;
-using System;
+﻿using System;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Instrument_Communicator_Library.Helper_Class {
+namespace Networking_Library {
 
 	/// <summary>
 	/// Class with different Socket operations
@@ -14,7 +13,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		/// </summary>
 		/// <param name="input">Object inheriting ISerializableObject</param>
 		/// <param name="connectionSocket"></param>
-		public static void sendObjectWithSocket<TU>(TU input, Socket connectionSocket) where TU : ISerializable {
+		public static void sendObjectWithSocket<TU>(TU input, Socket connectionSocket) where TU : ISerializeObject {
 
 			byte[] bytes = input.getBytes();
             NetworkStream networkStream = new NetworkStream(connectionSocket);

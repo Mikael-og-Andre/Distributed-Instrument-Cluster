@@ -7,6 +7,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Instrument_Communicator_Library.Enums;
 
 namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
@@ -84,7 +85,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 					ArraySegment<byte> yesSeg = new ArraySegment<byte>(yesBytes);
 					await websocket.SendAsync(yesSeg, WebSocketMessageType.Text, true, token);
 
-					ConcurrentQueue<Message> messageInputQueue = con.GetInputQueue();
+					ConcurrentQueue<Message> messageInputQueue = con.getSendingQueue();
 
 					//Start command receive loop
 					while (!token.IsCancellationRequested) {
@@ -96,7 +97,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 						//Trim nullbytes
 						receivedString.Trim('\0');
 
-						Message msg = new Message(protocolOption.message, receivedString);
+						Message msg = new Message(ProtocolOption.message, receivedString);
 						messageInputQueue.Enqueue(msg);
 					}
 

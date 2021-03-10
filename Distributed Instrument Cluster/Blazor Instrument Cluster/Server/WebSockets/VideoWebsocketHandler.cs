@@ -18,7 +18,7 @@ namespace Blazor_Instrument_Cluster {
 	/// <author></author>
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class VideoWebsocketHandler<T> : IVideoSocketHandler where T : ISerializable {
+	public class VideoWebsocketHandler<T> : IVideoSocketHandler where T : ISerializeObject {
 		/// <summary>
 		/// remote Device connections
 		/// </summary>

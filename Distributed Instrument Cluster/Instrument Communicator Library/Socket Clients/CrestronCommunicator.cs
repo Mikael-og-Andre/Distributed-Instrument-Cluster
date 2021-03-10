@@ -3,6 +3,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
+using Instrument_Communicator_Library.Authorization;
+using Instrument_Communicator_Library.Enums;
 
 namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 
@@ -65,23 +67,23 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 			//Receive protocol type from server
 			string extractedString = NetworkingOperations.receiveStringWithSocket(connectionSocket);
 			//Parse Enum
-			protocolOption option = (protocolOption)Enum.Parse(typeof(protocolOption), extractedString, true);
+			ProtocolOption option = (ProtocolOption)Enum.Parse(typeof(ProtocolOption), extractedString, true);
 			Console.WriteLine("thread {0} Client says: " + "Received protocol request: {1} ", Thread.CurrentThread.ManagedThreadId, option);
 			//Select Protocol
 			switch (option) {
-				case protocolOption.ping:
+				case ProtocolOption.ping:
 					protocolPing(connectionSocket);
 					break;
 
-				case protocolOption.message:
+				case ProtocolOption.message:
 					protocolMessage(connectionSocket);
 					break;
 
-				case protocolOption.status:
+				case ProtocolOption.status:
 					protocolStatus(connectionSocket);
 					break;
 
-				case protocolOption.authorize:
+				case ProtocolOption.authorize:
 					protocolAuthorize(connectionSocket);
 					break;
 

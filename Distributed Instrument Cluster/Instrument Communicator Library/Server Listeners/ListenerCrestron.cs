@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using Instrument_Communicator_Library.Authorization;
+using Instrument_Communicator_Library.Enums;
 
 namespace Instrument_Communicator_Library.Server_Listener {
 
@@ -61,8 +63,8 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Do authorization process
 			serverProtocolAuthorization(clientConnection);
 
-			ConcurrentQueue<Message> inputQueue = clientConnection.GetInputQueue();   //Get reference to the queue of inputs intended to send to the client
-			ConcurrentQueue<Message> outputQueue = clientConnection.GetOutputQueue();     //Get reference to the queue of things received by the client
+			ConcurrentQueue<Message> inputQueue = clientConnection.getSendingQueue();   //Get reference to the queue of inputs intended to send to the client
+			ConcurrentQueue<Message> outputQueue = clientConnection.getReceivingQueue();     //Get reference to the queue of things received by the client
 
 			//Setup stopwatch
 			Stopwatch stopwatch = new Stopwatch();
@@ -71,7 +73,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 
 			while (!listenerCancellationToken.IsCancellationRequested) {
 				//Variable representing protocol to use;
-				protocolOption currentMode;
+				ProtocolOption currentMode;
 				Message message;
 				bool hasValue = inputQueue.TryPeek(out message);
 				Message msg = message;
@@ -81,12 +83,12 @@ namespace Instrument_Communicator_Library.Server_Listener {
 					//stop stopwatch
 					stopwatch.Stop();
 					//Set mode to ping
-					currentMode = protocolOption.ping;
+					currentMode = ProtocolOption.ping;
 				}
 				//If queue has message check what type it is, and parse protocol type
 				else if (hasValue) {
 					// check first message in queue, set protocol to use to the protocol of that message
-					protocolOption messageOption = msg.getProtocol();
+					ProtocolOption messageOption = msg.getProtocol();
 					currentMode = messageOption;
 				}
 				//if queue is empty and time since last ping isn't big, sleep for an amount of time
@@ -98,21 +100,21 @@ namespace Instrument_Communicator_Library.Server_Listener {
 
 				//preform protocol corresponding to the current mode variable
 				switch (currentMode) {
-					case protocolOption.ping:
+					case ProtocolOption.ping:
 						//Preform ping protocol
 						serverProtocolPing(clientConnection);
 						break;
 
-					case protocolOption.message:
+					case ProtocolOption.message:
 						//preform send protocol
 						this.serverProtocolMessage(clientConnection);
 						break;
 
-					case protocolOption.status:
+					case ProtocolOption.status:
 						this.serverProtocolStatus(clientConnection);
 						break;
 
-					case protocolOption.authorize:
+					case ProtocolOption.authorize:
 						this.serverProtocolAuthorization(clientConnection);
 						break;
 
@@ -173,7 +175,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//get socket
 			Socket connectionSocket = clientConnection.GetSocket();
 			//Send protocol type to client
-			NetworkingOperations.sendStringWithSocket(protocolOption.authorize.ToString(), connectionSocket);
+			NetworkingOperations.sendStringWithSocket(ProtocolOption.authorize.ToString(), connectionSocket);
 			//receive token
 			string receivedToken = NetworkingOperations.receiveStringWithSocket(connectionSocket);
 
@@ -220,7 +222,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Send protocol type "ping" to client
 			//get socket
 			Socket connectionSocket = clientConnection.GetSocket();
-			NetworkingOperations.sendStringWithSocket(protocolOption.ping.ToString(), connectionSocket);
+			NetworkingOperations.sendStringWithSocket(ProtocolOption.ping.ToString(), connectionSocket);
 			//Receive answer
 			string receiveString = NetworkingOperations.receiveStringWithSocket(connectionSocket);
 			//Check if correct Response
@@ -247,7 +249,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// <param name="clientConnection">Client Connection Object</param>
 		private void serverProtocolMessage(CrestronConnection clientConnection) {
 			//Get reference to the queue
-			ConcurrentQueue<Message> inputQueue = clientConnection.GetInputQueue();
+			ConcurrentQueue<Message> inputQueue = clientConnection.getSendingQueue();
 			//Get Socket
 			Socket connectionSocket = clientConnection.GetSocket();
 			try {
@@ -257,7 +259,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				//Check if success and start sending messages
 				if (isSuccess) {
 					//Say protocol type to client
-					NetworkingOperations.sendStringWithSocket(protocolOption.message.ToString(), connectionSocket);
+					NetworkingOperations.sendStringWithSocket(ProtocolOption.message.ToString(), connectionSocket);
 
 					//Get string array from message object
 					string messageString = msg.getMessage();

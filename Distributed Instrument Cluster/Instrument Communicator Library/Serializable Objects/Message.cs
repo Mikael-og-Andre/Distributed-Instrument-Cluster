@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Instrument_Communicator_Library.Enums;
 
 namespace Instrument_Communicator_Library {
 
@@ -9,12 +10,12 @@ namespace Instrument_Communicator_Library {
 	/// Represents a message to put in the queue concurrent queue when sending to the client
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class Message : ISerializable {
+	public class Message : ISerializeObject {
 
 		/// <summary>
 		/// protocol option enum that tells server what protocol to use when sending
 		/// </summary>
-		private readonly protocolOption option = protocolOption.ping;
+		private readonly ProtocolOption option = ProtocolOption.ping;
 		/// <summary>
 		/// String to be sent to the server
 		/// </summary>
@@ -25,7 +26,7 @@ namespace Instrument_Communicator_Library {
 		/// </summary>
 		/// <param name="option">protocol option for the message</param>
 		/// <param name="messageString">array of strings that will be sent to the client</param>
-		public Message(protocolOption option, string messageString) {
+		public Message(ProtocolOption option, string messageString) {
 			this.option = option;
 			this.messageString = messageString;
 		}
@@ -42,7 +43,7 @@ namespace Instrument_Communicator_Library {
 		/// Get the protocol intended for the message
 		/// </summary>
 		/// <returns></returns>
-		public protocolOption getProtocol() {
+		public ProtocolOption getProtocol() {
 			return this.option;
 		}
 		/// <summary>
@@ -97,7 +98,7 @@ namespace Instrument_Communicator_Library {
 			int optionInt = BitConverter.ToInt32(optionArray);
 			string messageString = Encoding.ASCII.GetString(messageArray);
 			//Recreate enum
-			protocolOption option = (protocolOption)optionInt;
+			ProtocolOption option = (ProtocolOption)optionInt;
 
 			Message msg = new Message(option, messageString);
 			return msg;

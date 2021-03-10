@@ -11,6 +11,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using Instrument_Communicator_Library.Authorization;
+using Instrument_Communicator_Library.Enums;
 
 namespace Communication_lib_Test {
 
@@ -88,9 +90,9 @@ namespace Communication_lib_Test {
 			Assert.AreNotEqual(listCons.Count, 0);
 			lock (listCons) {
 				foreach (CrestronConnection con in listCons) {
-					ConcurrentQueue<Message> inputQueue = con.GetInputQueue();
+					ConcurrentQueue<Message> inputQueue = con.getSendingQueue();
 					Message msg;
-					msg = new Message(protocolOption.message, stringy);
+					msg = new Message(ProtocolOption.message, stringy);
 					inputQueue.Enqueue(msg);
 				}
 			}

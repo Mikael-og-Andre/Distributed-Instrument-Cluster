@@ -5,6 +5,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
+using Instrument_Communicator_Library.Authorization;
+using Instrument_Communicator_Library.Enums;
 using Instrument_Communicator_Library.Remote_Device_side_Communicators;
 
 namespace Server_And_Demo_Project {
@@ -59,18 +61,18 @@ namespace Server_And_Demo_Project {
 
             for (int i = 0; i < crestronConnection.Count; i++) {
                 CrestronConnection connection = crestronConnection[i];
-                ConcurrentQueue<Message> queue = connection.GetInputQueue();
+                ConcurrentQueue<Message> queue = connection.getSendingQueue();
                 string stringy = "Hello this is a test";
-                Message newMessage = new Message(protocolOption.message, stringy);
+                Message newMessage = new Message(ProtocolOption.message, stringy);
 
                 queue.Enqueue(newMessage);
             }
             Console.WriteLine("populating messages");
 
             foreach (CrestronConnection connection in crestronConnection) {
-                ConcurrentQueue<Message> queue = connection.GetInputQueue();
+                ConcurrentQueue<Message> queue = connection.getSendingQueue();
                 string stringy = "Wow i dont like greens";
-                Message newMessage = new Message(protocolOption.message, stringy);
+                Message newMessage = new Message(ProtocolOption.message, stringy);
 
                 queue.Enqueue(newMessage);
             }

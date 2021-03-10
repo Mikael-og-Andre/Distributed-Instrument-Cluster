@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Instrument_Communicator_Library.Interface {
+﻿namespace Networking_Library {
 	/// <summary>
 	/// Interface that is used for serializing objects in socket objects
 	/// </summary>
-	public interface ISerializable {
+	public interface ISerializeObject {
 
 		/// <summary>
 		/// Get the bytes that represents this object

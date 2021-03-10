@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Threading;
+using Instrument_Communicator_Library.Authorization;
 
 namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 

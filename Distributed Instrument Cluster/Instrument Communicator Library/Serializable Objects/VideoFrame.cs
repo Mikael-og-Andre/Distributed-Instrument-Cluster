@@ -5,7 +5,7 @@ namespace Instrument_Communicator_Library {
 	/// <summary>
 	/// Represents a Frame of video - CURRENTLY NOT SETUP FOR VIDEO TODO: Make video frame
 	/// </summary>
-	public class VideoFrame : ISerializable {
+	public class VideoFrame : ISerializeObject {
 
 		/// <summary>
 		/// Value of the video frame in bytes

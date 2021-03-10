@@ -5,6 +5,7 @@ using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Instrument_Communicator_Library.Authorization;
 using Video_Library;
 
 namespace MAIN_Program {
