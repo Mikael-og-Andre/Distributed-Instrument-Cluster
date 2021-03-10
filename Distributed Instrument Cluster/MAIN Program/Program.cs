@@ -4,6 +4,7 @@ using Instrument_Communicator_Library.Remote_Device_side_Communicators;
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.Net.Mime;
 using System.Threading;
 using Video_Library;
 
@@ -22,36 +23,42 @@ namespace MAIN_Program {
 		private CrestronCommunicator crestronCommunicator;
 
 		private static void Main(string[] args) {
-			//TODO: read config file here and pass it into "Program" constructor.
+			//TODO INSTCLUST-103: read config file here and pass it into "Program" constructor.
 
 			_ = new Program(new string[] { "test" });
 		}
 
-		// TODO: make input config file.
+		// TODO INSTCLUST-103: make input config file.
 		private static string serialComPort = "com4";
 
 		private Program(string[] args) {
-			//Setup communicators
-			Thread.Sleep(1000);
-			setupVideoCommunicator("127.0.0.1", 5051, "Radar1", "device location", "device type", "access");
-			setupCrestronCommunicator("127.0.0.1", 5050, "Radar1", "device location", "device type", "access");
 
-			//TODO: pars config file:
 
-			//TODO: construct/init based on config file
+			//TODO INSTCLUST-103: pars config file:
+
+			//TODO INSTCLUST-103: construct/init based on config file
 
 			setupSerialCable(serialComPort);
 			//setupVideoDevice(0);
 			setupVideoDevice(1);
 
-
+			try {
+				//Setup communicators
+				Thread.Sleep(1000);
+				setupVideoCommunicator("127.0.0.1", 5051, "Radar1", "device location", "device type", "access");
+				setupCrestronCommunicator("127.0.0.1", 5050, "Radar1", "device location", "device type", "access");
+			}
+			catch (Exception e) {
+				Console.WriteLine(e);
+				throw;
+			}
 
 			var relayThread = new Thread(this.relayThread) {IsBackground = true};
 			relayThread.Start();
 
 
 			while (true) {
-				//TODO RENAME
+				//TODO: RENAME/REDO
 				//if (videoDevices[0].tryReadFrameBuffer(out Mat ooga)) {
 				if (videoDevices[0].tryReadJpg(out byte[] ooga, 70)) {
 					Thread.Sleep(100);
@@ -65,7 +72,7 @@ namespace MAIN_Program {
 		#region setup methods
 
 		/// <summary>
-		/// Method tries connecting to serial cable and gives feedback on fail or success.
+		/// Method tries connecting to serial cable and gives console feedback on fail or success.
 		/// </summary>
 		/// <param name="port">Com port to connect to.</param>
 		/// <returns>If setup was successful.</returns>
@@ -73,11 +80,12 @@ namespace MAIN_Program {
 			Console.WriteLine("Initializing serial cable...");
 			try {
 				var serialPort = new SerialPortInterface(port);
-				//TODO: test if com port is a crestron cable (add test using getLEDStatus()).
-
-				this.commandParser = new CommandParser(serialPort);
-
+				commandParser = new CommandParser(serialPort);
 				writeSuccess("Successfully connected to port: " + port);
+
+				//NumLock check may be unnecessary. 
+				if (numLockCheck(serialPort))
+					writeWarning("NumLock check failed, com port may not be a crestron cable.");
 
 				//Release any keys
 				serialPort.SendBytes(0x38);
@@ -85,13 +93,23 @@ namespace MAIN_Program {
 				return true;
 			} catch {
 				writeWarning("Failed to connect to port: " + port);
-
-				writeWarning("Available ports: ");
-				foreach (var availablePort in SerialPortInterface.GetAvailablePorts()) {
-					writeWarning(availablePort);
-				}
+				writeWarning($"Available ports: {string.Join(",",SerialPortInterface.GetAvailablePorts())}");
 				return false;
 			}
+		}
+
+		/// <summary>
+		/// Checks if serial port is connected to a crestron cable by using numlock state
+		/// and checking if it changes when sending a make numlock byte.
+		/// </summary>
+		/// <param name="serialPort"></param>
+		/// <returns></returns>
+		private bool numLockCheck(SerialPortInterface serialPort) {
+			var numLock0 = serialPort.GetLEDStatus()[0];
+			serialPort.SendBytes(new List<byte>() {0x5a, 0xda});
+			while (serialPort.isExecuting()) ;
+			var numLock1 = serialPort.GetLEDStatus()[0];
+			return (numLock0 == numLock1);
 		}
 
 		/// <summary>
@@ -121,7 +139,7 @@ namespace MAIN_Program {
 			return true;
 		}
 
-		public void setupVideoCommunicator(string ip, int port, string name, string location, string type, string accessHash) {
+		private void setupVideoCommunicator(string ip, int port, string name, string location, string type, string accessHash) {
 			//Video networking info
 			string videoIP = ip;
 			int videoPort = port;

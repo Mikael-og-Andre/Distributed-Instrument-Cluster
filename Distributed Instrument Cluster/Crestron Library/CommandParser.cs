@@ -48,7 +48,7 @@ namespace Crestron_Library
 					mouseClick(key);
 					break;
 				default:
-					throw new Exception("Pars failed, \"" + operation + "\" was not recognized as an operation");
+					throw new Exception($"Pars failed, \"{operation}\" was not recognized as an operation");
 			}
 		}
 
