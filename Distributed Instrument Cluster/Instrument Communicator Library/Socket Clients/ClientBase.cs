@@ -58,7 +58,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 		/// <summary>
 		/// Starts the client and attempts to connect to the server
 		/// </summary>
-		public void Start() {
+		public void run() {
 			try {
 				// Create new socket
 				connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);

@@ -1,4 +1,4 @@
-﻿using Instrument_Communicator_Library.Interface;
+﻿using Networking_Library;
 
 namespace Instrument_Communicator_Library {
 

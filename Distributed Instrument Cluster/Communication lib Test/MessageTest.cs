@@ -1,6 +1,4 @@
 ﻿using Instrument_Communicator_Library;
-using Instrument_Communicator_Library.Interface;
-using Instrument_Communicator_Library.Remote_Device_side_Communicators;
 using Instrument_Communicator_Library.Server_Listener;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -12,7 +10,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using Instrument_Communicator_Library.Authorization;
+using Instrument_Communicator_Library.Connection_Types;
 using Instrument_Communicator_Library.Enums;
+using Instrument_Communicator_Library.Server_Listeners;
+using Instrument_Communicator_Library.Socket_Clients;
 
 namespace Communication_lib_Test {
 
@@ -36,10 +37,10 @@ namespace Communication_lib_Test {
 			CancellationToken cancellationToken = new CancellationToken(false);
 
 			VideoClient vidCom = new VideoClient("127.0.0.1", portVideo, infoVid, accessTokenVid, cancellationToken);
-			Thread vidComThread = new Thread(() => vidCom.Start());
+			Thread vidComThread = new Thread(() => vidCom.run());
 			vidComThread.Start();
 
-			ConcurrentQueue<VideoFrame> inputQueue = vidCom.GetInputQueue();
+			ConcurrentQueue<VideoFrame> inputQueue = vidCom.getInputQueue();
 
 			string[] strings = new string[] { "oooooooooooooooooooooooooooooooooooooooooooooooa long string", "s", "Hello !@$£@£$€@€@$${£€$", "12315127651294182491289049009++0" };
 			foreach (string s in strings) {
@@ -78,7 +79,7 @@ namespace Communication_lib_Test {
 			CancellationToken cancellationToken = new CancellationToken(false);
 
 			CrestronClient crestronClient = new CrestronClient("127.0.0.1", portCrest, infoCrest, accessTokenCrest, cancellationToken);
-			Thread crestronComThread = new Thread(() => crestronClient.Start());
+			Thread crestronComThread = new Thread(() => crestronClient.run());
 			crestronComThread.Start();
 
 			//wait for auth
@@ -123,7 +124,7 @@ namespace Communication_lib_Test {
 		[TestMethod]
 		public void testExceptions() {
 			CrestronClient cCom = new CrestronClient("127.0.0.1", 5090, new InstrumentInformation("name", "location", "type"), new AccessToken("access"), new CancellationToken(false));
-			Action startCom = () => cCom.Start();
+			Action startCom = () => cCom.run();
 
 			Assert.ThrowsException<SocketException>(startCom);
 		}

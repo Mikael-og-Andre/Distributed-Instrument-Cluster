@@ -7,6 +7,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Instrument_Communicator_Library.Connection_Types;
 using Instrument_Communicator_Library.Enums;
 
 namespace Blazor_Instrument_Cluster.Server.WebSockets {
@@ -68,7 +69,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				int looped = 0;
 				CrestronConnection con = null;
 				while (!exists && (looped < maxLoops)) {
-					exists = remoteDeviceConnections.GetCrestronConnectionWithName(out con, name);
+					exists = remoteDeviceConnections.getCrestronConnectionWithName(out con, name);
 					logger.LogCritical("WebSocket tried to Find {0} but Crestron connection queue was not found", name);
 					looped++;
 					await Task.Delay(100, token);

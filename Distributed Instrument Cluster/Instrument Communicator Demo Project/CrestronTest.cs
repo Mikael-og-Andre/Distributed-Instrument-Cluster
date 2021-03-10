@@ -6,8 +6,11 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using Instrument_Communicator_Library.Authorization;
+using Instrument_Communicator_Library.Connection_Types;
 using Instrument_Communicator_Library.Enums;
 using Instrument_Communicator_Library.Remote_Device_side_Communicators;
+using Instrument_Communicator_Library.Server_Listeners;
+using Instrument_Communicator_Library.Socket_Clients;
 
 namespace Server_And_Demo_Project {
 
@@ -35,7 +38,7 @@ namespace Server_And_Demo_Project {
             CancellationToken cancellationToken = new CancellationToken(false);
 
             CrestronClient client = new CrestronClient(ip, portCrestron, info, accessToken, cancellationToken);
-            Thread clientThread = new Thread(() => client.Start());
+            Thread clientThread = new Thread(() => client.run());
             clientThread.Start();
 
             AccessToken accessToken2 = new AccessToken("access");
@@ -43,7 +46,7 @@ namespace Server_And_Demo_Project {
             CancellationToken cancellationToken2 = new CancellationToken(false);
 
             CrestronClient client2 = new CrestronClient(ip, portCrestron, info2, accessToken2, cancellationToken2);
-            Thread clientThread2 = new Thread(() => client2.Start());
+            Thread clientThread2 = new Thread(() => client2.run());
             clientThread2.Start();
 
             AccessToken accessToken3 = new AccessToken("acess");
@@ -51,7 +54,7 @@ namespace Server_And_Demo_Project {
             CancellationToken cancellationToken3 = new CancellationToken(false);
 
             CrestronClient client3 = new CrestronClient(ip, portCrestron, info3, accessToken3, cancellationToken3);
-            Thread clientThread3 = new Thread(() => client3.Start());
+            Thread clientThread3 = new Thread(() => client3.run());
             clientThread3.Start();
 
             Thread.Sleep(2000);

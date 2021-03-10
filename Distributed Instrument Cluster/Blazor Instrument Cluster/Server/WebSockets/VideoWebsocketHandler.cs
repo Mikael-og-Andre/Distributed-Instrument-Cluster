@@ -1,7 +1,7 @@
 ﻿using Blazor_Instrument_Cluster.Server.Events;
 using Blazor_Instrument_Cluster.Server.Injection;
 using Blazor_Instrument_Cluster.Server.Worker;
-using Instrument_Communicator_Library.Interface;
+using Instrument_Communicator_Library;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -9,7 +9,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Instrument_Communicator_Library;
+using Networking_Library;
 
 namespace Blazor_Instrument_Cluster {
 
@@ -68,7 +68,7 @@ namespace Blazor_Instrument_Cluster {
 				int maxLoops = 20;
 				int looped = 0;
 				while (!subbed && (looped < maxLoops)) {
-					subbed = remoteDeviceConnections.SubscribeToVideoProviderWithName(name, consumer);
+					subbed = remoteDeviceConnections.subscribeToVideoProviderWithName(name, consumer);
 					logger.LogDebug("WebSocket tried to subscribe to {0} but i could not be found in the provider queue", name);
 					looped++;
 					await Task.Delay(100, token);

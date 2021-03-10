@@ -1,8 +1,8 @@
-﻿using Instrument_Communicator_Library.Interface;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using Instrument_Communicator_Library.Enums;
+using Networking_Library;
 
 namespace Instrument_Communicator_Library {
 

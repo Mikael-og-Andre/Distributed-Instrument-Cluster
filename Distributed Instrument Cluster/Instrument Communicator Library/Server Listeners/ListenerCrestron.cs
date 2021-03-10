@@ -1,5 +1,4 @@
-﻿using Instrument_Communicator_Library.Helper_Class;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,9 +6,12 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using Instrument_Communicator_Library.Authorization;
+using Instrument_Communicator_Library.Connection_Types;
 using Instrument_Communicator_Library.Enums;
+using Instrument_Communicator_Library.Server_Listener;
+using Networking_Library;
 
-namespace Instrument_Communicator_Library.Server_Listener {
+namespace Instrument_Communicator_Library.Server_Listeners {
 
 	public class ListenerCrestron : ListenerBase {
 
@@ -40,7 +42,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// <param name="thread">Thread</param>
 		/// </summary>
 		protected override object createConnectionType(Socket socket, Thread thread) {
-			return new CrestronConnection(socket, thread);
+			return new CrestronConnection(thread, socket);
 		}
 
 		/// <summary>
@@ -129,7 +131,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Stop stopwatch if ending i guess
 			stopwatch.Stop();
 			//get socket and disconnect
-			Socket socket = clientConnection.GetSocket();
+			Socket socket = clientConnection.getSocket();
 			socket.Disconnect(false);
 			//remove client from connections
 		}
@@ -173,7 +175,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// <param name="clientConnection">Client Connection representing The current Connection</param>
 		private void serverProtocolAuthorization(CrestronConnection clientConnection) {
 			//get socket
-			Socket connectionSocket = clientConnection.GetSocket();
+			Socket connectionSocket = clientConnection.getSocket();
 			//Send protocol type to client
 			NetworkingOperations.sendStringWithSocket(ProtocolOption.authorize.ToString(), connectionSocket);
 			//receive token
@@ -190,13 +192,13 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				//Send char y for success
 				NetworkingOperations.sendStringWithSocket("y", connectionSocket);
 				//Add access Token to clientConnection
-				clientConnection.SetAccessToken(token);
+				clientConnection.setAccessToken(token);
 			}
 			else {
 				//Send char n for negative
 				NetworkingOperations.sendStringWithSocket("n", connectionSocket);
 				//authorization failed, set not clientConnection to not active and return
-				clientConnection.SetIsConnectionActive(false);
+				clientConnection.stop();
 				return;
 			}
 
@@ -211,7 +213,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Send signal to for successful finish instrumentCommunication
 			NetworkingOperations.sendStringWithSocket("y", connectionSocket);
 
-			clientConnection.SetInstrumentInformation(new InstrumentInformation(name, location, type));
+			clientConnection.setInstrumentInformation(new InstrumentInformation(name, location, type));
 		}
 
 		/// <summary>
@@ -221,7 +223,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		private static void serverProtocolPing(CrestronConnection clientConnection) {
 			//Send protocol type "ping" to client
 			//get socket
-			Socket connectionSocket = clientConnection.GetSocket();
+			Socket connectionSocket = clientConnection.getSocket();
 			NetworkingOperations.sendStringWithSocket(ProtocolOption.ping.ToString(), connectionSocket);
 			//Receive answer
 			string receiveString = NetworkingOperations.receiveStringWithSocket(connectionSocket);
@@ -234,7 +236,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			else {
 				//failed ping, stop connection
 				Console.WriteLine("SERVER - Client Thread {0} says: Ping failed, received wrong response", Thread.CurrentThread.ManagedThreadId);
-				clientConnection.SetIsConnectionActive(false);
+				clientConnection.stop();
 			}
 		}
 
@@ -251,7 +253,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Get reference to the queue
 			ConcurrentQueue<Message> inputQueue = clientConnection.getSendingQueue();
 			//Get Socket
-			Socket connectionSocket = clientConnection.GetSocket();
+			Socket connectionSocket = clientConnection.getSocket();
 			try {
 				//extract message from queue
 				bool isSuccess = inputQueue.TryDequeue(out var messageToSend);
@@ -316,7 +318,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				//Search for connection
 				foreach (var connection in listCrestronConnections) {
 					if (connection.hasInstrument) {
-						InstrumentInformation info = connection.GetInstrumentInformation();
+						InstrumentInformation info = connection.getInstrumentInformation();
 						//Check if the name is the same
 						if (info.Name.ToLower().Equals(name.ToLower())) {
 							crestronConnection = connection;

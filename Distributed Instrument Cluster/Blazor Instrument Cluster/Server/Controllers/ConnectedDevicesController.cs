@@ -36,10 +36,10 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		[HttpGet]
 		[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<DeviceModel>))]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		public IEnumerable<DeviceModel> GetVideoConnections() {
+		public IEnumerable<DeviceModel> getVideoConnections() {
 			//Get list of video connections
 			List<VideoConnection> listVideoConnections;
-			if (remoteDeviceConnection.GetVideoConnectionList(out listVideoConnections)) {
+			if (remoteDeviceConnection.getVideoConnectionList(out listVideoConnections)) {
 				//Create an IEnumerable with device models
 				IEnumerable<DeviceModel> enumerableDeviceModels = new DeviceModel[] { };
 				//Lock unsafe list

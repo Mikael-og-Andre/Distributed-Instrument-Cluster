@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using Instrument_Communicator_Library;
+using Instrument_Communicator_Library.Connection_Types;
 using Instrument_Communicator_Library.Enums;
+using Instrument_Communicator_Library.Server_Listeners;
 
 namespace Testing_Server {
 

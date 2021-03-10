@@ -2,9 +2,10 @@
 using System.Net.Sockets;
 using System.Threading;
 using Instrument_Communicator_Library.Authorization;
-using Instrument_Communicator_Library.Helper_Class;
+using Instrument_Communicator_Library.Remote_Device_side_Communicators;
+using Networking_Library;
 
-namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
+namespace Instrument_Communicator_Library.Socket_Clients {
 
     /// <summary>
     /// Represents a socket line from a device to the server, intended to send video
@@ -43,7 +44,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
                 bool hasInput = inputQueue.TryDequeue(out VideoFrame frame);
                 if (!hasInput) continue;
 
-                NetworkingOperations.sendObjectWithSocket(frame, connectionSocket);
+                NetworkingOperations.sendObjectWithSocket<VideoFrame>(frame, connectionSocket);
             }
         }
 
@@ -51,7 +52,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
         /// Get the concurrent Queue where you can enqueue frame to push them to the server
         /// </summary>
         /// <returns></returns>
-        public ConcurrentQueue<VideoFrame> GetInputQueue() {
+        public ConcurrentQueue<VideoFrame> getInputQueue() {
             return inputQueue;
         }
     }

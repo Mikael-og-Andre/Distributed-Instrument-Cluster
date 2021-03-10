@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Instrument_Communicator_Library.Connection_Types;
+using Instrument_Communicator_Library.Server_Listeners;
 
 namespace Blazor_Instrument_Cluster.Server.Worker {
 
@@ -40,7 +42,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 			//Set remoteDevice connections
 			List<CrestronConnection> crestronConnectionList = crestronListener.getCrestronConnectionList();
 			if (remoteDeviceConnection != null) {
-				remoteDeviceConnection.SetCrestronConnectionList(crestronConnectionList);
+				remoteDeviceConnection.setCrestronConnectionList(crestronConnectionList);
 			} else {
 				this.logger.LogError("Remote Device connection input was null");
 				throw new NullReferenceException(

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Instrument_Communicator_Library.Authorization;
+using Instrument_Communicator_Library.Socket_Clients;
 using Video_Library;
 
 namespace MAIN_Program {
@@ -29,7 +30,7 @@ namespace MAIN_Program {
 		}
 
 		// TODO: make input config file.
-		private static string serialComPort = "com4";
+		private static string _serialComPort = "com4";
 
 		private Program(string[] args) {
 			//Setup communicators
@@ -41,7 +42,7 @@ namespace MAIN_Program {
 
 			//TODO: construct/init based on config file
 
-			setupSerialCable(serialComPort);
+			setupSerialCable(_serialComPort);
 			//setupVideoDevice(0);
 			setupVideoDevice(1);
 
@@ -56,7 +57,7 @@ namespace MAIN_Program {
 				//if (videoDevices[0].tryReadFrameBuffer(out Mat ooga)) {
 				if (videoDevices[0].tryReadJpg(out byte[] ooga, 70)) {
 					Thread.Sleep(100);
-					videoClient.GetInputQueue().Enqueue(new VideoFrame(ooga));
+					videoClient.getInputQueue().Enqueue(new VideoFrame(ooga));
 				}
 			}
 
@@ -138,7 +139,7 @@ namespace MAIN_Program {
 				new VideoClient(videoIP, videoPort, info, accessToken, videoCancellationToken);
 
 			//TODO: refactor threading
-			Thread videoThread = new Thread(() => videoClient.Start());
+			Thread videoThread = new Thread(() => videoClient.run());
 			videoThread.Start();
 		}
 
@@ -156,7 +157,7 @@ namespace MAIN_Program {
 			crestronClient = new CrestronClient(crestronIP, crestronPort, info, accessToken, crestronCancellationToken);
 
 			//TODO: refactor threading
-			Thread crestronThread = new Thread(() => crestronClient.Start());
+			Thread crestronThread = new Thread(() => crestronClient.run());
 			crestronThread.Start();
 		}
 

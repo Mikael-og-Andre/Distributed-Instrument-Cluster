@@ -1,9 +1,9 @@
-﻿using Instrument_Communicator_Library.Helper_Class;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using Networking_Library;
 
 namespace Instrument_Communicator_Library.Server_Listener {
 
@@ -12,6 +12,8 @@ namespace Instrument_Communicator_Library.Server_Listener {
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	public class ListenerVideo : ListenerBase {
+
+		private const int IncomingByteArrayBufferSize = 200000;
 
 		/// <summary>
 		/// list of connected video streams
@@ -35,7 +37,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// <param name="thread"></param>
 		/// <returns>VideoConnection</returns>
 		protected override object createConnectionType(Socket socket, Thread thread) {
-			return new VideoConnection(socket, thread);
+			return new VideoConnection(thread, socket);
 		}
 
 		/// <summary>
@@ -69,9 +71,13 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Do main loop
 			while (!listenerCancellationToken.IsCancellationRequested) {
 				//Get Incoming object
-				VideoFrame newObj = NetworkingOperations.receiveObjectWithSocket(connectionSocket);
-
-				outputQueue.Enqueue(newObj);
+				byte[] objectBytes = NetworkingOperations.receiveByteArrayWithSocket(connectionSocket,IncomingByteArrayBufferSize);
+				//create empty frame
+				VideoFrame temp = new VideoFrame(new byte[]{});
+				//Convert array to new frame
+				VideoFrame inFrame = (VideoFrame) temp.getObject(objectBytes);
+				//Enqueue the frame
+				outputQueue.Enqueue(inFrame);
 			}
 			//remove connection
 			removeVideoConnection(videoConnection);

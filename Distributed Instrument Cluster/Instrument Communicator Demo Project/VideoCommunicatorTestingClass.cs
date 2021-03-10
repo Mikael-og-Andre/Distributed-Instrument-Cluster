@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using Instrument_Communicator_Library;
-using Instrument_Communicator_Library.Remote_Device_side_Communicators;
 using System.Threading;
 using Instrument_Communicator_Library.Authorization;
-using Instrument_Communicator_Library.Interface;
+using Instrument_Communicator_Library.Socket_Clients;
 
 namespace HardwareServer_Demo_Project {
 
@@ -18,10 +17,10 @@ namespace HardwareServer_Demo_Project {
 			CancellationToken comCancellationToken = new CancellationToken(false);
 
 			VideoClient vidCom = new VideoClient("127.0.0.1", 5051, info, accessToken, comCancellationToken);
-			Thread vidComThread = new Thread(() => vidCom.Start());
+			Thread vidComThread = new Thread(() => vidCom.run());
 			vidComThread.Start();
 
-			ConcurrentQueue<VideoFrame> inputQueue = vidCom.GetInputQueue();
+			ConcurrentQueue<VideoFrame> inputQueue = vidCom.getInputQueue();
 
 			while (true) {
 				Console.WriteLine("Fix with img");

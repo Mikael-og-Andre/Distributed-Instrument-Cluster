@@ -61,7 +61,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 			//Set remoteDevice connections
 			List<VideoConnection> videoConnections = videoListener.getVideoConnectionList();
 			if (remoteDeviceConnection != null) {
-				remoteDeviceConnection.SetVideoConnectionList(videoConnections);
+				remoteDeviceConnection.setVideoConnectionList(videoConnections);
 			}
 			else {
 				this.logger.LogError("Remote Device connection input was null");
@@ -120,7 +120,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 			//Create Provider with the name of the device
 			VideoConnectionFrameProvider provider = new VideoConnectionFrameProvider(info.Name);
 			//Add provider to list of running providers so i can be found by connecting ui's and subscribed to
-			remoteDeviceConnection.AddFrameProviderToListOfProviders(provider);
+			remoteDeviceConnection.addFrameProviderToListOfProviders(provider);
 			CancellationToken token = new CancellationToken();
 			//Get Queue
 			ConcurrentQueue<VideoFrame> queue = connection.getOutputQueue();

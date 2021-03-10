@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
 using Instrument_Communicator_Library.Connection_Classes;
 
-
-namespace Instrument_Communicator_Library {
+namespace Instrument_Communicator_Library.Connection_Types {
     /// <summary>
     /// Class that contains All information about a Crestron connection
     /// <author>Mikael Nilssen</author>
@@ -47,6 +45,6 @@ namespace Instrument_Communicator_Library {
         public ConcurrentQueue<Message> getReceivingQueue() {
             return receiveQueue;
         }
-        
+
     }
 }

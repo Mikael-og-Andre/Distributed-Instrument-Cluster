@@ -92,5 +92,12 @@ namespace Instrument_Communicator_Library.Connection_Classes {
 			this.accessToken = accessToken;
 			hasAccessToken = true;
 		}
+
+		/// <summary>
+		/// Set Active to false
+		/// </summary>
+		public void stop() {
+			this.isActive = false;
+		}
 	}
 }
