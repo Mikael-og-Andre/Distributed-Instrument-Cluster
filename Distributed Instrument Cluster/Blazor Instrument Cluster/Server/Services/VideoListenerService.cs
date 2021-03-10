@@ -116,14 +116,14 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 				Thread.Sleep(100);
 			}
 			//Instrument information
-			InstrumentInformation info = connection.GetInstrumentInformation();
+			InstrumentInformation info = connection.getInstrumentInformation();
 			//Create Provider with the name of the device
 			VideoConnectionFrameProvider provider = new VideoConnectionFrameProvider(info.Name);
 			//Add provider to list of running providers so i can be found by connecting ui's and subscribed to
 			remoteDeviceConnection.AddFrameProviderToListOfProviders(provider);
 			CancellationToken token = new CancellationToken();
 			//Get Queue
-			ConcurrentQueue<VideoFrame> queue = connection.GetOutputQueue();
+			ConcurrentQueue<VideoFrame> queue = connection.getOutputQueue();
 			while (!token.IsCancellationRequested) {
 				if (queue.TryDequeue(out VideoFrame frameResult)) {
 					//Send frame to all subscribers

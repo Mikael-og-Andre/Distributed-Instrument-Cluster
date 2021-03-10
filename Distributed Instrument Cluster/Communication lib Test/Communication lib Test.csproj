@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Instrument Communicator Library\Instrument Communicator Library.csproj" />
+    <ProjectReference Include="..\Instrument Communicator Library\Server Library.csproj" />
   </ItemGroup>
 
 </Project>

@@ -47,7 +47,7 @@ namespace Communication_lib_Test {
 			List<VideoConnection> vidCons = vidListener.getVideoConnectionList();
 			lock (vidCons) {
 				foreach (VideoConnection con in vidCons) {
-					ConcurrentQueue<VideoFrame> queue = con.GetOutputQueue();
+					ConcurrentQueue<VideoFrame> queue = con.getOutputQueue();
 					foreach (string s in strings) {
 						VideoFrame qOut;
 						bool hasVal = queue.TryDequeue(out qOut);

@@ -45,7 +45,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 				//Lock unsafe list
 				lock (listVideoConnections) {
 					foreach (var videoConnection in listVideoConnections) {
-						InstrumentInformation info = videoConnection.GetInstrumentInformation();
+						InstrumentInformation info = videoConnection.getInstrumentInformation();
 						//TODO: Add has crestron boolean to instrument information
 						enumerableDeviceModels =
 							enumerableDeviceModels.Append(new DeviceModel(info.Name, info.Location, info.Type, true));

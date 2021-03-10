@@ -25,17 +25,19 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		/// <summary>
 		/// Receive an object with socket
 		/// </summary>
-		/// <param name="connectionSocket"></param>
-		/// <returns></returns>
-		public static VideoFrame receiveVideoFrameWithSocket(Socket connectionSocket) {
-			//First 4 bytes are size
+		/// <param name="connectionSocket">Socket used for receiving</param>
+		/// <param name="receiveBufferSize">Size wanted for the buffer to receive the object</param>
+		/// <returns>byte array representation of object</returns>
+		public static byte[] receiveByteArrayWithSocket(Socket connectionSocket, int receiveBufferSize) {
+			//Create stream
 			NetworkStream networkStream = new NetworkStream(connectionSocket);
             networkStream.Flush();
-			
-			byte[] bufferBytes = new byte[200000];
+			//read bytes to buffer
+			byte[] bufferBytes = new byte[receiveBufferSize];
 			networkStream.Read(bufferBytes);
 			networkStream.Flush();
             int endInt = 0;
+			//Check where the nullbytes are
             for (int i = bufferBytes.Length; i>0;i--) {
                 byte currentByte = bufferBytes[i-1];
                 if (currentByte != byte.MinValue) {
@@ -44,13 +46,11 @@ namespace Instrument_Communicator_Library.Helper_Class {
                 }
             }
 
-
-            byte[] bytes = new Byte[endInt];
+			//Copy non null bytes to array
+            byte[] bytes = new byte[endInt];
 			Buffer.BlockCopy(bufferBytes, 0, bytes, 0, endInt);
-
-			VideoFrame frame = new VideoFrame(new byte[] { });
-			frame = (VideoFrame)frame.getObject(bytes);
-			return frame;
+			//return arrray
+			return bytes;
 		}
 
 		/// <summary>
@@ -91,13 +91,5 @@ namespace Instrument_Communicator_Library.Helper_Class {
 			//Send message string to client
 			connectionSocket.Send(stringBuffer, stringBuffer.Length, SocketFlags.None);
 		}
-		
-
-		private static int getIntFromBytes(byte[] array) {
-			return BitConverter.ToInt32(array);
-		}
-		
-		
-
 	}
 }

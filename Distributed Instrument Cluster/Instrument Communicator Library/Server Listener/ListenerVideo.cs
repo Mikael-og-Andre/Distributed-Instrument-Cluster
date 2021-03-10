@@ -52,7 +52,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			incomingConnectionsQueue.Enqueue(videoConnection);
 
 			//Get socket
-			Socket connectionSocket = videoConnection.GetSocket();
+			Socket connectionSocket = videoConnection.getSocket();
 
 			//Send signal to start instrumentCommunication
 			NetworkingOperations.sendStringWithSocket("y", connectionSocket);
@@ -61,15 +61,15 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			string location = NetworkingOperations.receiveStringWithSocket(connectionSocket);
 			string type = NetworkingOperations.receiveStringWithSocket(connectionSocket);
 
-			videoConnection.SetInstrumentInformation(new InstrumentInformation(name, location, type));
+			videoConnection.setInstrumentInformation(new InstrumentInformation(name, location, type));
 
 			//Get outputQueue
-			ConcurrentQueue<VideoFrame> outputQueue = videoConnection.GetOutputQueue();
+			ConcurrentQueue<VideoFrame> outputQueue = videoConnection.getOutputQueue();
 
 			//Do main loop
 			while (!listenerCancellationToken.IsCancellationRequested) {
 				//Get Incoming object
-				VideoFrame newObj = NetworkingOperations.receiveVideoFrameWithSocket(connectionSocket);
+				VideoFrame newObj = NetworkingOperations.receiveObjectWithSocket(connectionSocket);
 
 				outputQueue.Enqueue(newObj);
 			}

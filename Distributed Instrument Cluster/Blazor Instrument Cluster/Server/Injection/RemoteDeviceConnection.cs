@@ -148,12 +148,12 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 				//Loop connection
 				foreach (var connection in listVideoConnections) {
 					//Check name of connection
-					InstrumentInformation instrumentInformation = connection.GetInstrumentInformation();
+					InstrumentInformation instrumentInformation = connection.getInstrumentInformation();
 					if (instrumentInformation == null) continue;
 					string infoName = instrumentInformation.Name;
 					if (!infoName.ToLower().Equals(name.ToLower())) continue;
 					//Get queue and return true since it matched
-					queue = connection.GetOutputQueue();
+					queue = connection.getOutputQueue();
 					return true;
 				}
 				//set null for object and return null

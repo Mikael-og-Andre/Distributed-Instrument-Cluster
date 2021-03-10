@@ -48,7 +48,7 @@ namespace Server_And_Demo_Project {
 
             var con = listListenerConnections[0];
 
-            ConcurrentQueue<VideoFrame> queueOutputQueue = con.GetOutputQueue();
+            ConcurrentQueue<VideoFrame> queueOutputQueue = con.getOutputQueue();
 
             while (true) {
                 if (queueOutputQueue.TryPeek(out VideoFrame nahResult)) {
