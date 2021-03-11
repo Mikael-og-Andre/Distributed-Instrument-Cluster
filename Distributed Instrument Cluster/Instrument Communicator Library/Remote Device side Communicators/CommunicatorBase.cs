@@ -102,9 +102,10 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 				return true;
 			}
 			catch (SocketException ex) {
-				throw new SocketException(ex.ErrorCode);
+				//TODO: FIX IT MIKAEL!!!!!
+				//throw new SocketException(ex.ErrorCode);
 				//return false to represent failed connection
-				//return false;
+				return false;
 			}
 		}
 

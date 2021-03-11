@@ -1,0 +1,30 @@
+{
+  "serialCable": {
+    "portName": "com4",
+    "communicator": {
+      "ip": "127.0.0.1",
+      "port": 5050,
+      "name": "Radar1",
+      "location": "device location",
+      "type": "device type",
+      "accessHash": "access" 
+    }
+  },
+  "videoDevices": [
+    {
+      "deviceIndex": 1,
+      "apiIndex": 700,
+      "width": 1280,
+      "height": 720,
+      "communicator": {
+        "ip": "127.0.0.1",
+        "port": 5051,
+        "name": "Radar1",
+        "location": "device location",
+        "type": "device type",
+        "accessHash": "access"
+      }
+    }
+  ]
+
+}
