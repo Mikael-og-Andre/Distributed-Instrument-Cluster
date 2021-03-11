@@ -2,7 +2,6 @@
 using System.Net.Sockets;
 using System.Threading;
 using Instrument_Communicator_Library.Authorization;
-using Instrument_Communicator_Library.Remote_Device_side_Communicators;
 using Networking_Library;
 
 namespace Instrument_Communicator_Library.Socket_Clients {
@@ -11,7 +10,7 @@ namespace Instrument_Communicator_Library.Socket_Clients {
     /// Represents a socket line from a device to the server, intended to send video
     /// <author>Mikael Nilssen</author>
     /// </summary>
-    public class VideoClient : ClientBase{
+    public class VideoClient : ClientBaseOld{
 
 		/// <summary>
 		/// queue of inputs meant to be sent to server
@@ -39,7 +38,7 @@ namespace Instrument_Communicator_Library.Socket_Clients {
             NetworkingOperations.sendStringWithSocket(information.Type, connectionSocket);
 
             //While not canceled push from queue to socket
-            while (!communicatorCancellationToken.IsCancellationRequested) {
+            while (!isRunningCancellationToken.IsCancellationRequested) {
                 //get input form queue
                 bool hasInput = inputQueue.TryDequeue(out VideoFrame frame);
                 if (!hasInput) continue;

@@ -1,14 +1,15 @@
 ﻿using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
+using Instrument_Communicator_Library.Authorization;
 using Instrument_Communicator_Library.Connection_Classes;
 
-namespace Instrument_Communicator_Library.Connection_Types {
+namespace Instrument_Communicator_Library.Connection_Types.deprecated {
     /// <summary>
     /// Class that contains All information about a Crestron connection
     /// <author>Mikael Nilssen</author>
     /// </summary>
-    public class CrestronConnection : ConnectionBase {
+    public class CrestronConnection : ConnectionBaseOld {
 	    /// <summary>
 		/// Concurrent queue for Messages to send to the client
 		/// </summary>
@@ -23,7 +24,7 @@ namespace Instrument_Communicator_Library.Connection_Types {
 		/// </summary>
 		/// <param name="homeThread"></param>
 		/// <param name="socket"></param>
-		public CrestronConnection(Thread homeThread, Socket socket) : base(homeThread, socket) {
+		public CrestronConnection(Thread homeThread, Socket socket, AccessToken accessToken, InstrumentInformation info, CancellationToken cancellation) : base(homeThread, socket,accessToken,info, cancellation) {
             
             //Init queues
             sendingQueue = new ConcurrentQueue<Message>();

@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using Instrument_Communicator_Library.Server_Listeners;
+using Instrument_Communicator_Library.Authorization;
+using Instrument_Communicator_Library.Connection_Types.deprecated;
 using Networking_Library;
 
-namespace Instrument_Communicator_Library.Server_Listener {
+namespace Instrument_Communicator_Library.Server_Listeners.deprecated {
 
 	/// <summary>
 	/// Listener for incoming video connections
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class ListenerVideo : ListenerBase {
+	public class ListenerVideo : ListenerBaseOld {
 
 		private const int IncomingByteArrayBufferSize = 200000;
 
@@ -37,8 +38,8 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// <param name="socket"></param>
 		/// <param name="thread"></param>
 		/// <returns>VideoConnection</returns>
-		protected override object createConnectionType(Socket socket, Thread thread) {
-			return new VideoConnection(thread, socket);
+		protected override object createConnectionType(Socket socket, Thread thread,AccessToken accessToken, InstrumentInformation info) {
+			return new VideoConnection(thread, socket, accessToken, info, cancellationTokenSource.Token);
 		}
 
 		/// <summary>
@@ -56,21 +57,13 @@ namespace Instrument_Communicator_Library.Server_Listener {
 
 			//Get socket
 			Socket connectionSocket = videoConnection.getSocket();
-
-			//Send signal to start instrumentCommunication
-			NetworkingOperations.sendStringWithSocket("y", connectionSocket);
-
-			string name = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-			string location = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-			string type = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-
-			videoConnection.setInstrumentInformation(new InstrumentInformation(name, location, type));
-
+			
+			
 			//Get outputQueue
 			ConcurrentQueue<VideoFrame> outputQueue = videoConnection.getOutputQueue();
 
 			//Do main loop
-			while (!listenerCancellationToken.IsCancellationRequested) {
+			while (!cancellationTokenSource.Token.IsCancellationRequested) {
 				//Get Incoming object
 				byte[] objectBytes = NetworkingOperations.receiveByteArrayWithSocket(connectionSocket,IncomingByteArrayBufferSize);
 				//create empty frame

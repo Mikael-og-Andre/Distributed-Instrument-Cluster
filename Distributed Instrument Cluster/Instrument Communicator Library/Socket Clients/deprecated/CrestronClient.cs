@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Threading;
 using Instrument_Communicator_Library.Authorization;
 using Instrument_Communicator_Library.Enums;
-using Instrument_Communicator_Library.Remote_Device_side_Communicators;
 using Networking_Library;
 
 namespace Instrument_Communicator_Library.Socket_Clients {
@@ -13,7 +12,7 @@ namespace Instrument_Communicator_Library.Socket_Clients {
 	/// Client for connecting and receiving commands from server unit to control a crestron Device
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class CrestronClient : ClientBase {
+	public class CrestronClient : ClientBaseOld {
 
 		/// <summary>
 		/// Queue representing commands received by receive protocol
@@ -49,7 +48,7 @@ namespace Instrument_Communicator_Library.Socket_Clients {
 				if (isAuthorized) {
 					Console.WriteLine("Thread {0} Client Authorization complete", Thread.CurrentThread.ManagedThreadId);
 					//Run main protocol Loop
-					while (!communicatorCancellationToken.IsCancellationRequested) {
+					while (!isRunningCancellationToken.IsCancellationRequested) {
 						//Read a protocol choice from the buffer and execute it
 						startAProtocol(connectionSocket);
 					}

@@ -7,13 +7,13 @@ using System.Net.Sockets;
 using System.Threading;
 using Instrument_Communicator_Library.Authorization;
 using Instrument_Communicator_Library.Connection_Types;
+using Instrument_Communicator_Library.Connection_Types.deprecated;
 using Instrument_Communicator_Library.Enums;
-using Instrument_Communicator_Library.Server_Listener;
 using Networking_Library;
 
-namespace Instrument_Communicator_Library.Server_Listeners {
+namespace Instrument_Communicator_Library.Server_Listeners.deprecated {
 
-	public class ListenerCrestron : ListenerBase {
+	public class ListenerCrestron : ListenerBaseOld {
 
 		/// <summary>
 		/// Time to wait between pings
@@ -41,8 +41,8 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 		/// <param name="socket">Socket</param>
 		/// <param name="thread">Thread</param>
 		/// </summary>
-		protected override object createConnectionType(Socket socket, Thread thread) {
-			return new CrestronConnection(thread, socket);
+		protected override object createConnectionType(Socket socket, Thread thread, AccessToken accessToken, InstrumentInformation info) {
+			return new CrestronConnection(thread, socket, accessToken,info, cancellationTokenSource.Token);
 		}
 
 		/// <summary>
@@ -62,9 +62,6 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 			//add a connection to the list of connections
 			addClientConnection(clientConnection);
 
-			//Do authorization process
-			serverProtocolAuthorization(clientConnection);
-
 			ConcurrentQueue<Message> inputQueue = clientConnection.getSendingQueue();   //Get reference to the queue of inputs intended to send to the client
 			ConcurrentQueue<Message> outputQueue = clientConnection.getReceivingQueue();     //Get reference to the queue of things received by the client
 
@@ -73,7 +70,7 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 			//Start stopwatch
 			stopwatch.Start();
 
-			while (!listenerCancellationToken.IsCancellationRequested) {
+			while (!cancellationTokenSource.Token.IsCancellationRequested) {
 				//Variable representing protocol to use;
 				ProtocolOption currentMode;
 				Message message;
@@ -110,14 +107,6 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 					case ProtocolOption.message:
 						//preform send protocol
 						this.serverProtocolMessage(clientConnection);
-						break;
-
-					case ProtocolOption.status:
-						this.serverProtocolStatus(clientConnection);
-						break;
-
-					case ProtocolOption.authorize:
-						this.serverProtocolAuthorization(clientConnection);
 						break;
 
 					default:
@@ -170,53 +159,6 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 		#region Protocols
 
 		/// <summary>
-		/// Starts predetermined sequence eof socket operations used to authorize a remote device
-		/// </summary>
-		/// <param name="clientConnection">Client Connection representing The current Connection</param>
-		private void serverProtocolAuthorization(CrestronConnection clientConnection) {
-			//get socket
-			Socket connectionSocket = clientConnection.getSocket();
-			//Send protocol type to client
-			NetworkingOperations.sendStringWithSocket(ProtocolOption.authorize.ToString(), connectionSocket);
-			//receive token
-			string receivedToken = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-
-			//TODO: Add Encryption to accessTokens
-
-			//Create Token
-			AccessToken token = new AccessToken(receivedToken);
-			//Validate token
-			bool validationResult = validateAccessToken(token);
-			//Send success/failure to client
-			if (validationResult) {
-				//Send char y for success
-				NetworkingOperations.sendStringWithSocket("y", connectionSocket);
-				//Add access Token to clientConnection
-				clientConnection.setAccessToken(token);
-			}
-			else {
-				//Send char n for negative
-				NetworkingOperations.sendStringWithSocket("n", connectionSocket);
-				//authorization failed, set not clientConnection to not active and return
-				clientConnection.stop();
-				return;
-			}
-
-			//Get instrument Information
-			//Send signal to start instrumentCommunication
-			NetworkingOperations.sendStringWithSocket("y", connectionSocket);
-
-			string name = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-			string location = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-			string type = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-
-			//Send signal to for successful finish instrumentCommunication
-			NetworkingOperations.sendStringWithSocket("y", connectionSocket);
-
-			clientConnection.setInstrumentInformation(new InstrumentInformation(name, location, type));
-		}
-
-		/// <summary>
 		/// Send protocol type PING to client and receives answer
 		/// </summary>
 		/// <param name="clientConnection">Connected and authorized socket</param>
@@ -236,13 +178,8 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 			else {
 				//failed ping, stop connection
 				Console.WriteLine("SERVER - Client Thread {0} says: Ping failed, received wrong response", Thread.CurrentThread.ManagedThreadId);
-				clientConnection.stop();
+				
 			}
-		}
-
-		//TODO: handle status protocol server
-		private void serverProtocolStatus(CrestronConnection clientConnection) {
-			throw new NotImplementedException();
 		}
 
 		/// <summary>
@@ -317,7 +254,7 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 			lock (listCrestronConnections) {
 				//Search for connection
 				foreach (var connection in listCrestronConnections) {
-					if (connection.hasInstrument) {
+					if (connection.isSetupCompleted) {
 						InstrumentInformation info = connection.getInstrumentInformation();
 						//Check if the name is the same
 						if (info.Name.ToLower().Equals(name.ToLower())) {
