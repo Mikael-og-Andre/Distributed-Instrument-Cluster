@@ -3,8 +3,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Instrument_Communicator_Library.Server_Listener {
-
+namespace Instrument_Communicator_Library.Server_Listeners {
+	/// <summary>
+	/// Base class for a server listening for incoming connections
+	/// <author>Mikael Nilssen</author>
+	/// </summary>
 	public abstract class ListenerBase {
 
 		/// <summary>
@@ -37,10 +40,10 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// </summary>
 		private int currentConnectionCount;
 
-		public ListenerBase(IPEndPoint ipEndPoint, int _maxConnections = 30, int _maxPendingConnections = 30) {
+		protected ListenerBase(IPEndPoint ipEndPoint, int maxConnections = 30, int maxPendingConnections = 30) {
 			this.ipEndPoint = ipEndPoint;
-			this.maxConnections = _maxConnections;
-			this.maxPendingConnections = _maxPendingConnections;
+			this.maxConnections = maxConnections;
+			this.maxPendingConnections = maxPendingConnections;
 			this.listenerCancellationToken = new CancellationToken();
 			this.currentConnectionCount = 0;
 		}
