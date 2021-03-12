@@ -1,11 +1,11 @@
 ﻿using Crestron_Library;
-using Instrument_Communicator_Library;
+using Server_Library;
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Instrument_Communicator_Library.Authorization;
-using Instrument_Communicator_Library.Socket_Clients;
+using Server_Library.Authorization;
+using Server_Library.Socket_Clients;
 using Video_Library;
 
 namespace MAIN_Program {
@@ -127,7 +127,7 @@ namespace MAIN_Program {
 			string videoIP = ip;
 			int videoPort = port;
 			//Instrument Information
-			InstrumentInformation info = new InstrumentInformation(name, location, type);
+			ClientInformation info = new ClientInformation(name, location, type);
 			//AccessToken -
 			AccessToken accessToken = new AccessToken(accessHash);
 			//cancellation tokens
@@ -147,7 +147,7 @@ namespace MAIN_Program {
 			string crestronIP = ip;
 			int crestronPort = port;
 			//Instrument Information
-			InstrumentInformation info = new InstrumentInformation(name, location, type);
+			ClientInformation info = new ClientInformation(name, location, type);
 			//AccessToken -
 			AccessToken accessToken = new AccessToken(accessHash);
 			//Crestron Cancellation Token

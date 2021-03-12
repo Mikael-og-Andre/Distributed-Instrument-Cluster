@@ -1,13 +1,13 @@
-﻿using Instrument_Communicator_Library;
+﻿using Server_Library;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
-using Instrument_Communicator_Library.Authorization;
-using Instrument_Communicator_Library.Connection_Types.deprecated;
-using Instrument_Communicator_Library.Server_Listeners.deprecated;
-using Instrument_Communicator_Library.Socket_Clients;
+using Server_Library.Authorization;
+using Server_Library.Connection_Types.deprecated;
+using Server_Library.Server_Listeners.deprecated;
+using Server_Library.Socket_Clients;
 
 namespace Server_And_Demo_Project {
 
@@ -29,7 +29,7 @@ namespace Server_And_Demo_Project {
             Console.WriteLine("Waiting for server");
             Thread.Sleep(1000);
             //Communicator
-            InstrumentInformation info = new InstrumentInformation("Video Communicator 1", "loc", "type");
+            ClientInformation info = new ClientInformation("Video Communicator 1", "loc", "type");
             AccessToken accessToken = new AccessToken("access");
             CancellationToken comCancellationToken = new CancellationToken(false);
 

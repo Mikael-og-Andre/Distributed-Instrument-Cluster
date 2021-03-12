@@ -5,13 +5,13 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using Instrument_Communicator_Library.Authorization;
-using Instrument_Communicator_Library.Connection_Types;
-using Instrument_Communicator_Library.Connection_Types.deprecated;
-using Instrument_Communicator_Library.Enums;
+using Server_Library.Connection_Types;
 using Networking_Library;
+using Server_Library.Authorization;
+using Server_Library.Connection_Types.deprecated;
+using Server_Library.Enums;
 
-namespace Instrument_Communicator_Library.Server_Listeners.deprecated {
+namespace Server_Library.Server_Listeners.deprecated {
 
 	public class ListenerCrestron : ListenerBaseOld {
 
@@ -41,7 +41,7 @@ namespace Instrument_Communicator_Library.Server_Listeners.deprecated {
 		/// <param name="socket">Socket</param>
 		/// <param name="thread">Thread</param>
 		/// </summary>
-		protected override object createConnectionType(Socket socket, Thread thread, AccessToken accessToken, InstrumentInformation info) {
+		protected override object createConnectionType(Socket socket, Thread thread, AccessToken accessToken, ClientInformation info) {
 			return new CrestronConnection(thread, socket, accessToken,info, cancellationTokenSource.Token);
 		}
 
@@ -255,7 +255,7 @@ namespace Instrument_Communicator_Library.Server_Listeners.deprecated {
 				//Search for connection
 				foreach (var connection in listCrestronConnections) {
 					if (connection.isSetupCompleted) {
-						InstrumentInformation info = connection.getInstrumentInformation();
+						ClientInformation info = connection.getInstrumentInformation();
 						//Check if the name is the same
 						if (info.Name.ToLower().Equals(name.ToLower())) {
 							crestronConnection = connection;

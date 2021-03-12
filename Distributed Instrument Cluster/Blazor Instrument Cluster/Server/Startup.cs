@@ -11,7 +11,7 @@ using System;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
-using Instrument_Communicator_Library;
+using Server_Library;
 
 namespace Blazor_Instrument_Cluster.Server {
 

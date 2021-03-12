@@ -2,9 +2,9 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Threading;
-using Instrument_Communicator_Library;
-using Instrument_Communicator_Library.Authorization;
-using Instrument_Communicator_Library.Socket_Clients;
+using Server_Library;
+using Server_Library.Authorization;
+using Server_Library.Socket_Clients;
 
 namespace Server_And_Demo_Project {
 
@@ -14,7 +14,7 @@ namespace Server_And_Demo_Project {
 
 			Thread.Sleep(10000);
 			CancellationToken token = new CancellationToken(false);
-			CrestronClient crestronClient = new CrestronClient("127.0.0.1",5050,new InstrumentInformation("Radar1","location","Type"),new AccessToken("access"),token);
+			CrestronClient crestronClient = new CrestronClient("127.0.0.1",5050,new ClientInformation("Radar1","location","Type"),new AccessToken("access"),token);
 
 			Thread crestronThread = new Thread(() => crestronClient.run());
 			crestronThread.Start();

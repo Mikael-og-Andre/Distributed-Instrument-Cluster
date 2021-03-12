@@ -1,13 +1,13 @@
 ﻿using Blazor_Instrument_Cluster.Server.Injection;
 using Blazor_Instrument_Cluster.Shared;
-using Instrument_Communicator_Library;
+using Server_Library;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Instrument_Communicator_Library.Connection_Types.deprecated;
+using Server_Library.Connection_Types.deprecated;
 
 namespace Blazor_Instrument_Cluster.Server.Controllers {
 
@@ -46,7 +46,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 				//Lock unsafe list
 				lock (listVideoConnections) {
 					foreach (var videoConnection in listVideoConnections) {
-						InstrumentInformation info = videoConnection.getInstrumentInformation();
+						ClientInformation info = videoConnection.getInstrumentInformation();
 						//TODO: Add has crestron boolean to instrument information
 						enumerableDeviceModels =
 							enumerableDeviceModels.Append(new DeviceModel(info.Name, info.Location, info.Type, true));

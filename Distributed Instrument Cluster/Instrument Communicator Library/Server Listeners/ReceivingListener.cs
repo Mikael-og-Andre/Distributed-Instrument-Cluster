@@ -1,14 +1,14 @@
-﻿using Instrument_Communicator_Library.Authorization;
-using Instrument_Communicator_Library.Connection_Types;
-using Networking_Library;
+﻿using Networking_Library;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using Instrument_Communicator_Library.Server_Listeners.deprecated;
+using Server_Library.Server_Listeners.deprecated;
+using Server_Library.Authorization;
+using Server_Library.Connection_Types;
 
-namespace Instrument_Communicator_Library.Server_Listeners {
+namespace Server_Library.Server_Listeners {
 
 	/// <summary>
 	/// Server Listener for receiving objects from SendingClient connections
@@ -68,8 +68,9 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 		/// <param name="socket">Socket</param>
 		/// <param name="thread">Thread</param>
 		/// <returns></returns>
-		protected override object createConnectionType(Socket socket, Thread thread, AccessToken accessToken, InstrumentInformation info) {
+		protected override object createConnectionType(Socket socket, Thread thread, AccessToken accessToken, ClientInformation info) {
 			return new ReceivingConnection<T>(thread, socket, accessToken, info, cancellationTokenSource.Token);
 		}
+
 	}
 }

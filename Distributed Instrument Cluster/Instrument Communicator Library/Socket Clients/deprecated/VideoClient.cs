@@ -1,10 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
-using Instrument_Communicator_Library.Authorization;
 using Networking_Library;
+using Server_Library.Authorization;
 
-namespace Instrument_Communicator_Library.Socket_Clients {
+namespace Server_Library.Socket_Clients {
 
     /// <summary>
     /// Represents a socket line from a device to the server, intended to send video
@@ -17,7 +17,7 @@ namespace Instrument_Communicator_Library.Socket_Clients {
 		/// </summary>
         private ConcurrentQueue<VideoFrame> inputQueue;
 
-        public VideoClient(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken cancellationToken) : base(ip, port, informationAboutClient, accessToken, cancellationToken) {
+        public VideoClient(string ip, int port, ClientInformation informationAboutClient, AccessToken accessToken, CancellationToken cancellationToken) : base(ip, port, informationAboutClient, accessToken, cancellationToken) {
             //initialize queue
             inputQueue = new ConcurrentQueue<VideoFrame>();
         }

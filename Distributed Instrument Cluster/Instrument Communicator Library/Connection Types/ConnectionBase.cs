@@ -1,8 +1,8 @@
-﻿using Instrument_Communicator_Library.Authorization;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Threading;
+using Server_Library.Authorization;
 
-namespace Instrument_Communicator_Library.Connection_Classes {
+namespace Server_Library.Connection_Classes {
 
 	/// <summary>
 	/// Base Class for a connection made to the listener
@@ -27,7 +27,7 @@ namespace Instrument_Communicator_Library.Connection_Classes {
 		/// <summary>
 		/// Information about remote device
 		/// </summary>
-		protected InstrumentInformation info { get; set; }
+		protected ClientInformation info { get; set; }
 
 		/// <summary>
 		/// Socket of the client Connection
@@ -52,7 +52,7 @@ namespace Instrument_Communicator_Library.Connection_Classes {
 		/// <param name="accessToken">Token for authorization</param>
 		/// <param name="info">Information About Client</param>
 		/// <param name="cancellation">Token for cancelling</param>
-		protected ConnectionBase(Thread homeThread, Socket socket, AccessToken accessToken, InstrumentInformation info, CancellationToken cancellation) {
+		protected ConnectionBase(Thread homeThread, Socket socket, AccessToken accessToken, ClientInformation info, CancellationToken cancellation) {
 			this.homeThread = homeThread;
 			this.socket = socket;
 			this.accessToken = accessToken;
@@ -72,7 +72,7 @@ namespace Instrument_Communicator_Library.Connection_Classes {
 		/// Get the Instrument information from Crestron connection
 		/// </summary>
 		/// <returns>Instrument Information</returns>
-		public InstrumentInformation getInstrumentInformation() {
+		public ClientInformation getInstrumentInformation() {
 			return info;
 		}
 

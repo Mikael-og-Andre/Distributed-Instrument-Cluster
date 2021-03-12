@@ -4,10 +4,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using Instrument_Communicator_Library.Authorization;
-using Instrument_Communicator_Library.Connection_Types;
+using Server_Library.Authorization;
+using Server_Library.Connection_Types;
 
-namespace Instrument_Communicator_Library.Server_Listeners {
+namespace Server_Library.Server_Listeners {
 	/// <summary>
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
@@ -68,7 +68,7 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 		/// <param name="authToken">authorization token</param>
 		/// <param name="info">Information about remote device</param>
 		/// <returns>SendingConnection object</returns>
-		protected override object createConnectionType(Socket socket, Thread thread, AccessToken authToken, InstrumentInformation info) {
+		protected override object createConnectionType(Socket socket, Thread thread, AccessToken authToken, ClientInformation info) {
 			return new SendingConnection<T>(thread,socket,authToken,info,cancellationTokenSource.Token);
 		}
 	}

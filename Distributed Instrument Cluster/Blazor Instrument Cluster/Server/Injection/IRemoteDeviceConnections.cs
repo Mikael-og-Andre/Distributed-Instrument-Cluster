@@ -1,9 +1,9 @@
 ﻿using Blazor_Instrument_Cluster.Server.Events;
-using Instrument_Communicator_Library;
+using Server_Library;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Instrument_Communicator_Library.Connection_Types;
-using Instrument_Communicator_Library.Connection_Types.deprecated;
+using Server_Library.Connection_Types;
+using Server_Library.Connection_Types.deprecated;
 
 namespace Blazor_Instrument_Cluster.Server.Injection {
 

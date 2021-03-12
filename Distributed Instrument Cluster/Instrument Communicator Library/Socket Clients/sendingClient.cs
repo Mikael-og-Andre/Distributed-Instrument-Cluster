@@ -1,10 +1,10 @@
-﻿using Instrument_Communicator_Library.Authorization;
-using Networking_Library;
+﻿using Networking_Library;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Threading;
+using Server_Library.Authorization;
 
-namespace Instrument_Communicator_Library.Socket_Clients {
+namespace Server_Library.Socket_Clients {
 
 	/// <summary>
 	/// Client for sending objects to Receive Listener
@@ -25,7 +25,7 @@ namespace Instrument_Communicator_Library.Socket_Clients {
 		/// <param name="informationAboutClient"></param>
 		/// <param name="accessToken"></param>
 		/// <param name="isRunningCancellationToken"></param>
-		public SendingClient(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken,
+		public SendingClient(string ip, int port, ClientInformation informationAboutClient, AccessToken accessToken,
 			CancellationToken isRunningCancellationToken) : base(ip, port, informationAboutClient, accessToken,
 			isRunningCancellationToken) {
 			//init queue

@@ -1,7 +1,7 @@
 ﻿using Blazor_Instrument_Cluster.Server.Events;
 using Blazor_Instrument_Cluster.Server.Injection;
 using Blazor_Instrument_Cluster.Server.Worker;
-using Instrument_Communicator_Library;
+using Server_Library;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;

@@ -1,11 +1,11 @@
 ﻿using Blazor_Instrument_Cluster.Server.Events;
-using Instrument_Communicator_Library;
+using Server_Library;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Instrument_Communicator_Library.Connection_Types;
-using Instrument_Communicator_Library.Connection_Types.deprecated;
+using Server_Library.Connection_Types;
+using Server_Library.Connection_Types.deprecated;
 
 namespace Blazor_Instrument_Cluster.Server.Injection {
 
@@ -124,9 +124,9 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 				//Loop connection
 				foreach (var connection in listCrestronConnections) {
 					//Check name of connection
-					InstrumentInformation instrumentInformation = connection.getInstrumentInformation();
-					if (instrumentInformation == null) continue;
-					string infoName = instrumentInformation.Name;
+					ClientInformation clientInformation = connection.getInstrumentInformation();
+					if (clientInformation == null) continue;
+					string infoName = clientInformation.Name;
 					if (!infoName.ToLower().Equals(name.ToLower())) continue;
 					//Get queue and return true since it matched
 					con = connection;
@@ -150,9 +150,9 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 				//Loop connection
 				foreach (var connection in listVideoConnections) {
 					//Check name of connection
-					InstrumentInformation instrumentInformation = connection.getInstrumentInformation();
-					if (instrumentInformation == null) continue;
-					string infoName = instrumentInformation.Name;
+					ClientInformation clientInformation = connection.getInstrumentInformation();
+					if (clientInformation == null) continue;
+					string infoName = clientInformation.Name;
 					if (!infoName.ToLower().Equals(name.ToLower())) continue;
 					//Get queue and return true since it matched
 					queue = connection.getOutputQueue();

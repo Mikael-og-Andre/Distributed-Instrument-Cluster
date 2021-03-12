@@ -1,9 +1,9 @@
 ﻿using System.Net.Sockets;
 using System.Threading;
-using Instrument_Communicator_Library.Authorization;
 using Networking_Library;
+using Server_Library.Authorization;
 
-namespace Instrument_Communicator_Library.Socket_Clients {
+namespace Server_Library.Socket_Clients {
 
 	/// <summary>
 	/// Base class for communicator classes, intended to be on the remote side of the instrument cluster
@@ -29,7 +29,7 @@ namespace Instrument_Communicator_Library.Socket_Clients {
 		/// <summary>
 		/// Information about hardware
 		/// </summary>
-		protected readonly InstrumentInformation information;
+		protected readonly ClientInformation information;
 
 		/// <summary>
 		/// Authorization code to send to the server
@@ -49,7 +49,7 @@ namespace Instrument_Communicator_Library.Socket_Clients {
 		/// </summary>
 		protected CancellationToken isRunningCancellationToken;
 
-		protected ClientBaseOld(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken isRunningCancellationToken) {
+		protected ClientBaseOld(string ip, int port, ClientInformation informationAboutClient, AccessToken accessToken, CancellationToken isRunningCancellationToken) {
 			this.Ip = ip;
 			this.Port = port;
 			this.information = informationAboutClient;

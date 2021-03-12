@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using Instrument_Communicator_Library.Authorization;
-using Instrument_Communicator_Library.Connection_Types.deprecated;
 using Networking_Library;
+using Server_Library.Authorization;
+using Server_Library.Connection_Types.deprecated;
 
-namespace Instrument_Communicator_Library.Server_Listeners.deprecated {
+namespace Server_Library.Server_Listeners.deprecated {
 
 	/// <summary>
 	/// Listener for incoming video connections
@@ -38,7 +38,7 @@ namespace Instrument_Communicator_Library.Server_Listeners.deprecated {
 		/// <param name="socket"></param>
 		/// <param name="thread"></param>
 		/// <returns>VideoConnection</returns>
-		protected override object createConnectionType(Socket socket, Thread thread,AccessToken accessToken, InstrumentInformation info) {
+		protected override object createConnectionType(Socket socket, Thread thread,AccessToken accessToken, ClientInformation info) {
 			return new VideoConnection(thread, socket, accessToken, info, cancellationTokenSource.Token);
 		}
 

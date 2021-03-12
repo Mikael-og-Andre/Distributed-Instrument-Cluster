@@ -1,6 +1,6 @@
 ﻿using Networking_Library;
 
-namespace Instrument_Communicator_Library {
+namespace Server_Library {
 
 	/// <summary>
 	/// Represents a Frame of video - CURRENTLY NOT SETUP FOR VIDEO TODO: Make video frame

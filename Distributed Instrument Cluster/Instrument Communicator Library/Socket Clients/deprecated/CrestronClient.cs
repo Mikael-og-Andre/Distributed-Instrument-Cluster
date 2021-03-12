@@ -2,11 +2,11 @@
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
-using Instrument_Communicator_Library.Authorization;
-using Instrument_Communicator_Library.Enums;
 using Networking_Library;
+using Server_Library.Authorization;
+using Server_Library.Enums;
 
-namespace Instrument_Communicator_Library.Socket_Clients {
+namespace Server_Library.Socket_Clients {
 
 	/// <summary>
 	/// Client for connecting and receiving commands from server unit to control a crestron Device
@@ -27,7 +27,7 @@ namespace Instrument_Communicator_Library.Socket_Clients {
 
 		//TODO: add buffer size limits to queue
 
-		public CrestronClient(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken cancellationToken) : base(ip, port, informationAboutClient, accessToken, cancellationToken) {
+		public CrestronClient(string ip, int port, ClientInformation informationAboutClient, AccessToken accessToken, CancellationToken cancellationToken) : base(ip, port, informationAboutClient, accessToken, cancellationToken) {
 			this.commandOutputQueue = new ConcurrentQueue<string>();    //Init queue
 		}
 

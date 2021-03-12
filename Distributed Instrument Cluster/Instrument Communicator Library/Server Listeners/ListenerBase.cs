@@ -1,11 +1,11 @@
-﻿using Instrument_Communicator_Library.Authorization;
-using Networking_Library;
+﻿using Networking_Library;
 using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using Server_Library.Authorization;
 
-namespace Instrument_Communicator_Library.Server_Listeners {
+namespace Server_Library.Server_Listeners {
 
 	/// <summary>
 	/// Base class for a server listening for incoming connections
@@ -106,7 +106,7 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 		/// <param name="socket">Socket Of the incoming connection</param>
 		/// <param name="thread">Thread the new connection will be running on</param>
 		/// <returns> a Connection of one of the child types of ConnectionBase</returns>
-		protected abstract object createConnectionType(Socket socket, Thread thread, AccessToken accessToken, InstrumentInformation info);
+		protected abstract object createConnectionType(Socket socket, Thread thread, AccessToken accessToken, ClientInformation info);
 
 
 
@@ -130,7 +130,7 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 			string name = NetworkingOperations.receiveStringWithSocket(socket);
 			string location = NetworkingOperations.receiveStringWithSocket(socket);
 			string type = NetworkingOperations.receiveStringWithSocket(socket);
-			InstrumentInformation info = new InstrumentInformation(name, location, type);
+			ClientInformation info = new ClientInformation(name, location, type);
 
 			//Create connection and return
 			return createConnectionType(socket, thread, accessToken, info);

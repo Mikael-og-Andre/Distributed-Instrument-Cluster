@@ -1,6 +1,6 @@
 ﻿
 
-namespace Instrument_Communicator_Library.Enums {
+namespace Server_Library.Enums {
 	/// <summary>
 	/// Enum used for synchronization in protocol use between server and client
 	/// <author>Mikael Nilssen</author>

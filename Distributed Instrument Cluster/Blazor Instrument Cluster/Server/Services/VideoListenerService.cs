@@ -1,6 +1,6 @@
 ﻿using Blazor_Instrument_Cluster.Server.Events;
 using Blazor_Instrument_Cluster.Server.Injection;
-using Instrument_Communicator_Library;
+using Server_Library;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -9,8 +9,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Instrument_Communicator_Library.Connection_Types.deprecated;
-using Instrument_Communicator_Library.Server_Listeners.deprecated;
+using Server_Library.Connection_Types.deprecated;
+using Server_Library.Server_Listeners.deprecated;
 
 namespace Blazor_Instrument_Cluster.Server.Worker {
 
@@ -117,7 +117,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 				Thread.Sleep(100);
 			}
 			//Instrument information
-			InstrumentInformation info = connection.getInstrumentInformation();
+			ClientInformation info = connection.getInstrumentInformation();
 			//Create Provider with the name of the device
 			VideoConnectionFrameProvider provider = new VideoConnectionFrameProvider(info.Name);
 			//Add provider to list of running providers so i can be found by connecting ui's and subscribed to

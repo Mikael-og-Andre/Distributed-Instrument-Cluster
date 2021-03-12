@@ -1,16 +1,16 @@
-﻿using Instrument_Communicator_Library;
+﻿using Server_Library;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
-using Instrument_Communicator_Library.Authorization;
-using Instrument_Communicator_Library.Connection_Types;
-using Instrument_Communicator_Library.Connection_Types.deprecated;
-using Instrument_Communicator_Library.Enums;
-using Instrument_Communicator_Library.Server_Listeners;
-using Instrument_Communicator_Library.Server_Listeners.deprecated;
-using Instrument_Communicator_Library.Socket_Clients;
+using Server_Library.Authorization;
+using Server_Library.Connection_Types;
+using Server_Library.Connection_Types.deprecated;
+using Server_Library.Enums;
+using Server_Library.Server_Listeners;
+using Server_Library.Server_Listeners.deprecated;
+using Server_Library.Socket_Clients;
 
 namespace Server_And_Demo_Project {
 
@@ -34,7 +34,7 @@ namespace Server_And_Demo_Project {
             //instumentServer.StopServer();
             string ip = "127.0.0.1";
             AccessToken accessToken = new AccessToken("access");
-            InstrumentInformation info = new InstrumentInformation("Device 1", "Location 1", "sample type");
+            ClientInformation info = new ClientInformation("Device 1", "Location 1", "sample type");
             CancellationToken cancellationToken = new CancellationToken(false);
 
             CrestronClient client = new CrestronClient(ip, portCrestron, info, accessToken, cancellationToken);
@@ -42,7 +42,7 @@ namespace Server_And_Demo_Project {
             clientThread.Start();
 
             AccessToken accessToken2 = new AccessToken("access");
-            InstrumentInformation info2 = new InstrumentInformation("Device 2", "Location 2", "sample type 2");
+            ClientInformation info2 = new ClientInformation("Device 2", "Location 2", "sample type 2");
             CancellationToken cancellationToken2 = new CancellationToken(false);
 
             CrestronClient client2 = new CrestronClient(ip, portCrestron, info2, accessToken2, cancellationToken2);
@@ -50,7 +50,7 @@ namespace Server_And_Demo_Project {
             clientThread2.Start();
 
             AccessToken accessToken3 = new AccessToken("acess");
-            InstrumentInformation info3 = new InstrumentInformation("Device 3", "Location 3", "sample type 3");
+            ClientInformation info3 = new ClientInformation("Device 3", "Location 3", "sample type 3");
             CancellationToken cancellationToken3 = new CancellationToken(false);
 
             CrestronClient client3 = new CrestronClient(ip, portCrestron, info3, accessToken3, cancellationToken3);

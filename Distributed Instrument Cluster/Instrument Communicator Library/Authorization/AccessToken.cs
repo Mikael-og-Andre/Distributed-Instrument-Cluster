@@ -1,4 +1,4 @@
-﻿namespace Instrument_Communicator_Library.Authorization {
+﻿namespace Server_Library.Authorization {
 
 	/// <summary>
 	/// Class that represents a authorization token for the server

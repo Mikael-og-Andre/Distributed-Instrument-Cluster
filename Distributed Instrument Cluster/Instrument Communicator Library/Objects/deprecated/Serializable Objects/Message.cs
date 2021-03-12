@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Instrument_Communicator_Library.Enums;
 using Networking_Library;
+using Server_Library.Enums;
 
-namespace Instrument_Communicator_Library {
+namespace Server_Library {
 
 	/// <summary>
 	/// Represents a message to put in the queue concurrent queue when sending to the client

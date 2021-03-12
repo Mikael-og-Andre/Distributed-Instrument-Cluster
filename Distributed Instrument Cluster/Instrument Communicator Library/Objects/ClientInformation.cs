@@ -1,12 +1,11 @@
-﻿using Networking_Library;
-
-namespace Instrument_Communicator_Library {
+﻿
+namespace Server_Library {
 	/// <summary>
 	/// Class for storing and loading information about the Instrument Device
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 
-	public class InstrumentInformation {
+	public class ClientInformation {
 
 		/// <summary>
 		/// Designated name of client device
@@ -30,7 +29,7 @@ namespace Instrument_Communicator_Library {
 		/// <param name="name"></param>
 		/// <param name="location"></param>
 		/// <param name="type"></param>
-		public InstrumentInformation(string name, string location, string type) {
+		public ClientInformation(string name, string location, string type) {
 			this.Name = name;
 			this.Location = location;
 			this.Type = type;

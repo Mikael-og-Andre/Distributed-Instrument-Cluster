@@ -1,5 +1,5 @@
 ﻿using Blazor_Instrument_Cluster.Server.Injection;
-using Instrument_Communicator_Library;
+using Server_Library;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -7,9 +7,9 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Instrument_Communicator_Library.Connection_Types;
-using Instrument_Communicator_Library.Connection_Types.deprecated;
-using Instrument_Communicator_Library.Enums;
+using Server_Library.Connection_Types;
+using Server_Library.Connection_Types.deprecated;
+using Server_Library.Enums;
 
 namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
