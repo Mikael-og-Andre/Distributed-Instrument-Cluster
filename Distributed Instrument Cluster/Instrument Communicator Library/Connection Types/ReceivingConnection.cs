@@ -1,9 +1,11 @@
-﻿using System.Collections.Concurrent;
+﻿using Instrument_Communicator_Library.Authorization;
 using Instrument_Communicator_Library.Connection_Classes;
-using System.Net.Sockets;
-using System.Runtime.Serialization;
-using System.Threading;
 using Networking_Library;
+using System.Collections.Concurrent;
+using System.Net.Sockets;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading;
 
 namespace Instrument_Communicator_Library.Connection_Types {
 
@@ -12,19 +14,20 @@ namespace Instrument_Communicator_Library.Connection_Types {
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	/// <typeparam name="T">Object Type You want the connection to receive</typeparam>
-	public class ReceivingConnection<T> : ConnectionBase where T: ISerializeObject{
+	public class ReceivingConnection<T> : ConnectionBase {
 
 		/// <summary>
 		/// Queue containing incoming objects
 		/// </summary>
 		private ConcurrentQueue<T> receivedObjectsConcurrentQueue;
 
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="homeThread"></param>
 		/// <param name="socket"></param>
-		public ReceivingConnection(Thread homeThread, Socket socket) : base(homeThread, socket) {
+		public ReceivingConnection(Thread homeThread, Socket socket, AccessToken accessToken, InstrumentInformation info, CancellationToken token) : base(homeThread, socket, accessToken, info, token) {
 			receivedObjectsConcurrentQueue = new ConcurrentQueue<T>();
 		}
 
@@ -33,7 +36,7 @@ namespace Instrument_Communicator_Library.Connection_Types {
 		/// </summary>
 		/// <param name="output"></param>
 		/// <returns>True if and object was found</returns>
-		public bool receive(out T output) {
+		public bool getObjectFromConnection(out T output) {
 			//Try to dequeue
 			if (receivedObjectsConcurrentQueue.TryDequeue(out T obj)) {
 				//Return with true
@@ -41,16 +44,8 @@ namespace Instrument_Communicator_Library.Connection_Types {
 				return true;
 			}
 			//Return with false
-			output = default(T);
+			output = default;
 			return false;
-		}
-
-		/// <summary>
-		/// Puts and object into the queue of received objects
-		/// </summary>
-		/// <param name="obj">Object of type T</param>
-		public void enqueueObject(T obj) {
-			receivedObjectsConcurrentQueue.Enqueue(obj);
 		}
 
 		/// <summary>
@@ -62,10 +57,43 @@ namespace Instrument_Communicator_Library.Connection_Types {
 		}
 
 		/// <summary>
+		/// Use socket to accept an incoming object and put it in the internal Queue
+		/// </summary>
+		public void receive() {
+			//Get json from Client
+			string jsonObject = NetworkingOperations.receiveStringWithSocket(socket);
+			//Convert to object
+			T obj = JsonSerializer.Deserialize<T>(jsonObject);
+			//Put object in queue
+			enqueueObject(obj);
+		}
+
+		/// <summary>
+		/// checks if there is data available on the socket
+		/// </summary>
+		/// <returns>Bool true if data is above 0</returns>
+		public bool isDataAvailable() {
+			if (socket.Available > 0) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		/// <summary>
 		/// Removes all objects from the queue and makes a new empty queue
 		/// </summary>
 		public void resetQueue() {
-			this.receivedObjectsConcurrentQueue = new ConcurrentQueue<T>();
+			receivedObjectsConcurrentQueue = new ConcurrentQueue<T>();
+		}
+
+		/// <summary>
+		/// Puts and object into the queue of received objects
+		/// </summary>
+		/// <param name="obj">Object of type T</param>
+		private void enqueueObject(T obj) {
+			receivedObjectsConcurrentQueue.Enqueue(obj);
 		}
 	}
 }

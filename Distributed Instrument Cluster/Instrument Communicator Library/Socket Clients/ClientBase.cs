@@ -1,9 +1,9 @@
-﻿using System;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Threading;
 using Instrument_Communicator_Library.Authorization;
+using Networking_Library;
 
-namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
+namespace Instrument_Communicator_Library.Socket_Clients {
 
 	/// <summary>
 	/// Base class for communicator classes, intended to be on the remote side of the instrument cluster
@@ -24,7 +24,7 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 		/// <summary>
 		/// Connection to server
 		/// </summary>
-		private Socket connectionSocket;
+		protected Socket connectionSocket;
 
 		/// <summary>
 		/// Information about hardware
@@ -40,87 +40,81 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 		/// <summary>
 		/// Is the socket connected to the server
 		/// </summary>
-		public bool isSocketConnected { get; private set; } = false;
+		public bool isSocketConnected { get; set; } = false;
+
+		private bool isSetup { get; set; } = false;
 
 		/// <summary>
 		/// Cancellation token used to stop loops
 		/// </summary>
-		protected CancellationToken communicatorCancellationToken;
+		protected CancellationToken isRunningCancellationToken;
 
-		protected ClientBase(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken communicatorCancellationToken) {
-			this.Ip = ip;
-			this.Port = port;
-			this.information = informationAboutClient;
+		protected ClientBase(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken isRunningCancellationToken) {
+			Ip = ip;
+			Port = port;
+			information = informationAboutClient;
 			this.accessToken = accessToken;
-			this.communicatorCancellationToken = communicatorCancellationToken;
+			this.isRunningCancellationToken = isRunningCancellationToken;
 		}
 
 		/// <summary>
 		/// Starts the client and attempts to connect to the server
 		/// </summary>
 		public void run() {
-			try {
-				// Create new socket
-				connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-			}
-			catch (SocketException) {
-				throw;
-			}
-			//connection state
-			isSocketConnected = false;
-
-			// Loop whilst the client is supposed to run
-			while (!communicatorCancellationToken.IsCancellationRequested) {
-				//check if client is connected, if not connect
-				if (!isSocketConnected) {
-					// Try to connect
-					isSocketConnected = attemptConnection(connectionSocket);
-				}
-				//check if client is connected, if it is handle the connection
-				if (isSocketConnected) {
-					//handle the connection
-					handleConnected(connectionSocket);
-				}
-				else {
-					Console.WriteLine("Thread {0} says: " + "Connection failed", Thread.CurrentThread.ManagedThreadId);
-					Thread.Sleep(100);
-				}
-			}
+			// Create new socket
+			connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+			//Connect
+			connectToServer(connectionSocket);
+			//Setup
+			setupConnection(connectionSocket);
+			//HandleConnection
+			handleConnected();
 		}
+
+
+		/// <summary>
+		/// The main function of a communicator that gets called after you are connected and preforms actions with the socket
+		/// </summary>
+		protected abstract void handleConnected();
 
 		/// <summary>
 		/// Attempts to connect to the given host and ip
 		/// </summary>
 		/// <param name="socket"> unconnected Socket</param>
 		/// <returns> boolean representing successful connection</returns>
-		private bool attemptConnection(Socket socket) {
-			try {
-				if (socket.Connected) {
-					return true;
-				}
-				//Try Connecting to server
-				socket.Connect(Ip, Port);
+		private void connectToServer(Socket socket) {
+			socket.Connect(Ip,Port);
+		}
+
+		/// <summary>
+		/// Sends needed information for a connection ot the server
+		/// </summary>
+		/// <param name="socket"></param>
+		private void setupConnection(Socket socket) {
+			//Get start signal
+			NetworkingOperations.receiveStringWithSocket(socket);
+			//send auth hash
+			//TODO: add auth hash encryption
+			NetworkingOperations.sendStringWithSocket(accessToken.getAccessString(),socket);
+
+			//Send instrument info
+			NetworkingOperations.sendStringWithSocket(information.Name,socket);
+			NetworkingOperations.sendStringWithSocket(information.Location,socket);
+			NetworkingOperations.sendStringWithSocket(information.Type,socket);
+		}
+
+		/// <summary>
+		/// Returns true if data available in socket is larger than 0
+		/// </summary>
+		/// <returns></returns>
+		protected bool isDataAvailable() {
+			if (connectionSocket.Available>0) {
 				return true;
 			}
-			catch (SocketException ex) {
-				throw new SocketException(ex.ErrorCode);
-				//return false to represent failed connection
-				//return false;
+			else {
+				return false;
 			}
 		}
-
-		/// <summary>
-		/// The main function of a communicator that gets called after you are connected and preforms actions with the socket
-		/// </summary>
-		/// <param name="connectionSocket"></param>
-		protected abstract void handleConnected(Socket connectionSocket);
-
-		/// <summary>
-		/// returns the cancellation token
-		/// </summary>
-		/// <returns>Returns cancellation token</returns>
-		public CancellationToken getCancellationToken() {
-			return this.communicatorCancellationToken;
-		}
+		
 	}
 }

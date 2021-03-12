@@ -1,9 +1,12 @@
-﻿using System;
+﻿using Instrument_Communicator_Library.Authorization;
+using Networking_Library;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
 namespace Instrument_Communicator_Library.Server_Listeners {
+
 	/// <summary>
 	/// Base class for a server listening for incoming connections
 	/// <author>Mikael Nilssen</author>
@@ -33,19 +36,25 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 		/// <summary>
 		/// Token for telling server to stop
 		/// </summary>
-		protected CancellationToken listenerCancellationToken;
+		protected readonly CancellationTokenSource cancellationTokenSource;
 
 		/// <summary>
 		/// Amount of current Connections
 		/// </summary>
 		private int currentConnectionCount;
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="ipEndPoint"></param>
+		/// <param name="maxConnections"></param>
+		/// <param name="maxPendingConnections"></param>
 		protected ListenerBase(IPEndPoint ipEndPoint, int maxConnections = 30, int maxPendingConnections = 30) {
 			this.ipEndPoint = ipEndPoint;
 			this.maxConnections = maxConnections;
 			this.maxPendingConnections = maxPendingConnections;
-			this.listenerCancellationToken = new CancellationToken();
-			this.currentConnectionCount = 0;
+			cancellationTokenSource = new CancellationTokenSource();
+			currentConnectionCount = 0;
 		}
 
 		/// <summary>
@@ -53,38 +62,36 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 		/// </summary>
 		public void start() {
 			//Create socket for incoming connections
-			listeningSocket = new Socket(this.ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-			listeningSocket.Bind(this.ipEndPoint);
+			listeningSocket = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+			listeningSocket.Bind(ipEndPoint);
 
 			//Start listen with Backlog size of max connections
-			listeningSocket.Listen(this.maxPendingConnections);
+			listeningSocket.Listen(maxPendingConnections);
 
 			//Accepts Connections
-			while (!listenerCancellationToken.IsCancellationRequested) {
+			while (!cancellationTokenSource.Token.IsCancellationRequested) {
 				//Accept an incoming connection
 				Console.WriteLine("SERVER - Main Thread {0} Says: Waiting For new Socket Connection...", Thread.CurrentThread.ManagedThreadId);
 				Socket newSocket = listeningSocket.Accept();
 				//Increment Current Connections
-				this.currentConnectionCount += 1;
+				currentConnectionCount += 1;
+
 				//Creates a new Thread to run a client communication on
-				Thread newThread = new Thread(handleIncomingConnection);
-				newThread.IsBackground = true;
+				Thread newThread = new Thread(handleIncomingConnection) {IsBackground = true};
 
-				//Create a client connection object representing the connection
-				object newClientConnection = createConnectionType(newSocket, newThread);
+				//Authorize and setup connection
+				object newClientConnection = setupConnection(newSocket, newThread);
 
-				try {
-					//Pass in ClientConnection and start a new thread ThreadProtocol
-					newThread.Start(newClientConnection);
-				}
-				catch (Exception) {
-					//Lower Connection number
-					this.currentConnectionCount -= 1;
-					newSocket.Disconnect(false);
-					newSocket.Close();
-					throw;
-				}
+				//Pass connection type to thread and start
+				newThread.Start(newClientConnection);
 			}
+		}
+
+		/// <summary>
+		/// Trigger cancellation token and stop
+		/// </summary>
+		public void stop() {
+			cancellationTokenSource.Cancel();
 		}
 
 		/// <summary>
@@ -99,6 +106,34 @@ namespace Instrument_Communicator_Library.Server_Listeners {
 		/// <param name="socket">Socket Of the incoming connection</param>
 		/// <param name="thread">Thread the new connection will be running on</param>
 		/// <returns> a Connection of one of the child types of ConnectionBase</returns>
-		protected abstract object createConnectionType(Socket socket, Thread thread);
+		protected abstract object createConnectionType(Socket socket, Thread thread, AccessToken accessToken, InstrumentInformation info);
+
+
+
+
+		/// <summary>
+		/// Gets authorization instrument information from connecting client
+		/// </summary>
+		/// <param name="socket"></param>
+		/// <param name="thread"></param>
+		/// <returns>Connection object</returns>
+		private object setupConnection(Socket socket, Thread thread) {
+			//Send start Auth signal
+			NetworkingOperations.sendStringWithSocket("auth", socket);
+
+			//Get Authorization Token info
+			//TODO: Add encryption for auth token
+			string connectionHash = NetworkingOperations.receiveStringWithSocket(socket);
+			AccessToken accessToken = new AccessToken(connectionHash);
+
+			//Get instrument information
+			string name = NetworkingOperations.receiveStringWithSocket(socket);
+			string location = NetworkingOperations.receiveStringWithSocket(socket);
+			string type = NetworkingOperations.receiveStringWithSocket(socket);
+			InstrumentInformation info = new InstrumentInformation(name, location, type);
+
+			//Create connection and return
+			return createConnectionType(socket, thread, accessToken, info);
+		}
 	}
 }

@@ -1,7 +1,6 @@
-﻿using System;
+﻿using Instrument_Communicator_Library.Authorization;
 using System.Net.Sockets;
 using System.Threading;
-using Instrument_Communicator_Library.Authorization;
 
 namespace Instrument_Communicator_Library.Connection_Classes {
 
@@ -18,12 +17,7 @@ namespace Instrument_Communicator_Library.Connection_Classes {
 		/// <summary>
 		/// Token representing a valid connection to the server
 		/// </summary>
-		protected AccessToken accessToken { get; set; } = null;
-
-		/// <summary>
-		///	Has the Access token been received
-		/// </summary>
-		protected bool hasAccessToken { get; set; } = false;
+		protected AccessToken accessToken { get; set; }
 
 		/// <summary>
 		/// has the connection been Authorized
@@ -31,19 +25,9 @@ namespace Instrument_Communicator_Library.Connection_Classes {
 		public bool isAuthorized { get; set; } = false;
 
 		/// <summary>
-		/// Is the connection running
-		/// </summary>
-		public bool isActive { get; set; } = true;
-
-		/// <summary>
 		/// Information about remote device
 		/// </summary>
-		protected InstrumentInformation info { get; set; } = null;
-
-		/// <summary>
-		/// Has the instrument Information been received
-		/// </summary>
-		public bool hasInstrument { get; private set; } = false;
+		protected InstrumentInformation info { get; set; }
 
 		/// <summary>
 		/// Socket of the client Connection
@@ -51,13 +35,29 @@ namespace Instrument_Communicator_Library.Connection_Classes {
 		protected Socket socket { get; private set; }
 
 		/// <summary>
+		/// Token for cancelling operations
+		/// </summary>
+		protected CancellationToken cancellation { get; private set; }
+
+		/// <summary>
+		/// has all setup been completed
+		/// </summary>
+		public bool isSetupCompleted { get; set; } = false;
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="homeThread"> Thread Connection is running on</param>
-		/// <param name="socket"></param>
-		protected ConnectionBase(Thread homeThread, Socket socket) {
+		/// <param name="socket">Socket</param>
+		/// <param name="accessToken">Token for authorization</param>
+		/// <param name="info">Information About Client</param>
+		/// <param name="cancellation">Token for cancelling</param>
+		protected ConnectionBase(Thread homeThread, Socket socket, AccessToken accessToken, InstrumentInformation info, CancellationToken cancellation) {
 			this.homeThread = homeThread;
 			this.socket = socket;
+			this.accessToken = accessToken;
+			this.info = info;
+			this.cancellation = cancellation;
 		}
 
 		/// <summary>
@@ -69,35 +69,13 @@ namespace Instrument_Communicator_Library.Connection_Classes {
 		}
 
 		/// <summary>
-		/// Set the instrument information on connection
-		/// </summary>
-		/// <param name="instrumentInformation">IInstrument Information</param>
-		public void setInstrumentInformation(InstrumentInformation instrumentInformation) {
-			this.info = instrumentInformation;
-			hasInstrument = true;
-		}
-
-		/// <summary>
 		/// Get the Instrument information from Crestron connection
 		/// </summary>
 		/// <returns>Instrument Information</returns>
 		public InstrumentInformation getInstrumentInformation() {
-			if (hasInstrument) {
-				return info;
-			}
-			throw new NullReferenceException("Instrument information has not been set yet");
+			return info;
 		}
 
-		public void setAccessToken(AccessToken accessToken) {
-			this.accessToken = accessToken;
-			hasAccessToken = true;
-		}
 
-		/// <summary>
-		/// Set Active to false
-		/// </summary>
-		public void stop() {
-			this.isActive = false;
-		}
 	}
 }
