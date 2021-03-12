@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Instrument_Communicator_Library.Connection_Types.deprecated;
 
 namespace Blazor_Instrument_Cluster.Server.Controllers {
 

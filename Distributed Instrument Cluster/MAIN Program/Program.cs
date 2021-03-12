@@ -1,6 +1,5 @@
 ﻿using Crestron_Library;
 using Instrument_Communicator_Library;
-using Instrument_Communicator_Library.Remote_Device_side_Communicators;
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;

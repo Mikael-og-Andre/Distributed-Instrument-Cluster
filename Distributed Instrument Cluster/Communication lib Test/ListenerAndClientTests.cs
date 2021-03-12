@@ -1,5 +1,4 @@
 ﻿using Instrument_Communicator_Library;
-using Instrument_Communicator_Library.Server_Listener;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Concurrent;
@@ -11,14 +10,16 @@ using System.Text;
 using System.Threading;
 using Instrument_Communicator_Library.Authorization;
 using Instrument_Communicator_Library.Connection_Types;
+using Instrument_Communicator_Library.Connection_Types.deprecated;
 using Instrument_Communicator_Library.Enums;
 using Instrument_Communicator_Library.Server_Listeners;
+using Instrument_Communicator_Library.Server_Listeners.deprecated;
 using Instrument_Communicator_Library.Socket_Clients;
 
 namespace Communication_lib_Test {
 
 	[TestClass]
-	public class MessageTest {
+	public class ListenerAndClientTest {
 
 		[TestMethod]
 		public void testSendingNormalStringsVideo() {

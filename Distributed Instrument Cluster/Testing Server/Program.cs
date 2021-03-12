@@ -1,13 +1,14 @@
-﻿using Instrument_Communicator_Library.Server_Listener;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using Instrument_Communicator_Library;
 using Instrument_Communicator_Library.Connection_Types;
+using Instrument_Communicator_Library.Connection_Types.deprecated;
 using Instrument_Communicator_Library.Enums;
 using Instrument_Communicator_Library.Server_Listeners;
+using Instrument_Communicator_Library.Server_Listeners.deprecated;
 
 namespace Testing_Server {
 

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Instrument_Communicator_Library.Connection_Types;
+using Instrument_Communicator_Library.Connection_Types.deprecated;
 
 namespace Blazor_Instrument_Cluster.Server.Injection {
 

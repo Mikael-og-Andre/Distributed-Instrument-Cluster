@@ -1,6 +1,5 @@
 ﻿using Blazor_Instrument_Cluster.Server.Injection;
 using Instrument_Communicator_Library;
-using Instrument_Communicator_Library.Server_Listener;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -9,7 +8,9 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Instrument_Communicator_Library.Connection_Types;
+using Instrument_Communicator_Library.Connection_Types.deprecated;
 using Instrument_Communicator_Library.Server_Listeners;
+using Instrument_Communicator_Library.Server_Listeners.deprecated;
 
 namespace Blazor_Instrument_Cluster.Server.Worker {
 

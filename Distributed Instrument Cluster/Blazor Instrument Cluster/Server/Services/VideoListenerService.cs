@@ -1,7 +1,6 @@
 ﻿using Blazor_Instrument_Cluster.Server.Events;
 using Blazor_Instrument_Cluster.Server.Injection;
 using Instrument_Communicator_Library;
-using Instrument_Communicator_Library.Server_Listener;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -10,6 +9,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Instrument_Communicator_Library.Connection_Types.deprecated;
+using Instrument_Communicator_Library.Server_Listeners.deprecated;
 
 namespace Blazor_Instrument_Cluster.Server.Worker {
 
@@ -112,7 +113,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 			//Cast connection
 			VideoConnection connection = (VideoConnection)input;
 			//Wait for the instrument to have done authorization and get the instrument information
-			while (!connection.hasInstrument) {
+			while (!connection.isSetupCompleted) {
 				Thread.Sleep(100);
 			}
 			//Instrument information

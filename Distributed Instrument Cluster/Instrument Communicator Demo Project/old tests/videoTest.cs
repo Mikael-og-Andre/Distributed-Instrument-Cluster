@@ -1,12 +1,12 @@
 ﻿using Instrument_Communicator_Library;
-using Instrument_Communicator_Library.Server_Listener;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using Instrument_Communicator_Library.Authorization;
-using Instrument_Communicator_Library.Remote_Device_side_Communicators;
+using Instrument_Communicator_Library.Connection_Types.deprecated;
+using Instrument_Communicator_Library.Server_Listeners.deprecated;
 using Instrument_Communicator_Library.Socket_Clients;
 
 namespace Server_And_Demo_Project {

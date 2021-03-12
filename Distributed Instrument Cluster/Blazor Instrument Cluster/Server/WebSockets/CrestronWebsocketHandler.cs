@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Instrument_Communicator_Library.Connection_Types;
+using Instrument_Communicator_Library.Connection_Types.deprecated;
 using Instrument_Communicator_Library.Enums;
 
 namespace Blazor_Instrument_Cluster.Server.WebSockets {
