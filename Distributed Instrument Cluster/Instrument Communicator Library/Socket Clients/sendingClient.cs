@@ -36,15 +36,13 @@ namespace Server_Library.Socket_Clients {
 		/// Send objects from the queue
 		/// </summary>
 		protected override void handleConnected() {
+
+			isSetup = true;
+			isSocketConnected = true;
+
 			//Send objects
 			while (!isRunningCancellationToken.IsCancellationRequested) {
-				//If there is and object to send, send it
-				if (queueCount() > 0) {
-					send();
-				}
-				else {
-					Thread.Sleep(50);
-				}
+				send();
 			}
 		}
 		/// <summary>
@@ -67,10 +65,8 @@ namespace Server_Library.Socket_Clients {
 		/// </summary>
 		private void send() {
 			if (getObjectFromQueue(out T output)) {
-				//Serialize object
-				string json = JsonSerializer.Serialize(output);
 				//Send object
-				NetworkingOperations.sendStringWithSocket(json, connectionSocket);
+				NetworkingOperations.sendJsonObjectWithSocket(output,connectionSocket);
 			}
 		}
 

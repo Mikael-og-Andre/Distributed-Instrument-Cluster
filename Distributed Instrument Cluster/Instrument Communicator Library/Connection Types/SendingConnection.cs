@@ -25,20 +25,21 @@ namespace Server_Library.Connection_Types {
 		/// </summary>
 		/// <param name="homeThread"></param>
 		/// <param name="socket"></param>
-		public SendingConnection(Thread homeThread, Socket socket, AccessToken accessToken, ClientInformation info,
-			CancellationToken token) : base(homeThread, socket, accessToken, info, token) {
+		public SendingConnection(Thread homeThread, Socket socket, AccessToken accessToken, ClientInformation info, CancellationToken token) : 
+			base(homeThread, socket, accessToken, info, token) {
 			//init queue
 			sendingObjectsConcurrentQueue = new ConcurrentQueue<T>();
 		}
 
 
-		public void send() {
+		public bool send() {
 			if (getObjectFromQueue(out T output)) {
-				//Serialize object
-				string json = JsonSerializer.Serialize(output);
-				//Send string
-				NetworkingOperations.sendStringWithSocket(json,socket);
+				//send object
+				NetworkingOperations.sendJsonObjectWithSocket(output,socket);
+				return true;
 			}
+
+			return false;
 		}
 
 		/// <summary>
@@ -85,7 +86,7 @@ namespace Server_Library.Connection_Types {
 		/// checks if there is data available on the socket
 		/// </summary>
 		/// <returns>Bool true if data is above 0</returns>
-		public bool isDataAvailable() {
+		protected bool isDataAvailable() {
 			if (socket.Available > 0) {
 				return true;
 			}

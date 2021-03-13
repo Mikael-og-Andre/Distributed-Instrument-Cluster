@@ -1,14 +1,14 @@
-﻿using System;
+﻿using Server_Library.Authorization;
+using Server_Library.Connection_Types;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using Server_Library.Authorization;
-using Server_Library.Connection_Types;
 
 namespace Server_Library.Server_Listeners {
+
 	/// <summary>
+	/// Server for listening and creating sending connections, This class is made to work with Receiving Clients
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	public class SendingListener<T> : ListenerBase {
@@ -44,20 +44,25 @@ namespace Server_Library.Server_Listeners {
 			}
 			//switch bool of setup
 			connection.isSetupCompleted = true;
-			
+
 			//Stopwatch stopwatch = new Stopwatch();
 			//stopwatch.Start();
 
-			//Receive objects
+			//Send objects
 			while (!cancellationTokenSource.Token.IsCancellationRequested) {
-				if (connection.isDataAvailable()) {
-					//Sends an objects from the internal queue
-					connection.send();
+				if (connection.send()) {
+
 				}
 				else {
-					Thread.Sleep(50);
+					Thread.Sleep(100);
 				}
 			}
+
+			//remove Connection from list of connections
+			lock (listSendingConnections) {
+				listSendingConnections.Remove(connection);
+			}
+
 		}
 
 		/// <summary>
@@ -69,7 +74,17 @@ namespace Server_Library.Server_Listeners {
 		/// <param name="info">Information about remote device</param>
 		/// <returns>SendingConnection object</returns>
 		protected override object createConnectionType(Socket socket, Thread thread, AccessToken authToken, ClientInformation info) {
-			return new SendingConnection<T>(thread,socket,authToken,info,cancellationTokenSource.Token);
+			return new SendingConnection<T>(thread, socket, authToken, info, cancellationTokenSource.Token);
+		}
+
+		/// <summary>
+		/// Get list of connections
+		/// </summary>
+		/// <returns>List SendingConnection</returns>
+		public List<SendingConnection<T>> getListOfSendingConnections() {
+			lock (listSendingConnections) {
+				return listSendingConnections;
+			}
 		}
 	}
 }

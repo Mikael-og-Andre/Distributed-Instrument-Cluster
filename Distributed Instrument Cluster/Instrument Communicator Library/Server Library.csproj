@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>Instrument_Communicator_Library</RootNamespace>
+    <RootNamespace>Server_Library</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

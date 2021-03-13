@@ -1,10 +1,9 @@
 ﻿using Networking_Library;
-using System.Collections.Concurrent;
-using System.Net.Sockets;
-using System.Text.Json;
-using System.Threading;
 using Server_Library.Authorization;
 using Server_Library.Connection_Classes;
+using System.Collections.Concurrent;
+using System.Net.Sockets;
+using System.Threading;
 
 namespace Server_Library.Connection_Types {
 
@@ -59,10 +58,9 @@ namespace Server_Library.Connection_Types {
 		/// </summary>
 		public bool receive() {
 			if (isDataAvailable()) {
-				//Get json from Client
-				string jsonObject = NetworkingOperations.receiveStringWithSocket(socket);
-				//Convert to object
-				T obj = JsonSerializer.Deserialize<T>(jsonObject);
+				//Receive and object
+				T obj = NetworkingOperations.receiveJsonObjectWithSocket<T>(socket);
+
 				//Put object in queue
 				enqueueObject(obj);
 				return true;

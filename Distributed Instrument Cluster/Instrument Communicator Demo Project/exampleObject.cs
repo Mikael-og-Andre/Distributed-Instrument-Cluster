@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace serverDemo {
+	/// <summary>
+	/// Object for testing json serialization
+	/// <author>Mikael Nilssen</author>
+	/// </summary>
 	public class exampleObject {
 		public string name { get; set; }
 		public int age { get; set; }

@@ -43,7 +43,10 @@ namespace Server_Library.Socket_Clients {
 		/// </summary>
 		public bool isSocketConnected { get; set; } = false;
 
-		private bool isSetup { get; set; } = false;
+		/// <summary>
+		/// Is the setup process Complete
+		/// </summary>
+		protected bool isSetup { get; set; } = false;
 
 		/// <summary>
 		/// Cancellation token used to stop loops

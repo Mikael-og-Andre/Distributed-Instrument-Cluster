@@ -27,9 +27,8 @@ namespace Server_Library.Socket_Clients {
 		/// <param name="informationAboutClient"></param>
 		/// <param name="accessToken"></param>
 		/// <param name="isRunningCancellationToken"></param>
-		public ReceivingClient(string ip, int port, ClientInformation informationAboutClient,
-			AccessToken accessToken, CancellationToken isRunningCancellationToken) : base(ip, port,
-			informationAboutClient, accessToken, isRunningCancellationToken) {
+		public ReceivingClient(string ip, int port, ClientInformation informationAboutClient, AccessToken accessToken, CancellationToken isRunningCancellationToken) : 
+			base(ip, port, informationAboutClient, accessToken, isRunningCancellationToken) {
 			//Init queue
 			receivedObjectsQueue = new ConcurrentQueue<T>();
 		}
@@ -38,17 +37,13 @@ namespace Server_Library.Socket_Clients {
 		/// receive objects
 		/// </summary>
 		protected override void handleConnected() {
+
+			isSetup = true;
+			isSocketConnected = true;
+
 			//Receive Objects
 			while (!isRunningCancellationToken.IsCancellationRequested) {
-				//If data is found receive it
-				if (isDataAvailable()) {
-					//receive object and put in queue
-					receive();
-				}
-				else {
-					Thread.Sleep(50);
-				}
-
+				receive();
 			}
 		}
 
@@ -64,7 +59,7 @@ namespace Server_Library.Socket_Clients {
 			}
 
 			output = default;
-			return true;
+			return false;
 		}
 		
 		/// <summary>
@@ -79,10 +74,9 @@ namespace Server_Library.Socket_Clients {
 		/// </summary>
 		private void receive() {
 			if (isDataAvailable()) {
-				//Receive json
-				string json = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-				//Deserialize json
-				T obj = JsonSerializer.Deserialize<T>(json);
+
+				T obj = NetworkingOperations.receiveJsonObjectWithSocket<T>(connectionSocket);
+
 				//Put object in queue
 				enqueueObject(obj);
 			}

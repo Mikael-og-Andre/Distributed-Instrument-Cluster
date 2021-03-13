@@ -11,6 +11,10 @@ using System.Threading.Tasks;
 
 namespace serverDemo {
 
+	/// <summary>
+	/// Demo project for Testing The Receiving Listener and Sending Client
+	/// <author>Mikael Nilssen</author>
+	/// </summary>
 	public class ReceivingServerDemo {
 
 		public static void Main(string[] args) {
@@ -22,7 +26,7 @@ namespace serverDemo {
 			Thread.Sleep(1000);
 
 			CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-			SendingClient<exampleObject> sendingClient = new SendingClient<exampleObject>("127.0.0.1", 5050, new ClientInformation("sendingClient", "here", "teseting"), new AccessToken("access"), cancellationTokenSource.Token);
+			SendingClient<exampleObject> sendingClient = new SendingClient<exampleObject>("127.0.0.1", 5050, new ClientInformation("sendingClient", "here", "testing"), new AccessToken("access"), cancellationTokenSource.Token);
 			Task sendingClientTask = new Task(() => sendingClient.run());
 			sendingClientTask.Start();
 
@@ -43,10 +47,7 @@ namespace serverDemo {
 				lock (connections) {
 					foreach (var con in connections) {
 						if (con.getObjectFromConnection(out exampleObject output)) {
-							Console.WriteLine("Received Object: name:{0}, age: {1}", output.name, output.age);
-						}
-						else {
-							Console.WriteLine("Queue Had no Objects");
+							Console.WriteLine("Received Object: name: {0}, age: {1}", output.name, output.age);
 						}
 					}
 				}
