@@ -1,9 +1,10 @@
 ﻿using Networking_Library;
+using Server_Library.Authorization;
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text.Json;
 using System.Threading;
-using Server_Library.Authorization;
 
 namespace Server_Library.Server_Listeners {
 
@@ -77,7 +78,7 @@ namespace Server_Library.Server_Listeners {
 				currentConnectionCount += 1;
 
 				//Creates a new Thread to run a client communication on
-				Thread newThread = new Thread(handleIncomingConnection) {IsBackground = true};
+				Thread newThread = new Thread(handleIncomingConnection) { IsBackground = true };
 
 				//Authorize and setup connection
 				object newClientConnection = setupConnection(newSocket, newThread);
@@ -108,9 +109,6 @@ namespace Server_Library.Server_Listeners {
 		/// <returns> a Connection of one of the child types of ConnectionBase</returns>
 		protected abstract object createConnectionType(Socket socket, Thread thread, AccessToken accessToken, ClientInformation info);
 
-
-
-
 		/// <summary>
 		/// Gets authorization instrument information from connecting client
 		/// </summary>
@@ -126,11 +124,8 @@ namespace Server_Library.Server_Listeners {
 			string connectionHash = NetworkingOperations.receiveStringWithSocket(socket);
 			AccessToken accessToken = new AccessToken(connectionHash);
 
-			//Get instrument information
-			string name = NetworkingOperations.receiveStringWithSocket(socket);
-			string location = NetworkingOperations.receiveStringWithSocket(socket);
-			string type = NetworkingOperations.receiveStringWithSocket(socket);
-			ClientInformation info = new ClientInformation(name, location, type);
+			//Get Client information
+			ClientInformation info = NetworkingOperations.receiveJsonObjectWithSocket<ClientInformation>(socket);
 
 			//Create connection and return
 			return createConnectionType(socket, thread, accessToken, info);

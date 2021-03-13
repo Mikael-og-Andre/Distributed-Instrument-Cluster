@@ -1,7 +1,8 @@
-﻿using System.Net.Sockets;
-using System.Threading;
-using Networking_Library;
+﻿using Networking_Library;
 using Server_Library.Authorization;
+using System.Net.Sockets;
+using System.Text.Json;
+using System.Threading;
 
 namespace Server_Library.Socket_Clients {
 
@@ -71,7 +72,6 @@ namespace Server_Library.Socket_Clients {
 			handleConnected();
 		}
 
-
 		/// <summary>
 		/// The main function of a communicator that gets called after you are connected and preforms actions with the socket
 		/// </summary>
@@ -83,7 +83,7 @@ namespace Server_Library.Socket_Clients {
 		/// <param name="socket"> unconnected Socket</param>
 		/// <returns> boolean representing successful connection</returns>
 		private void connectToServer(Socket socket) {
-			socket.Connect(Ip,Port);
+			socket.Connect(Ip, Port);
 		}
 
 		/// <summary>
@@ -95,12 +95,10 @@ namespace Server_Library.Socket_Clients {
 			NetworkingOperations.receiveStringWithSocket(socket);
 			//send auth hash
 			//TODO: add auth hash encryption
-			NetworkingOperations.sendStringWithSocket(accessToken.getAccessString(),socket);
+			NetworkingOperations.sendStringWithSocket(accessToken.getAccessString(), socket);
 
 			//Send instrument info
-			NetworkingOperations.sendStringWithSocket(information.Name,socket);
-			NetworkingOperations.sendStringWithSocket(information.Location,socket);
-			NetworkingOperations.sendStringWithSocket(information.Type,socket);
+			NetworkingOperations.sendJsonObjectWithSocket(information,socket);
 		}
 
 		/// <summary>
@@ -108,13 +106,12 @@ namespace Server_Library.Socket_Clients {
 		/// </summary>
 		/// <returns></returns>
 		protected bool isDataAvailable() {
-			if (connectionSocket.Available>0) {
+			if (connectionSocket.Available > 0) {
 				return true;
 			}
 			else {
 				return false;
 			}
 		}
-		
 	}
 }

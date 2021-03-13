@@ -57,20 +57,25 @@ namespace Server_Library.Connection_Types {
 		/// <summary>
 		/// Use socket to accept an incoming object and put it in the internal Queue
 		/// </summary>
-		public void receive() {
-			//Get json from Client
-			string jsonObject = NetworkingOperations.receiveStringWithSocket(socket);
-			//Convert to object
-			T obj = JsonSerializer.Deserialize<T>(jsonObject);
-			//Put object in queue
-			enqueueObject(obj);
+		public bool receive() {
+			if (isDataAvailable()) {
+				//Get json from Client
+				string jsonObject = NetworkingOperations.receiveStringWithSocket(socket);
+				//Convert to object
+				T obj = JsonSerializer.Deserialize<T>(jsonObject);
+				//Put object in queue
+				enqueueObject(obj);
+				return true;
+			}
+
+			return false;
 		}
 
 		/// <summary>
 		/// checks if there is data available on the socket
 		/// </summary>
 		/// <returns>Bool true if data is above 0</returns>
-		public bool isDataAvailable() {
+		private bool isDataAvailable() {
 			if (socket.Available > 0) {
 				return true;
 			}

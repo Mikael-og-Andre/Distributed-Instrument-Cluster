@@ -9,8 +9,4 @@
     <ProjectReference Include="..\NetworkingLibrary\Networking Library.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Objects\JsonSerializableObjects\" />
-  </ItemGroup>
-
 </Project>

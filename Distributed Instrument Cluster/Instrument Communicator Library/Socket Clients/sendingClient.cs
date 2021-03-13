@@ -37,7 +37,7 @@ namespace Server_Library.Socket_Clients {
 		/// </summary>
 		protected override void handleConnected() {
 			//Send objects
-			while (isRunningCancellationToken.IsCancellationRequested) {
+			while (!isRunningCancellationToken.IsCancellationRequested) {
 				//If there is and object to send, send it
 				if (queueCount() > 0) {
 					send();

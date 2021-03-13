@@ -39,7 +39,7 @@ namespace Server_Library.Socket_Clients {
 		/// </summary>
 		protected override void handleConnected() {
 			//Receive Objects
-			while (isRunningCancellationToken.IsCancellationRequested) {
+			while (!isRunningCancellationToken.IsCancellationRequested) {
 				//If data is found receive it
 				if (isDataAvailable()) {
 					//receive object and put in queue

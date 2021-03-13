@@ -61,14 +61,6 @@ namespace Server_Library.Connection_Classes {
 		}
 
 		/// <summary>
-		/// Returns socket
-		/// </summary>
-		/// <returns>Socket</returns>
-		public Socket getSocket() {
-			return socket;
-		}
-
-		/// <summary>
 		/// Get the Instrument information from Crestron connection
 		/// </summary>
 		/// <returns>Instrument Information</returns>

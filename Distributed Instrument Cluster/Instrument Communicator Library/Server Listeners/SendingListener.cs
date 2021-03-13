@@ -49,7 +49,7 @@ namespace Server_Library.Server_Listeners {
 			//stopwatch.Start();
 
 			//Receive objects
-			while (cancellationTokenSource.Token.IsCancellationRequested) {
+			while (!cancellationTokenSource.Token.IsCancellationRequested) {
 				if (connection.isDataAvailable()) {
 					//Sends an objects from the internal queue
 					connection.send();

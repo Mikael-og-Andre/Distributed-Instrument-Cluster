@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 
 namespace Networking_Library {
 
@@ -8,18 +9,18 @@ namespace Networking_Library {
 	/// Class with different Socket operations
 	/// </summary>
 	public static class NetworkingOperations {
+
 		/// <summary>
 		/// Send an object with the socket
 		/// </summary>
 		/// <param name="input">Object inheriting ISerializableObject</param>
 		/// <param name="connectionSocket"></param>
 		public static void sendObjectWithSocket<TU>(TU input, Socket connectionSocket) where TU : ISerializeObject {
-
 			byte[] bytes = input.getBytes();
-            NetworkStream networkStream = new NetworkStream(connectionSocket);
+			NetworkStream networkStream = new NetworkStream(connectionSocket);
 			networkStream.Write(bytes);
 			networkStream.Flush();
-        }
+		}
 
 		/// <summary>
 		/// Receive an object with socket
@@ -30,23 +31,23 @@ namespace Networking_Library {
 		public static byte[] receiveByteArrayWithSocket(Socket connectionSocket, int receiveBufferSize) {
 			//Create stream
 			NetworkStream networkStream = new NetworkStream(connectionSocket);
-            networkStream.Flush();
+			networkStream.Flush();
 			//read bytes to buffer
 			byte[] bufferBytes = new byte[receiveBufferSize];
 			networkStream.Read(bufferBytes);
 			networkStream.Flush();
-            int endInt = 0;
+			int endInt = 0;
 			//Check where the nullbytes are
-            for (int i = bufferBytes.Length; i>0;i--) {
-                byte currentByte = bufferBytes[i-1];
-                if (currentByte != byte.MinValue) {
-                    endInt = i;
-                    break;
-                }
-            }
+			for (int i = bufferBytes.Length; i > 0; i--) {
+				byte currentByte = bufferBytes[i - 1];
+				if (currentByte != byte.MinValue) {
+					endInt = i;
+					break;
+				}
+			}
 
 			//Copy non null bytes to array
-            byte[] bytes = new byte[endInt];
+			byte[] bytes = new byte[endInt];
 			Buffer.BlockCopy(bufferBytes, 0, bytes, 0, endInt);
 			//return arrray
 			return bytes;
@@ -90,5 +91,32 @@ namespace Networking_Library {
 			//Send message string to client
 			connectionSocket.Send(stringBuffer, stringBuffer.Length, SocketFlags.None);
 		}
+
+		#region Json
+
+		/// <summary>
+		/// Serialize object to json and send it
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="obj"></param>
+		/// <param name="socket"></param>
+		public static void sendJsonObjectWithSocket<T>(T obj, Socket socket) {
+			string json = JsonSerializer.Serialize(obj);
+			sendStringWithSocket(json, socket);
+		}
+
+		/// <summary>
+		/// Receive string and deserialize to object from json
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="socket"></param>
+		/// <returns></returns>
+		public static T receiveJsonObjectWithSocket<T>(Socket socket) {
+			string json = receiveStringWithSocket(socket);
+			T receivedObj = JsonSerializer.Deserialize<T>(json);
+			return receivedObj;
+		}
+
+		#endregion Json
 	}
 }

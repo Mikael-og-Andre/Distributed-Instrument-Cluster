@@ -52,13 +52,18 @@ namespace Server_Library.Server_Listeners {
 			//stopwatch.Start();
 
 			//Receive objects
-			while (cancellationTokenSource.Token.IsCancellationRequested) {
-				if (connection.isDataAvailable()) {
-					connection.receive();
+			while (!cancellationTokenSource.Token.IsCancellationRequested) {
+				if (connection.receive()) {
+					
 				}
 				else {
 					Thread.Sleep(50);
 				}
+			}
+
+			//Remove Connection From list
+			lock (listReceivingConnections) {
+				listReceivingConnections.Remove(connection);
 			}
 		}
 
@@ -70,6 +75,16 @@ namespace Server_Library.Server_Listeners {
 		/// <returns></returns>
 		protected override object createConnectionType(Socket socket, Thread thread, AccessToken accessToken, ClientInformation info) {
 			return new ReceivingConnection<T>(thread, socket, accessToken, info, cancellationTokenSource.Token);
+		}
+
+		/// <summary>
+		/// Get the list containing connections
+		/// </summary>
+		/// <returns></returns>
+		public List<ReceivingConnection<T>> getListOfReceivingConnections() {
+			lock (listReceivingConnections) {
+				return listReceivingConnections;
+			}
 		}
 
 	}

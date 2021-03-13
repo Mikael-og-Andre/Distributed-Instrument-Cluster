@@ -1,5 +1,4 @@
-﻿
-namespace Server_Library {
+﻿namespace Server_Library {
 	/// <summary>
 	/// Class for storing and loading information about the Instrument Device
 	/// <author>Mikael Nilssen</author>
@@ -10,22 +9,28 @@ namespace Server_Library {
 		/// <summary>
 		/// Designated name of client device
 		/// </summary>
-		public string Name { get; private set; }
+		public string Name { get; set; }
 
 		/// <summary>
 		/// Location of the device
 		/// </summary>
-		public string Location { get; private set; }
+		public string Location { get; set; }
 
 		/// <summary>
 		/// Type of device, e.g GPS
 		/// </summary>
-		public string Type { get; private set; }
+		public string Type { get; set; }
 
 		/// <summary>
-		/// Constructor
+		/// Empty constructor
 		/// </summary>
-		/// <param name="id"></param>
+		public ClientInformation() {
+			
+		}
+
+		/// <summary>
+		/// Constructor with input
+		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="location"></param>
 		/// <param name="type"></param>
@@ -34,6 +39,5 @@ namespace Server_Library {
 			this.Location = location;
 			this.Type = type;
 		}
-		
 	}
 }

@@ -3,8 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>HardwareServer_Demo_Project</RootNamespace>
-    <StartupObject>Server_And_Demo_Project.CrestronCommunicatorTestingClass</StartupObject>
+    <RootNamespace>serverDemo</RootNamespace>
+    <StartupObject>serverDemo.ReceivingServerDemo</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
