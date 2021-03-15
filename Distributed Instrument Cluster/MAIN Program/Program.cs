@@ -92,7 +92,7 @@ namespace MAIN_Program {
 			Console.WriteLine("Initializing serial cable...");
 			try {
 				var serialPort = new SerialPortInterface(serialCable.portName);
-				commandParser = new CommandParser(serialPort);
+				commandParser = new CommandParser(serialPort, serialCable.largeMagnitude, serialCable.smallMagnitude, serialCable.maxDelta);
 				writeSuccess("Successfully connected to port: " + serialCable.portName);
 
 				//NumLock check may be unnecessary. 

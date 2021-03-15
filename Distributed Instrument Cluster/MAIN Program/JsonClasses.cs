@@ -8,6 +8,9 @@ namespace MAIN_Program {
 
 		public class SerialCable {
 			public string portName { get; set; }
+			public int largeMagnitude { get; set; }
+			public int smallMagnitude { get; set; }
+			public int maxDelta { get; set; }
 			public Communicator communicator { get; set; }
 		}
 

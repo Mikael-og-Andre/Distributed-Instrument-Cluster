@@ -48,26 +48,35 @@
         Console.WriteLine(e.Code);
         switch (e.Code) {
             case "Space":
+                if (downedKeys.ContainsKey(e.Code)) break;
                 sendData("make space");
+                downedKeys.Add(e.Code, true);
                 return;
             case "Tab":
                 return;
             default:
+                if (downedKeys.ContainsKey(e.Code)) break;
                 sendData("make " + e.Key);
+                downedKeys.Add(e.Code, true);
                 break;
         }
     }
+
+
+    private Dictionary<string, bool> downedKeys = new();
 
     private void keyUp(KeyboardEventArgs e) {
         Console.WriteLine(e.Code);
         switch (e.Code) {
             case "Space":
                 sendData("break space");
+                downedKeys.Remove(e.Code);
                 return;
             case "Tab":
                 return;
             default:
                 sendData("break " + e.Key);
+                downedKeys.Remove(e.Code);
                 break;
         }
     }
