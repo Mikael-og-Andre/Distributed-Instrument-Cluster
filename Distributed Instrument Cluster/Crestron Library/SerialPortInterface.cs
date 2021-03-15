@@ -13,14 +13,12 @@ namespace Crestron_Library {
 	public class SerialPortInterface: IDisposable {
 		private readonly ConcurrentQueue<byte> byteQueue = new ConcurrentQueue<byte>();
 		private static SerialPort serialPort;
-		private bool SendData = true;
+		private bool SendData = false;
 
 		public SerialPortInterface(string port) {
 			serialPort = new SerialPort();
 			setSerialPort(port);
-
-			Thread sendThread = new Thread(SendDataThread);
-			sendThread.Start();
+			serialPort.Open();
 		}
 
 		/// <summary>
@@ -52,7 +50,7 @@ namespace Crestron_Library {
 		/// </summary>
 		/// <param name="b"></param>
 		public void SendBytes(byte b) {
-			byteQueue.Enqueue(b);
+			SendBytes(new List<byte>() {b});
 		}
 
 		/// <summary>
@@ -64,6 +62,10 @@ namespace Crestron_Library {
 			foreach (byte b in bytes) {
 				byteQueue.Enqueue(b);
 			}
+			if (SendData) return;
+			SendData = true;
+			Thread sendThread = new Thread(SendDataThread);
+			sendThread.Start();
 		}
 
 
@@ -80,7 +82,7 @@ namespace Crestron_Library {
 		/// Stops data sending thread and releases com port.
 		/// </summary>
 		public void Dispose() {
-			SendData = false;
+			serialPort.Close();
 			GC.SuppressFinalize(this);
 		}
 
@@ -90,13 +92,12 @@ namespace Crestron_Library {
 		/// Method sends byte one by one and waits for response byte from crestron cable before sending.
 		/// </summary>
 		private void SendDataThread() {
-			serialPort.Open();
-			while(SendData) {
+			while(!byteQueue.IsEmpty) {
 				if (byteQueue.TryDequeue(out byte b)) {
 					sendByte(b);
 				}
 			}
-			serialPort.Close();
+			SendData = false;
 		}
 
 		/// <summary>
