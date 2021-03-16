@@ -20,8 +20,7 @@
     /// <summary>
     /// Handles capturing pointer lock data, key events and sends it to a web socket.
     /// </summary>
-    /// <author>Mikael Nilssen</author>
-    /// <author>Andre Helland</author>
+    /// <author>Andre Helland, Mikael Nilssen</author>
 
     CancellationTokenSource disposalTokenSource = new CancellationTokenSource();    //Disposal token used in websocket communication
     ClientWebSocket crestronWebSocket = new ClientWebSocket();                      //Websocket client
@@ -29,6 +28,8 @@
     public string name { get; set; } = "Radar1";                                    //Name of the wanted Device
     private bool deviceFound = false;                                               //Bool representing if the control of the device has been granted
     private string pathToCrestronWebsocket = "crestronControl";
+
+    #region Events
 
     private async void click(MouseEventArgs e) {
         await JS.InvokeVoidAsync("click");
@@ -46,6 +47,7 @@
 
     private void keyDown(KeyboardEventArgs e) {
         Console.WriteLine(e.Code);
+        Console.WriteLine(e.Key);
         switch (e.Code) {
             case "Space":
                 if (downedKeys.ContainsKey(e.Code)) break;
@@ -95,6 +97,8 @@
 
         sendData("movecursor (" + x + "," + y + ")");
     }
+
+    #endregion
 
     private async void sendData(string s) {
         if (!(await JS.InvokeAsync<bool>("isLocked"))) return;
