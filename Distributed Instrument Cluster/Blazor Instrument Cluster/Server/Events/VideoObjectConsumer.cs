@@ -8,7 +8,7 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 	/// <author>Mikael Nilssen</author>
 	/// Copied from Microsoft docs and modified
 	/// </summary>
-	public class ReceivingObjectConsumer<T> : IObserver<T> {
+	public class VideoObjectConsumer<T> : IObserver<T> {
 
 		/// <summary>
 		/// Object used to unsubscribe from provider
@@ -29,7 +29,7 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		/// Constructor, sets name and initializes queue
 		/// </summary>
 		/// <param name="name"></param>
-		public ReceivingObjectConsumer(string name) {
+		public VideoObjectConsumer(string name) {
 			this.name = name;
 			this.frameConcurrentQueue = new ConcurrentQueue<T>();
 		}
@@ -38,7 +38,7 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		/// Adds this consumer to the providers list. and sets unsubscribe object
 		///
 		/// </summary>
-		/// <param name="provider">ReceivingObjectProvider</param>
+		/// <param name="provider">VideoObjectProvider</param>
 		public void Subscribe(IObservable<T> provider) {
 			if (provider != null) {
 				unsubscriber = provider.Subscribe(this);

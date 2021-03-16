@@ -9,7 +9,7 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 	/// <author>Mikael Nilssen</author>
 	/// Copied from Microsoft docs and modified
 	/// </summary>
-	public class ReceivingObjectProvider<T> : IObservable<T> {
+	public class VideoObjectProvider<T> : IObservable<T> {
 
 		/// <summary>
 		/// name of the device
@@ -25,7 +25,7 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		/// Constructor, sets name and initializes list of observers
 		/// </summary>
 		/// <param name="name"></param>
-		public ReceivingObjectProvider(string name) {
+		public VideoObjectProvider(string name) {
 			this.name = name;
 			observers = new List<IObserver<T>>();
 		}
@@ -33,7 +33,7 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		/// <summary>
 		/// Add observer to observer list
 		/// </summary>
-		/// <param name="observer"> ReceivingObjectConsumer</param>
+		/// <param name="observer"> VideoObjectConsumer</param>
 		/// <returns>Unsubscribe implementation of IDisposable</returns>
 		public IDisposable Subscribe(IObserver<T> observer) {
 			lock (observers) {

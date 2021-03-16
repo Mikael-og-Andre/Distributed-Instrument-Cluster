@@ -26,100 +26,100 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="T:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectConsumer">
+        <member name="T:Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer">
             <summary>
             A class that can subscribe the a video frame queue and receive incoming video frames
             <author>Mikael Nilssen</author>
             Copied from Microsoft docs and modified
             </summary>
         </member>
-        <member name="F:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectConsumer.unsubscriber">
+        <member name="F:Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer.unsubscriber">
             <summary>
             Object used to unsubscribe from provider
             </summary>
         </member>
-        <member name="F:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectConsumer.name">
+        <member name="F:Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer.name">
             <summary>
             Name of the device it wants a queue from
             </summary>
         </member>
-        <member name="F:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectConsumer.frameConcurrentQueue">
+        <member name="F:Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer.frameConcurrentQueue">
             <summary>
             Concurrent queue of incoming frames
             </summary>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectConsumer.#ctor(System.String)">
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer.#ctor(System.String)">
             <summary>
             Constructor, sets name and initializes queue
             </summary>
             <param name="name"></param>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectConsumer.Subscribe(System.IObservable{Instrument_Communicator_Library.VideoFrame})">
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer.Subscribe(System.IObservable{Instrument_Communicator_Library.VideoFrame})">
              <summary>
              Adds this consumer to the providers list. and sets unsubscribe object
             
              </summary>
-             <param name="provider">ReceivingObjectProvider</param>
+             <param name="provider">VideoObjectProvider</param>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectConsumer.Unsubscribe">
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer.Unsubscribe">
             <summary>
             Unsubscribes this consumer from the provider
             </summary>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectConsumer.OnCompleted">
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer.OnCompleted">
             <summary>
             What to do when the provider is done
             </summary>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectConsumer.OnError(System.Exception)">
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer.OnError(System.Exception)">
             <summary>
             What to do when an error occurs
             </summary>
             <param name="error"></param>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectConsumer.OnNext(Instrument_Communicator_Library.VideoFrame)">
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer.OnNext(Instrument_Communicator_Library.VideoFrame)">
             <summary>
             Pushes a VideoFrame from the provider to the queue
             </summary>
             <param name="value"></param>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectConsumer.GetConcurrentQueue">
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer.GetConcurrentQueue">
             <summary>
             Get the concurrent queue
             </summary>
             <returns></returns>
         </member>
-        <member name="T:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectProvider">
+        <member name="T:Blazor_Instrument_Cluster.Server.Events.VideoObjectProvider">
             <summary>
             Class for sending a frame to all subscribed listeners
             <author>Mikael Nilssen</author>
             Copied from Microsoft docs and modified
             </summary>
         </member>
-        <member name="P:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectProvider.name">
+        <member name="P:Blazor_Instrument_Cluster.Server.Events.VideoObjectProvider.name">
             <summary>
             name of the device
             </summary>
         </member>
-        <member name="F:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectProvider.observers">
+        <member name="F:Blazor_Instrument_Cluster.Server.Events.VideoObjectProvider.observers">
             <summary>
             //observers of this provider
             </summary>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectProvider.#ctor(System.String)">
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoObjectProvider.#ctor(System.String)">
             <summary>
             Constructor, sets name and initializes list of observers
             </summary>
             <param name="name"></param>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectProvider.Subscribe(System.IObserver{Instrument_Communicator_Library.VideoFrame})">
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoObjectProvider.Subscribe(System.IObserver{Instrument_Communicator_Library.VideoFrame})">
             <summary>
             Add observer to observer list
             </summary>
-            <param name="observer"> ReceivingObjectConsumer</param>
+            <param name="observer"> VideoObjectConsumer</param>
             <returns>Unsubscribe implementation of IDisposable</returns>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Events.ReceivingObjectProvider.PushObject(Instrument_Communicator_Library.VideoFrame)">
+        <member name="M:Blazor_Instrument_Cluster.Server.Events.VideoObjectProvider.PushObject(Instrument_Communicator_Library.VideoFrame)">
             <summary>
             Sends a frame to all observers
             </summary>
@@ -201,7 +201,7 @@
             <param name="name"></param>
             <returns></returns>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceConnections.SubscribeToVideoProviderWithName(System.String,Blazor_Instrument_Cluster.Server.Events.ReceivingObjectConsumer)">
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceConnections.SubscribeToVideoProviderWithName(System.String,Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer)">
             <summary>
             Subscribes the Consumer to a video provider with the name inputted
             </summary>
@@ -279,15 +279,15 @@
             <param name="name"> name of the wanted device</param>
             <returns>found or not bool</returns>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnections.SubscribeToVideoProviderWithName(System.String,Blazor_Instrument_Cluster.Server.Events.ReceivingObjectConsumer)">
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnections.SubscribeToVideoProviderWithName(System.String,Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer)">
             <summary>
             Subscribes to the appropriate video provider with the name passed in
             </summary>
             <param name="name"> Name of the wanted provider</param>
-            <param name="consumer"> ReceivingObjectConsumer</param>
+            <param name="consumer"> VideoObjectConsumer</param>
             <returns>Found the device or not</returns>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnections.AddFrameProviderToListOfProviders(Blazor_Instrument_Cluster.Server.Events.ReceivingObjectProvider)">
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.RemoteDeviceConnections.AddFrameProviderToListOfProviders(Blazor_Instrument_Cluster.Server.Events.VideoObjectProvider)">
             <summary>
             Adds a provider for a specific video connection to the list of connections
             </summary>

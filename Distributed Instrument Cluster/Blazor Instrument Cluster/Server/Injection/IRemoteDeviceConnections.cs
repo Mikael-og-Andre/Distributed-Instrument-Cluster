@@ -27,7 +27,7 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 		/// <param name="Location"></param>
 		/// <param name="Type"></param>
 		/// <returns>Remote Device</returns>
-		public RemoteDevice getRemoteDeviceWithLocationAndType(string Location,string Type);
+		public RemoteDevice<T,U> getRemoteDeviceWithNameLocationAndType<T,U>(string name,string location,string type);
 
 		/// <summary>
 		/// Subscribes the Consumer to a video provider with the name inputted
@@ -35,6 +35,6 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 		/// <param name="name">Name of the device of the wanted Video Stream</param>
 		/// <param name="consumer">Consumer for incoming objects</param>
 		/// <returns>If provider with name was found or not</returns>
-		public bool subscribeToObjectProviderWithName(string name, ReceivingObjectConsumer<T> consumer);
+		public bool subscribeToObjectProviderWithName(string name,string location, string type, string subname, VideoObjectConsumer<T> consumer);
 	}
 }

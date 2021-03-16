@@ -62,7 +62,7 @@ namespace Blazor_Instrument_Cluster {
 
 				logger.LogDebug("Websocket Video connection has asked for device with name: {0} ", name);
 				//Setup frame consumer to receive pushed frames from connection
-				ReceivingObjectConsumer<T> consumer = new ReceivingObjectConsumer<T>(name);
+				VideoObjectConsumer<T> consumer = new VideoObjectConsumer<T>(name);
 				//Check for name
 				bool subbed = false;
 				int maxLoops = 20;
