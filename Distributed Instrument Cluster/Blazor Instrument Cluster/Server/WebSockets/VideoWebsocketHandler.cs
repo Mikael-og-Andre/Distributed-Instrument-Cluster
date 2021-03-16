@@ -18,23 +18,23 @@ namespace Blazor_Instrument_Cluster {
 	/// <author></author>
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class VideoWebsocketHandler<T> : IVideoSocketHandler where T : ISerializeObject {
+	public class VideoWebsocketHandler<T,U> : IVideoSocketHandler {
 		/// <summary>
 		/// remote Device connections
 		/// </summary>
-		private RemoteDeviceConnections remoteDeviceConnectionses;
+		private RemoteDeviceConnections<T,U> remoteDeviceConnectionses;
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<VideoWebsocketHandler<T>> logger;
+		private ILogger<VideoWebsocketHandler<T,U>> logger;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public VideoWebsocketHandler(ILogger<VideoWebsocketHandler<T>> logger, IServiceProvider services) {
-			remoteDeviceConnectionses = (RemoteDeviceConnections)services.GetService(typeof(IRemoteDeviceConnections));
+		public VideoWebsocketHandler(ILogger<VideoWebsocketHandler<T,U>> logger, IServiceProvider services) {
+			remoteDeviceConnectionses = (RemoteDeviceConnections<T,U>)services.GetService(typeof(IRemoteDeviceConnections<T,U>));
 			this.logger = logger;
 		}
 
@@ -62,7 +62,7 @@ namespace Blazor_Instrument_Cluster {
 
 				logger.LogDebug("Websocket Video connection has asked for device with name: {0} ", name);
 				//Setup frame consumer to receive pushed frames from connection
-				ReceivingObjectConsumer<> consumer = new ReceivingObjectConsumer<>(name);
+				ReceivingObjectConsumer<T> consumer = new ReceivingObjectConsumer<T>(name);
 				//Check for name
 				bool subbed = false;
 				int maxLoops = 20;

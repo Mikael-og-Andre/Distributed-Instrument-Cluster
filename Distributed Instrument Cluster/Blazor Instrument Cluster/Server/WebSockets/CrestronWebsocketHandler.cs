@@ -69,6 +69,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				int maxLoops = 20;
 				int looped = 0;
 				CrestronConnection con = null;
+
 				while (!exists && (looped < maxLoops)) {
 					exists = remoteDeviceConnectionses.getCrestronConnectionWithName(out con, name);
 					logger.LogCritical("WebSocket tried to Find {0} but Crestron connection queue was not found", name);

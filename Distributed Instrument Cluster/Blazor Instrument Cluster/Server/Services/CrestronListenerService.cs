@@ -11,12 +11,12 @@ using Server_Library.Server_Listeners;
 
 namespace Blazor_Instrument_Cluster.Server.Services {
 
-	public class SendingListenerService<T,U> :BackgroundService {
+	public class CrestronListenerService<T,U> :BackgroundService {
 
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<SendingListenerService<T,U>> logger;
+		private ILogger<CrestronListenerService<T,U>> logger;
 
 		/// <summary>
 		/// Injected Service provider
@@ -34,7 +34,7 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		private SendingListener<U> sendingListener;
 
 
-		public SendingListenerService(ILogger<SendingListenerService<T,U>> logger, IServiceProvider services) {
+		public CrestronListenerService(ILogger<CrestronListenerService<T,U>> logger, IServiceProvider services) {
 			this.logger = logger;
 			//Get Remote devices from services
 			remoteDeviceConnections = (RemoteDeviceConnections<T,U>)services.GetService(typeof(IRemoteDeviceConnections<T,U>));
@@ -60,8 +60,10 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 			//Get incoming connections
 			while (!stoppingToken.IsCancellationRequested) {
 				if (sendingListener.getIncomingConnection(out ConnectionBase output)) {
+					//Cast to correct type
 					SendingConnection<T> sendingConnection = (SendingConnection<T>) output;
-
+					//Add to remote devices
+					remoteDeviceConnections.addConnectionToRemoteDevices(sendingConnection);
 					
 				}
 				else {

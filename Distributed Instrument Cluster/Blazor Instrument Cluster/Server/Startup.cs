@@ -50,11 +50,11 @@ namespace Blazor_Instrument_Cluster.Server {
 			//Add Remote device connection tracker
 			services.AddSingleton<IRemoteDeviceConnections<dummyJsonObject,dummyJsonObject>, RemoteDeviceConnections<dummyJsonObject,dummyJsonObject>>();
 			//Start Connection listeners as background services
-			services.AddHostedService<ReceivingListenerService<dummyJsonObject,dummyJsonObject>>();
-			services.AddHostedService<SendingListenerService<dummyJsonObject,dummyJsonObject>>();
+			services.AddHostedService<VideoListenerService<dummyJsonObject,dummyJsonObject>>();
+			services.AddHostedService<CrestronListenerService<dummyJsonObject,dummyJsonObject>>();
 			//Add singletons for socket handling
-			services.AddSingleton<IVideoSocketHandler, VideoWebsocketHandler<VideoFrame>>();
-			services.AddSingleton<ICrestronSocketHandler, CrestronWebsocketHandler>();
+			services.AddSingleton<IVideoSocketHandler, VideoWebsocketHandler<dummyJsonObject,dummyJsonObject>>();
+			services.AddSingleton<ICrestronSocketHandler, CrestronWebsocketHandler<dummyJsonObject,dummyJsonObject>>();
 
 		}
 
@@ -87,8 +87,8 @@ namespace Blazor_Instrument_Cluster.Server {
 						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
 							var socketFinishedTcs = new TaskCompletionSource<object>();
 
-							VideoWebsocketHandler<VideoFrame> videoWebsocketHandler =
-								(VideoWebsocketHandler<VideoFrame>)app.ApplicationServices.GetService<IVideoSocketHandler>();
+							VideoWebsocketHandler<dummyJsonObject,dummyJsonObject> videoWebsocketHandler =
+								(VideoWebsocketHandler<dummyJsonObject,dummyJsonObject>)app.ApplicationServices.GetService<IVideoSocketHandler>();
 							//Start if socketHandler is not null
 							videoWebsocketHandler?.StartWebSocketVideoProtocol(webSocket, socketFinishedTcs);
 							await socketFinishedTcs.Task;
@@ -101,7 +101,7 @@ namespace Blazor_Instrument_Cluster.Server {
 						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
 							var socketFinishedTcs = new TaskCompletionSource<object>();
 
-							CrestronWebsocketHandler crestronWebsocketHandler = (CrestronWebsocketHandler)app.ApplicationServices.GetService<ICrestronSocketHandler>();
+							var crestronWebsocketHandler = (CrestronWebsocketHandler<dummyJsonObject,dummyJsonObject>)app.ApplicationServices.GetService<ICrestronSocketHandler>();
 							crestronWebsocketHandler.StartCrestronWebsocketProtocol(webSocket, socketFinishedTcs);
 
 							await socketFinishedTcs.Task;
