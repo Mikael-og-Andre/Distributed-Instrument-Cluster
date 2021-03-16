@@ -22,7 +22,7 @@ namespace Blazor_Instrument_Cluster {
 		/// <summary>
 		/// remote Device connections
 		/// </summary>
-		private RemoteDeviceConnection remoteDeviceConnections;
+		private RemoteDeviceConnections remoteDeviceConnectionses;
 		/// <summary>
 		/// Logger
 		/// </summary>
@@ -34,7 +34,7 @@ namespace Blazor_Instrument_Cluster {
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
 		public VideoWebsocketHandler(ILogger<VideoWebsocketHandler<T>> logger, IServiceProvider services) {
-			remoteDeviceConnections = (RemoteDeviceConnection)services.GetService(typeof(IRemoteDeviceConnections));
+			remoteDeviceConnectionses = (RemoteDeviceConnections)services.GetService(typeof(IRemoteDeviceConnections));
 			this.logger = logger;
 		}
 
@@ -62,13 +62,13 @@ namespace Blazor_Instrument_Cluster {
 
 				logger.LogDebug("Websocket Video connection has asked for device with name: {0} ", name);
 				//Setup frame consumer to receive pushed frames from connection
-				VideoConnectionFrameConsumer consumer = new VideoConnectionFrameConsumer(name);
+				ReceivingObjectConsumer<> consumer = new ReceivingObjectConsumer<>(name);
 				//Check for name
 				bool subbed = false;
 				int maxLoops = 20;
 				int looped = 0;
 				while (!subbed && (looped < maxLoops)) {
-					subbed = remoteDeviceConnections.subscribeToVideoProviderWithName(name, consumer);
+					subbed = remoteDeviceConnectionses.subscribeToVideoProviderWithName(name, consumer);
 					logger.LogDebug("WebSocket tried to subscribe to {0} but i could not be found in the provider queue", name);
 					looped++;
 					await Task.Delay(100, token);

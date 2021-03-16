@@ -42,6 +42,9 @@ namespace Server_Library.Server_Listeners {
 			lock (listSendingConnections) {
 				listSendingConnections.Add(connection);
 			}
+			//Add to queue for incoming connections
+			addConnectionToQueueOfIncomingConnections(connection);
+
 			//switch bool of setup
 			connection.isSetupCompleted = true;
 
@@ -73,8 +76,8 @@ namespace Server_Library.Server_Listeners {
 		/// <param name="authToken">authorization token</param>
 		/// <param name="info">Information about remote device</param>
 		/// <returns>SendingConnection object</returns>
-		protected override object createConnectionType(Socket socket, Thread thread, AccessToken authToken, ClientInformation info) {
-			return new SendingConnection<T>(thread, socket, authToken, info, cancellationTokenSource.Token);
+		protected override object createConnectionType(Socket socket, AccessToken authToken, ClientInformation info) {
+			return new SendingConnection<T>(socket, authToken, info, cancellationTokenSource.Token);
 		}
 
 		/// <summary>

@@ -11,6 +11,8 @@ using System;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
+using Blazor_Instrument_Cluster.Server.Object;
+using Blazor_Instrument_Cluster.Server.Services;
 using Server_Library;
 
 namespace Blazor_Instrument_Cluster.Server {
@@ -45,11 +47,11 @@ namespace Blazor_Instrument_Cluster.Server {
 					new[] { "application/octet-stream" });
 			});
 
-			//Add Connection tracker
-			services.AddSingleton<IRemoteDeviceConnections, RemoteDeviceConnection>();
+			//Add Remote device connection tracker
+			services.AddSingleton<IRemoteDeviceConnections<dummyJsonObject,dummyJsonObject>, RemoteDeviceConnections<dummyJsonObject,dummyJsonObject>>();
 			//Start Connection listeners as background services
-			services.AddHostedService<VideoListenerService>();
-			services.AddHostedService<CrestronListenerService>();
+			services.AddHostedService<ReceivingListenerService<dummyJsonObject,dummyJsonObject>>();
+			services.AddHostedService<SendingListenerService<dummyJsonObject,dummyJsonObject>>();
 			//Add singletons for socket handling
 			services.AddSingleton<IVideoSocketHandler, VideoWebsocketHandler<VideoFrame>>();
 			services.AddSingleton<ICrestronSocketHandler, CrestronWebsocketHandler>();

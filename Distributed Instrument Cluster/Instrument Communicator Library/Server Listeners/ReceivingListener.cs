@@ -45,6 +45,9 @@ namespace Server_Library.Server_Listeners {
 			lock (listReceivingConnections) {
 				listReceivingConnections.Add(connection);
 			}
+			//Add to queue for incoming connections
+			addConnectionToQueueOfIncomingConnections(connection);
+
 			//switch bool of setup
 			connection.isSetupCompleted = true;
 			
@@ -73,8 +76,8 @@ namespace Server_Library.Server_Listeners {
 		/// <param name="socket">Socket</param>
 		/// <param name="thread">Thread</param>
 		/// <returns></returns>
-		protected override object createConnectionType(Socket socket, Thread thread, AccessToken accessToken, ClientInformation info) {
-			return new ReceivingConnection<T>(thread, socket, accessToken, info, cancellationTokenSource.Token);
+		protected override object createConnectionType(Socket socket, AccessToken accessToken, ClientInformation info) {
+			return new ReceivingConnection<T>(socket, accessToken, info, cancellationTokenSource.Token);
 		}
 
 		/// <summary>

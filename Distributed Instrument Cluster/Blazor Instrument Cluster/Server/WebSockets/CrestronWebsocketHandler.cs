@@ -17,12 +17,12 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 	/// Websocket handler for crestron control connections
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class CrestronWebsocketHandler : ICrestronSocketHandler {
+	public class CrestronWebsocketHandler<T,U> : ICrestronSocketHandler {
 
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<CrestronWebsocketHandler> logger;
+		private ILogger<CrestronWebsocketHandler<T,U>> logger;
 
 		/// <summary>
 		///Services
@@ -32,16 +32,16 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// <summary>
 		/// Remote devices
 		/// </summary>
-		private RemoteDeviceConnection remoteDeviceConnections;
+		private RemoteDeviceConnections<T,U> remoteDeviceConnectionses;
 
 		/// <summary>
 		/// Constructor, Injects Logger and service provider and gets Remote device connection Singleton
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public CrestronWebsocketHandler(ILogger<CrestronWebsocketHandler> logger, IServiceProvider services) {
+		public CrestronWebsocketHandler(ILogger<CrestronWebsocketHandler<T,U>> logger, IServiceProvider services) {
 			this.logger = logger;
-			remoteDeviceConnections = (RemoteDeviceConnection)services.GetService(typeof(IRemoteDeviceConnections));
+			remoteDeviceConnectionses = (RemoteDeviceConnections<T,U>)services.GetService(typeof(IRemoteDeviceConnections<T,U>));
 		}
 
 		/// <summary>
@@ -70,7 +70,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				int looped = 0;
 				CrestronConnection con = null;
 				while (!exists && (looped < maxLoops)) {
-					exists = remoteDeviceConnections.getCrestronConnectionWithName(out con, name);
+					exists = remoteDeviceConnectionses.getCrestronConnectionWithName(out con, name);
 					logger.LogCritical("WebSocket tried to Find {0} but Crestron connection queue was not found", name);
 					looped++;
 					await Task.Delay(100, token);

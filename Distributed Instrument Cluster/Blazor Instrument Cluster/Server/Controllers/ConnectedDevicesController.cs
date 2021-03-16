@@ -16,18 +16,18 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 	/// </summary>
 	[Route("api/ConnectedDevices")]
 	[ApiController]
-	public class ConnectedDevicesController : ControllerBase {
+	public class ConnectedDevicesController<T,U> : ControllerBase {
 		/// <summary>
 		/// Remote Device connections
 		/// </summary>
-		private RemoteDeviceConnection remoteDeviceConnection;
+		private RemoteDeviceConnections<T,U> remoteDeviceConnections;
 
 		/// <summary>
 		/// Constructor, Injects Service provider and get remote device connection
 		/// </summary>
 		/// <param name="services"></param>
 		public ConnectedDevicesController(IServiceProvider services) {
-			this.remoteDeviceConnection = (RemoteDeviceConnection)services.GetService<IRemoteDeviceConnections>();
+			this.remoteDeviceConnections = (RemoteDeviceConnections<T,U>)services.GetService<IRemoteDeviceConnections<T,U>>();
 		}
 
 		/// <summary>
@@ -40,7 +40,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		public IEnumerable<DeviceModel> getVideoConnections() {
 			//Get list of video connections
 			List<VideoConnection> listVideoConnections;
-			if (remoteDeviceConnection.getVideoConnectionList(out listVideoConnections)) {
+			if (remoteDeviceConnections.getVideoConnectionList(out listVideoConnections)) {
 				//Create an IEnumerable with device models
 				IEnumerable<DeviceModel> enumerableDeviceModels = new DeviceModel[] { };
 				//Lock unsafe list

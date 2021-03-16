@@ -2,6 +2,8 @@
 using Server_Library;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Blazor_Instrument_Cluster.Server.Object;
+using Server_Library.Connection_Classes;
 using Server_Library.Connection_Types;
 using Server_Library.Connection_Types.deprecated;
 
@@ -11,49 +13,28 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 	/// Interface for sharing video connection lists between classes
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public interface IRemoteDeviceConnections {
+	public interface IRemoteDeviceConnections<T,U> {
+
+
 		/// <summary>
-		/// Set the Crestron Connection List
+		/// Adds a connection to the list of remote devices, If a remote device with the correct location and type don't exists create a new one
 		/// </summary>
-		/// <param name="listCrestronConnections">List containing all crestron connections</param>
-		public void setCrestronConnectionList(List<CrestronConnection> listCrestronConnections);
+		public void addConnectionToRemoteDevices(ConnectionBase connection);
+
 		/// <summary>
-		/// Set video Connection list
+		/// get a remote device with the parameters matching location and type
 		/// </summary>
-		/// <param name="listVideoConnections"> List Containing Video Connections</param>
-		public void setVideoConnectionList(List<VideoConnection> listVideoConnections);
-		/// <summary>
-		/// Get list of Crestron Connections
-		/// </summary>
-		/// <param name="listCrestronConnections">List of type CrestronConnection</param>
-		/// <returns>success or not</returns>
-		public bool getCrestronConnectionList(out List<CrestronConnection> listCrestronConnections);
-		/// <summary>
-		/// Get list with videoConnections
-		/// </summary>
-		/// <param name="listVideoConnections">List of type VideoConnection</param>
-		/// <returns>success or not</returns>
-		public bool getVideoConnectionList(out List<VideoConnection> listVideoConnections);
-		/// <summary>
-		/// Get a specific crestron connection with the instrument name matching the input name
-		/// </summary>
-		/// <param name="connection">Output connection</param>
-		/// <param name="name">Name of wanted device</param>
-		/// <returns>If it was found or not</returns>
-		public bool getCrestronConnectionWithName(out CrestronConnection connection, string name);
-		/// <summary>
-		/// Get a concurrent queue from a video connection with the specified name
-		/// </summary>
-		/// <param name="queue"></param>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public bool getVideoConcurrentQueueWithName(out ConcurrentQueue<VideoFrame> queue, string name);
+		/// <param name="Location"></param>
+		/// <param name="Type"></param>
+		/// <returns>Remote Device</returns>
+		public RemoteDevice getRemoteDeviceWithLocationAndType(string Location,string Type);
+
 		/// <summary>
 		/// Subscribes the Consumer to a video provider with the name inputted
 		/// </summary>
 		/// <param name="name">Name of the device of the wanted Video Stream</param>
-		/// <param name="consumer">Consumer for video frames</param>
+		/// <param name="consumer">Consumer for incoming objects</param>
 		/// <returns>If provider with name was found or not</returns>
-		public bool subscribeToVideoProviderWithName(string name, VideoConnectionFrameConsumer consumer);
+		public bool subscribeToObjectProviderWithName(string name, ReceivingObjectConsumer<T> consumer);
 	}
 }
