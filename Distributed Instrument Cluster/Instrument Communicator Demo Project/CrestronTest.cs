@@ -13,7 +13,7 @@ namespace Server_And_Demo_Project {
     /// Class for testing server/client communication
     /// <author>Mikael Nilssen</author>
     /// </summary>
-    internal class Test {
+    internal class CrestronTest {
 
         public static void Main(string[] args) {
             int portCrestron = 5050;

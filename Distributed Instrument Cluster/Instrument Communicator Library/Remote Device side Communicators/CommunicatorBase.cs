@@ -9,20 +9,46 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 	/// <Author>Mikael Nilssen</Author>
 	/// </summary>
 	public abstract class CommunicatorBase {
-		private string ip { get; set; }                 //Ip address of target server
-		private int port { get; set; }                  //Port of target server
-		private Socket connectionSocket;              //Connection to server
-		protected InstrumentInformation information;   //Information about hardware
-		protected AccessToken accessToken;               // Authorization code to send to the server
+
+		/// <summary>
+		/// Ip address of target server
+		/// </summary>
+		private string Ip { get; set; }
+
+		/// <summary>
+		/// Port of target server
+		/// </summary>
+		private int Port { get; set; }
+
+		/// <summary>
+		/// Connection to server
+		/// </summary>
+		private Socket connectionSocket;
+
+		/// <summary>
+		/// Information about hardware
+		/// </summary>
+		protected readonly InstrumentInformation information;
+
+		/// <summary>
+		/// Authorization code to send to the server
+		/// </summary>
+		protected AccessToken accessToken;
 
 		//State
-		public bool isSocketConnected { get; private set; } = false; //Is the socket connected to the server
+		/// <summary>
+		/// Is the socket connected to the server
+		/// </summary>
+		public bool isSocketConnected { get; private set; } = false;
 
-		protected CancellationToken communicatorCancellationToken;    //Cancellation token used to stop loops
+		/// <summary>
+		/// Cancellation token used to stop loops
+		/// </summary>
+		protected CancellationToken communicatorCancellationToken;
 
 		protected CommunicatorBase(string ip, int port, InstrumentInformation informationAboutClient, AccessToken accessToken, CancellationToken communicatorCancellationToken) {
-			this.ip = ip;
-			this.port = port;
+			this.Ip = ip;
+			this.Port = port;
 			this.information = informationAboutClient;
 			this.accessToken = accessToken;
 			this.communicatorCancellationToken = communicatorCancellationToken;
@@ -35,7 +61,8 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 			try {
 				// Create new socket
 				connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-			} catch (SocketException) {
+			}
+			catch (SocketException) {
 				throw;
 			}
 			//connection state
@@ -46,13 +73,14 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 				//check if client is connected, if not connect
 				if (!isSocketConnected) {
 					// Try to connect
-					isSocketConnected = AttemptConnection(connectionSocket);
+					isSocketConnected = attemptConnection(connectionSocket);
 				}
 				//check if client is connected, if it is handle the connection
 				if (isSocketConnected) {
 					//handle the connection
-					HandleConnected(connectionSocket);
-				} else {
+					handleConnected(connectionSocket);
+				}
+				else {
 					Console.WriteLine("Thread {0} says: " + "Connection failed", Thread.CurrentThread.ManagedThreadId);
 					Thread.Sleep(100);
 				}
@@ -62,18 +90,20 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 		/// <summary>
 		/// Attempts to connect to the given host and ip
 		/// </summary>
-		/// <param name="connectionSocket"> unconnected Soccket</param>
-		/// <returns> boolean representing succesful conncetion</returns>
-		private bool AttemptConnection(Socket connectionSocket) {
+		/// <param name="socket"> unconnected Socket</param>
+		/// <returns> boolean representing successful connection</returns>
+		private bool attemptConnection(Socket socket) {
 			try {
-				if (connectionSocket.Connected) {
+				if (socket.Connected) {
 					return true;
 				}
 				//Try Connecting to server
-				connectionSocket.Connect(ip, port);
+				socket.Connect(Ip, Port);
 				return true;
-			} catch (SocketException ex) {
-				throw new SocketException(ex.ErrorCode);
+			}
+			catch (SocketException ex) {
+				//TODO: FIX IT MIKAEL!!!!!
+				//throw new SocketException(ex.ErrorCode);
 				//return false to represent failed connection
 				return false;
 			}
@@ -83,13 +113,13 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 		/// The main function of a communicator that gets called after you are connected and preforms actions with the socket
 		/// </summary>
 		/// <param name="connectionSocket"></param>
-		protected abstract void HandleConnected(Socket connectionSocket);
+		protected abstract void handleConnected(Socket connectionSocket);
 
 		/// <summary>
 		/// returns the cancellation token
 		/// </summary>
 		/// <returns>Returns cancellation token</returns>
-		public CancellationToken GetCancellationToken() {
+		public CancellationToken getCancellationToken() {
 			return this.communicatorCancellationToken;
 		}
 	}

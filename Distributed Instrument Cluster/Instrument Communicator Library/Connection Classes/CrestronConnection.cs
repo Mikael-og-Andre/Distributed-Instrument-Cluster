@@ -11,13 +11,37 @@ namespace Instrument_Communicator_Library {
     /// <author>Mikael Nilssen</author>
     /// </summary>
     public class CrestronConnection {
-        private Socket socket { get; set; }     //Socket of the client Connection
-        private ConcurrentQueue<Message> concurrentQueueInput;  // Concurrent queue for Messages to send to the client
-        private ConcurrentQueue<Message> concurrentQueueOutput;  //Concurrent queue for Messages recieved by the client
-        private Thread homeThread;                                // The thread the connection is running on
-        private AccessToken accessToken = null;                 // Token representing a valid connection to the server
-        private bool isActive = true;                           //Is the connection running
-        private InstrumentInformation info;                     //Information about remote device
+		/// <summary>
+		/// Socket of the client Connection
+		/// </summary>
+        private Socket socket { get; set; }
+		/// <summary>
+		/// Concurrent queue for Messages to send to the client
+		/// </summary>
+        private ConcurrentQueue<Message> concurrentQueueInput;
+		/// <summary>
+		/// Concurrent queue for Messages received by the client
+		/// </summary>
+        private ConcurrentQueue<Message> concurrentQueueOutput;
+		/// <summary>
+		/// The thread the connection is running on
+		/// </summary>
+        private Thread homeThread;
+		/// <summary>
+		/// Token representing a valid connection to the server
+		/// </summary>
+        private AccessToken accessToken = null;
+		/// <summary>
+		/// Is the connection running
+		/// </summary>
+        private bool isActive = true;
+		/// <summary>
+		/// Information about remote device
+		/// </summary>
+        private InstrumentInformation info;
+		/// <summary>
+		/// Has the instrument Information been shared
+		/// </summary>
         public bool hasInstrument { get; private set; } = false;
 
         public CrestronConnection(Socket socket, Thread thread) {

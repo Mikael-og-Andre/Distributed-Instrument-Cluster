@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Crestron_Library
 {
@@ -12,8 +13,11 @@ namespace Crestron_Library
 		private readonly Commands commands = new();
 		private readonly SerialPortInterface serialPort;
 
-		public CommandParser(SerialPortInterface serialPortInterface) {
+		public CommandParser(SerialPortInterface serialPortInterface, int largeMagnitude = 20, int smallMagnitude = 1, int maxDelta = 1000) {
 			serialPort = serialPortInterface;
+			this.largeMagnitude = largeMagnitude;
+			this.smallMagnitude = smallMagnitude;
+			this.maxDelta = maxDelta;
 		}
 
 		/// <summary>
@@ -29,7 +33,6 @@ namespace Crestron_Library
 
 			string operation = split[0].ToLower();
 			string key = toPars.Substring(operation.Length+1).ToLower();
-			//key = key.Substring(0, key.IndexOf('\0'));		//Trim off null bytes.
 
 			switch (operation) {
 				case "make":
@@ -45,7 +48,7 @@ namespace Crestron_Library
 					mouseClick(key);
 					break;
 				default:
-					throw new Exception("Pars failed, \"" + operation + "\" was not recognized as an operation");
+					throw new Exception($"Pars failed, \"{operation}\" was not recognized as an operation");
 			}
 		}
 
@@ -71,63 +74,108 @@ namespace Crestron_Library
 			}
 		}
 
-		private int scaleFactorL = 20;	//Threshold for when to use large magnitude movements.
-		private int scaleFactorS = 2;	//Threshold for when to use small magnitude movements.
+		#region MouseMovement
 
-		private int dx = 0;
-		private int dy = 0;
+		/// <summary>
+		/// Threshold for when to use large magnitude movements.
+		/// </summary>
+		private readonly int largeMagnitude;
+		/// <summary>
+		/// Threshold for when to use small magnitude movements.
+		/// </summary>
+		private readonly int smallMagnitude;
+		/// <summary>
+		/// How much delta the algorithm will accumulate (per axis) before discarding additional delta.
+		/// </summary>
+		private readonly int maxDelta;
+		
+		private readonly ConcurrentQueue<int[]> deltas = new();
+		private bool isExecuting = false;
 
 		/// <summary>
 		/// Receives deltas and convert it to byte code for movement in correct direction and magnitude.
-		/// TODO: movement is horrible, fix.
 		/// </summary>
 		/// <param name="move">String containing deltas, format: (-10,7)</param>
 		private void moveCursor(string move) {
 			move = move.Substring(move.IndexOf("(") + 1, move.IndexOf(")") - 1); // Trim off "( )"
 			string[] moves = move.Split(",");
 
-			dx += int.Parse(moves[0]);
-			dy += int.Parse(moves[1]);
+			var dx = int.Parse(moves[0]);
+			var dy = int.Parse(moves[1]);
 
-			Console.WriteLine("x:" + dx + ",y:" + dy);
+			deltas.Enqueue(new int[]{dx,dy});
 
-
-			//Ignore move command if serial cable is still executing to avoid over filling command buffer.
-			if (serialPort.isExecuting()) return;
-
-			executeMoves(dx,dy);
+			if (isExecuting) return;
+			var thread = new Thread(executeMovementThread);
+			isExecuting = true;
+			thread.Start();
 		}
 
 
-		private void executeMoves(int x, int y) {
-			while (Math.Abs(x) > scaleFactorS || Math.Abs(y) > scaleFactorS) {
-				if (Math.Abs(x) >= scaleFactorL) {
-					serialPort.SendBytes(commands.getMakeByte("magnitude large"));
-					serialPort.SendBytes(commands.getMakeByte(x > 0 ? "right" : "left"));
-					x -= scaleFactorL * (x > 0 ? 1 : -1);
-					dx -= scaleFactorL * (dx > 0 ? 1 : -1);
-
-				}
-				else if (Math.Abs(x) >= scaleFactorS) {
-					serialPort.SendBytes(commands.getMakeByte("magnitude small"));
-					serialPort.SendBytes(commands.getMakeByte(x > 0 ? "right" : "left"));
-					x -= scaleFactorS * (x > 0 ? 1 : -1);
-					dx -= scaleFactorS * (dx > 0 ? 1 : -1);
-				}
-
-				if (Math.Abs(y) >= scaleFactorL) {
-					serialPort.SendBytes(commands.getMakeByte("magnitude large"));
-					serialPort.SendBytes(commands.getMakeByte(y > 0 ? "down" : "up"));
-					y -= scaleFactorL * (y > 0 ? 1 : -1);
-					dy -= scaleFactorL * (dy > 0 ? 1 : -1);
-				}
-				else if (Math.Abs(y) >= scaleFactorS) {
-					serialPort.SendBytes(commands.getMakeByte("magnitude small"));
-					serialPort.SendBytes(commands.getMakeByte(y > 0 ? "down" : "up"));
-					y -= scaleFactorS * (y > 0 ? 1 : -1);
-					dy -= scaleFactorS * (dy > 0 ? 1 : -1);
-				}
+		/// <summary>
+		/// Thread adds up deltas from queue and executes movement
+		/// till queue is empty and deltas are bellow small scale factor.
+		/// </summary>
+		private void executeMovementThread() {
+			var dx = 0;
+			var dy = 0;
+			while (!deltas.IsEmpty || Math.Abs(dx)>smallMagnitude || Math.Abs(dy)>smallMagnitude) {
+				(dx, dy) = fetchDeltas(dx, dy);
+				(dx, dy) = executeMovement(dx,dy);
 			}
+			isExecuting = false;
 		}
+
+		/// <summary>
+		/// Empties queue containing deltas adds it to current deltas (dx, dy).
+		/// Discards additional deltas over "maxDelta" limit.
+		/// </summary>
+		/// <returns></returns>
+		private (int, int) fetchDeltas(int dx, int dy) {
+			while (deltas.TryDequeue(out var delta)) {
+				if (Math.Abs(dx + delta[0]) < maxDelta) dx += delta[0];
+				if (Math.Abs(dy + delta[1]) < maxDelta) dy += delta[1];
+			}
+
+			return (dx, dy);
+		}
+
+		private bool isMagnitudeLarge = false;
+
+		/// <summary>
+		/// Sends movement bytes to serial cable and adjusts magnitude to reduce movement lag as much as possible.
+		/// </summary>
+		/// <param name="dx">X delta</param>
+		/// <param name="dy">Y delta</param>
+		/// <returns>Deltas with amount moved subtracted</returns>
+		private (int, int) executeMovement(int dx, int dy) {
+			//Don't run method if serial port is still executing.
+			if(serialPort.isExecuting()) return (dx, dy);
+
+			var xScale = Math.Abs(dx) >= largeMagnitude ? largeMagnitude : smallMagnitude;
+			var yScale = Math.Abs(dy) >= smallMagnitude ? largeMagnitude : smallMagnitude;
+
+			//Only change magnitude if deltas are above or bellow current magnitude threshold (scaleFactor).
+			if ((xScale == largeMagnitude || yScale==largeMagnitude) && !isMagnitudeLarge) {
+				serialPort.SendBytes(commands.getMakeByte("magnitude large"));
+				isMagnitudeLarge = true;
+			} else {
+				serialPort.SendBytes(commands.getMakeByte("magnitude small"));
+				isMagnitudeLarge = false;
+			}
+
+			var executionScale = isMagnitudeLarge ? largeMagnitude : smallMagnitude;
+			if (Math.Abs(dx) >= executionScale) {
+				serialPort.SendBytes(commands.getMakeByte(dx > 0 ? "right" : "left"));
+				dx -= executionScale * (dx > 0 ? 1 : -1);
+			}
+			if (Math.Abs(dy) >= executionScale) {
+				serialPort.SendBytes(commands.getMakeByte(dy > 0 ? "down" : "up"));
+				dy -= executionScale * (dy > 0 ? 1 : -1);
+			}
+			return (dx, dy);
+		}
+
+		#endregion
 	}
 }

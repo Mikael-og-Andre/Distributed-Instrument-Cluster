@@ -4,9 +4,10 @@ using Instrument_Communicator_Library.Remote_Device_side_Communicators;
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 using System.Threading;
-using Instrument_Communicator_Library.Information_Classes;
-using Instrument_Communicator_Library.Interface;
+using System.Threading.Tasks;
 using Video_Library;
 
 namespace MAIN_Program {
@@ -16,88 +17,121 @@ namespace MAIN_Program {
 	/// and communication libraries.
 	/// Produces cli information about system/program status.
 	/// </summary>
-	/// <author>Mikael Nilssen</author>
-	/// <author>Andre Helland</author>
+	/// <author>Andre Helland, Mikael Nilssen</author>
 	internal class Program {
 		private readonly List<VideoDeviceInterface> videoDevices = new List<VideoDeviceInterface>();
 		private CommandParser commandParser;
 		private VideoCommunicator videoCommunicator;
 		private CrestronCommunicator crestronCommunicator;
 
+		private static string configFile = "config.json";
 		private static void Main(string[] args) {
-			//TODO: read config file here and pass it into "Program" constructor.
-
-			_ = new Program(new string[] { "test" });
+			parsArgs(args);
+			_ = new Program(configFile);
 		}
 
-		// TODO: make input config file.
-		private static string serialComPort = "com4";
+		private static void parsArgs(string[] args) {
+			if (args.Length > 0) {
+				configFile = args[0].ToString();
+			}
+		}
 
-		private Program(string[] args) {
-			//Setup communicators
-			Thread.Sleep(1000);
-			setupVideoCommunicator("192.168.1.164", 5051, "Radar1", "device location", "device type", "access");
-			setupCrestronCommunicator("192.168.1.164", 5050, "Radar1", "device location", "device type", "access");
+		private Program(string configFile) {
+			var json = parsConfigFile(configFile);
 
-			//TODO: pars config file:
+			setupSerialCable(json.serialCable);
 
-			//TODO: construct/init based on config file
+			foreach (var device in json.videoDevices) {
+				setupVideoDevice(device);
+			}
+			//setupVideoDevice(1);
 
-			setupSerialCable(serialComPort);
-			//setupVideoDevice(0);
-			setupVideoDevice(1);
-
-
+			//try {
+			//	//Setup communicators
+			//	Thread.Sleep(1000);
+			//	setupVideoCommunicator("127.0.0.1", 5051, "Radar1", "device location", "device type", "access");
+			//	setupCrestronCommunicator("127.0.0.1", 5050, "Radar1", "device location", "device type", "access");
+			//}
+			//catch (Exception e) {
+			//	Console.WriteLine(e);
+			//	throw;
+			//}
 
 			var relayThread = new Thread(this.relayThread) {IsBackground = true};
 			relayThread.Start();
 
-			int i = 0;
-			while (true) {
 
+			while (true) {
+				//TODO: RENAME/REDO
 				//if (videoDevices[0].tryReadFrameBuffer(out Mat ooga)) {
-				if (videoDevices[0].tryReadJpg(out byte[] ooga)) {
-					Console.WriteLine(ooga);
+				if (videoDevices[0].tryReadJpg(out byte[] ooga, 70)) {
 					Thread.Sleep(100);
 					videoCommunicator.GetInputQueue().Enqueue(new VideoFrame(ooga));
-					Console.WriteLine(ooga.Length);
-					i++;
 				}
 			}
-
-
 		}
+
+		private JsonClasses parsConfigFile(string file) {
+			Console.WriteLine("Parsing config file...");
+			var jsonString = File.ReadAllText(file);
+			var json = JsonSerializer.Deserialize<JsonClasses>(jsonString);
+
+			writeSuccess("Read config file.");
+			return json;
+		}
+
 
 		#region setup methods
 
 		/// <summary>
-		/// Method tries connecting to serial cable and gives feedback on fail or success.
+		/// Method tries connecting to serial cable and gives console feedback on fail or success.
 		/// </summary>
 		/// <param name="port">Com port to connect to.</param>
 		/// <returns>If setup was successful.</returns>
-		private bool setupSerialCable(string port) {
+		private bool setupSerialCable(JsonClasses.SerialCable serialCable) {
 			Console.WriteLine("Initializing serial cable...");
 			try {
-				var serialPort = new SerialPortInterface(port);
-				//TODO: test if com port is a crestron cable (add test using getLEDStatus()).
+				var serialPort = new SerialPortInterface(serialCable.portName);
+				commandParser = new CommandParser(serialPort, serialCable.largeMagnitude, serialCable.smallMagnitude, serialCable.maxDelta);
+				writeSuccess("Successfully connected to port: " + serialCable.portName);
 
-				this.commandParser = new CommandParser(serialPort);
+				//NumLock check may be unnecessary. 
+				if (numLockCheck(serialPort))
+					writeWarning("NumLock check failed, com port may not be a crestron cable.");
 
-				writeSuccess("Successfully connected to port: " + port);
-
-				//Release any keys
+				//Release all keys.
 				serialPort.SendBytes(0x38);
-
-				return true;
 			} catch {
-				writeWarning("Failed to connect to port: " + port);
-
-				writeWarning("Available ports: ");
-				foreach (var availablePort in SerialPortInterface.GetAvailablePorts()) {
-					writeWarning(availablePort);
-				}
+				writeWarning("Failed to connect to port: " + serialCable.portName);
+				writeWarning($"Available ports: {string.Join(",",SerialPortInterface.GetAvailablePorts())}");
 				return false;
 			}
+
+			//Try to set up communication socket.
+			var communicator = serialCable.communicator;
+			try {
+				setupCrestronCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.accessHash);
+			} catch (Exception e) {
+				writeWarning("Failed to connect to server.");
+				Console.WriteLine(e);
+				return false;
+			}
+
+			return true;
+		}
+
+		/// <summary>
+		/// Checks if serial port is connected to a crestron cable by using numlock state
+		/// and checking if it changes when sending a make numlock byte.
+		/// </summary>
+		/// <param name="serialPort"></param>
+		/// <returns></returns>
+		private bool numLockCheck(SerialPortInterface serialPort) {
+			var numLock0 = serialPort.GetLEDStatus()[0];
+			serialPort.SendBytes(new List<byte>() {0x5a, 0xda});
+			while (serialPort.isExecuting()) ;
+			var numLock1 = serialPort.GetLEDStatus()[0];
+			return (numLock0 == numLock1);
 		}
 
 		/// <summary>
@@ -105,9 +139,9 @@ namespace MAIN_Program {
 		/// </summary>
 		/// <param name="index">Index of device from DSHOW API.</param>
 		/// <returns>If setup was successful.</returns>
-		private bool setupVideoDevice(int index) {
-			Console.WriteLine("Initializing video device" + videoDevices.Count + "...");
-			this.videoDevices.Add(new VideoDeviceInterface(index));
+		private bool setupVideoDevice(JsonClasses.VideoDevice device) {
+			Console.WriteLine($"Initializing video device{device.deviceIndex}...");
+			videoDevices.Add(new VideoDeviceInterface(index: device.deviceIndex, API: (VideoCaptureAPIs) device.apiIndex, frameWidth: device.width, frameHeight: device.height));
 
 			//Wait for video device frames.
 			Mat temp;
@@ -124,10 +158,19 @@ namespace MAIN_Program {
 			}
 
 			writeSuccess("Detecting frames from video device");
+
+			var communicator = device.communicator;
+			try {
+				setupVideoCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.accessHash);
+			} catch (Exception e) {
+				writeWarning("Failed to connect to server.");
+				Console.WriteLine(e);
+				return false;
+			}
 			return true;
 		}
 
-		public void setupVideoCommunicator(string ip, int port, string name, string location, string type, string accessHash) {
+		private void setupVideoCommunicator(string ip, int port, string name, string location, string type, string accessHash) {
 			//Video networking info
 			string videoIP = ip;
 			int videoPort = port;
@@ -159,6 +202,8 @@ namespace MAIN_Program {
 			CancellationToken crestronCancellationToken = new CancellationToken(false);
 			//Crestron Communicator
 			crestronCommunicator = new CrestronCommunicator(crestronIP, crestronPort, info, accessToken, crestronCancellationToken);
+
+
 
 			//TODO: refactor threading
 			Thread crestronThread = new Thread(() => crestronCommunicator.Start());
@@ -192,14 +237,12 @@ namespace MAIN_Program {
 		}
 
 		private void writeWarning(string s) {
-			//Console.BackgroundColor = ConsoleColor.Red;
 			Console.ForegroundColor = ConsoleColor.Red;
 			Console.WriteLine(s);
 			Console.ResetColor();
 		}
 
 		private void writeSuccess(string s) {
-			//Console.BackgroundColor = ConsoleColor.Green;
 			Console.ForegroundColor = ConsoleColor.Green;
 			Console.WriteLine(s);
 			Console.ResetColor();

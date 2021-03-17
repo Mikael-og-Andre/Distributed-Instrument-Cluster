@@ -1,17 +1,30 @@
-﻿using System;
+﻿using Instrument_Communicator_Library;
+using System;
 using System.Collections.Generic;
-using Instrument_Communicator_Library.Information_Classes;
 
 namespace Blazor_Instrument_Cluster.Server.Events {
+
 	/// <summary>
 	/// Class for sending a frame to all subscribed listeners
 	/// <author>Mikael Nilssen</author>
 	/// Copied from Microsoft docs and modified
 	/// </summary>
 	public class VideoConnectionFrameProvider : IObservable<VideoFrame> {
-		public string name { get; private set; }			//name of the device
-		private List<IObserver<VideoFrame>> observers;				//observers of this provider
 
+		/// <summary>
+		/// name of the device
+		/// </summary>
+		public string name { get; private set; }
+
+		/// <summary>
+		/// //observers of this provider
+		/// </summary>
+		private List<IObserver<VideoFrame>> observers;
+
+		/// <summary>
+		/// Constructor, sets name and initializes list of observers
+		/// </summary>
+		/// <param name="name"></param>
 		public VideoConnectionFrameProvider(string name) {
 			this.name = name;
 			observers = new List<IObserver<VideoFrame>>();
@@ -31,6 +44,7 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 				return new Unsubscriber<VideoFrame>(observers, observer);
 			}
 		}
+
 		/// <summary>
 		/// Sends a frame to all observers
 		/// </summary>
@@ -49,14 +63,30 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 	/// Copied from Microsoft Event docs
 	/// </summary>
 	public class Unsubscriber<U> : IDisposable {
+
+		/// <summary>
+		/// List of observers
+		/// </summary>
 		private List<IObserver<U>> observers;
+
+		/// <summary>
+		/// The specific observer for this unsubscribe
+		/// </summary>
 		private IObserver<U> observer;
 
+		/// <summary>
+		/// Constructor for unsubscribe
+		/// </summary>
+		/// <param name="observers"></param>
+		/// <param name="observer"></param>
 		public Unsubscriber(List<IObserver<U>> observers, IObserver<U> observer) {
 			this.observers = observers;
 			this.observer = observer;
 		}
 
+		/// <summary>
+		/// Unsubscribes
+		/// </summary>
 		public void Dispose() {
 			if (observer != null) observers.Remove(observer);
 		}

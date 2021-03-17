@@ -11,7 +11,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using Instrument_Communicator_Library.Information_Classes;
 
 namespace Communication_lib_Test {
 

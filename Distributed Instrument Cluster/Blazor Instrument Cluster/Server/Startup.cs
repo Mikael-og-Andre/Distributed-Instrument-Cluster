@@ -1,7 +1,6 @@
 using Blazor_Instrument_Cluster.Server.Injection;
 using Blazor_Instrument_Cluster.Server.WebSockets;
 using Blazor_Instrument_Cluster.Server.Worker;
-using Instrument_Communicator_Library.Information_Classes;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -12,6 +11,7 @@ using System;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
+using Instrument_Communicator_Library;
 
 namespace Blazor_Instrument_Cluster.Server {
 
@@ -19,19 +19,27 @@ namespace Blazor_Instrument_Cluster.Server {
 	/// Class that sets up the services and configurations of the web system
 	/// </summary>
 	public class Startup {
-
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="configuration"></param>
 		public Startup(IConfiguration configuration) {
 			Configuration = configuration;
 		}
-
+		/// <summary>
+		/// Configuration
+		/// </summary>
 		public IConfiguration Configuration { get; }
 
-		// This method gets called by the runtime. Use this method to add services to the container.
-		// For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+		
+		/// <summary>
+		/// This method gets called by the runtime. Use this method to add services to the container.
+		/// For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+		/// </summary>
+		/// <param name="services"></param>
 		public void configureServices(IServiceCollection services) {
 			//Use controller
 			services.AddControllers();
-			services.AddRazorPages();
 			services.AddResponseCompression(opts => {
 				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
 					new[] { "application/octet-stream" });
@@ -48,7 +56,11 @@ namespace Blazor_Instrument_Cluster.Server {
 
 		}
 
-		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+		/// <summary>
+		/// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+		/// </summary>
+		/// <param name="app"></param>
+		/// <param name="env"></param>
 		public void configure(IApplicationBuilder app, IWebHostEnvironment env) {
 			app.UseResponseCompression();
 			if (env.IsDevelopment()) {
@@ -75,8 +87,8 @@ namespace Blazor_Instrument_Cluster.Server {
 
 							VideoWebsocketHandler<VideoFrame> videoWebsocketHandler =
 								(VideoWebsocketHandler<VideoFrame>)app.ApplicationServices.GetService<IVideoSocketHandler>();
-
-							videoWebsocketHandler.StartWebSocketVideoProtocol(webSocket, socketFinishedTcs);
+							//Start if socketHandler is not null
+							videoWebsocketHandler?.StartWebSocketVideoProtocol(webSocket, socketFinishedTcs);
 							await socketFinishedTcs.Task;
 						}
 					} else {
@@ -106,7 +118,6 @@ namespace Blazor_Instrument_Cluster.Server {
 			app.UseRouting();
 
 			app.UseEndpoints(endpoints => {
-				endpoints.MapRazorPages();
 				endpoints.MapControllers();
 				endpoints.MapFallbackToFile("index.html");
 			});

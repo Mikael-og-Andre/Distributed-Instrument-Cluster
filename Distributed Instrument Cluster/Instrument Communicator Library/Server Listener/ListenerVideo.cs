@@ -1,5 +1,4 @@
 ﻿using Instrument_Communicator_Library.Helper_Class;
-using Instrument_Communicator_Library.Information_Classes;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
@@ -7,14 +6,22 @@ using System.Net.Sockets;
 using System.Threading;
 
 namespace Instrument_Communicator_Library.Server_Listener {
+
 	/// <summary>
 	/// Listener for incoming video connections
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-
 	public class ListenerVideo : ListenerBase {
-		private List<VideoConnection> listVideoConnections;     //list of connected video streams
-		private ConcurrentQueue<VideoConnection> incomingConnectionsQueue;   //queue of all incoming connections
+
+		/// <summary>
+		/// list of connected video streams
+		/// </summary>
+		private List<VideoConnection> listVideoConnections;
+
+		/// <summary>
+		/// queue of all incoming connections
+		/// </summary>
+		private ConcurrentQueue<VideoConnection> incomingConnectionsQueue;
 
 		public ListenerVideo(IPEndPoint ipEndPoint, int maxConnections = 30, int maxPendingConnections = 30) : base(ipEndPoint, maxConnections, maxPendingConnections) {
 			listVideoConnections = new List<VideoConnection>();
@@ -48,11 +55,11 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			Socket connectionSocket = videoConnection.GetSocket();
 
 			//Send signal to start instrumentCommunication
-			NetworkingOperations.SendStringWithSocket("y", connectionSocket);
+			NetworkingOperations.sendStringWithSocket("y", connectionSocket);
 
-			string name = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
-			string location = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
-			string type = NetworkingOperations.ReceiveStringWithSocket(connectionSocket);
+			string name = NetworkingOperations.receiveStringWithSocket(connectionSocket);
+			string location = NetworkingOperations.receiveStringWithSocket(connectionSocket);
+			string type = NetworkingOperations.receiveStringWithSocket(connectionSocket);
 
 			videoConnection.SetInstrumentInformation(new InstrumentInformation(name, location, type));
 
@@ -62,7 +69,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Do main loop
 			while (!listenerCancellationToken.IsCancellationRequested) {
 				//Get Incoming object
-				VideoFrame newObj = NetworkingOperations.ReceiveVideoFrameWithSocket(connectionSocket);
+				VideoFrame newObj = NetworkingOperations.receiveVideoFrameWithSocket(connectionSocket);
 
 				outputQueue.Enqueue(newObj);
 			}

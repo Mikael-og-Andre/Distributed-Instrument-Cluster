@@ -1,0 +1,52 @@
+﻿@using System.Net.Http
+@using Blazor_Instrument_Cluster.Shared
+@using Blazor_Instrument_Cluster.Client.Components
+@layout TopBar
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+
+
+@page "/DeviceSelect"
+
+<div class="container alert">
+    <div class="row">
+        <div class="col">
+            <h2>
+                Remote Devices
+            </h2>
+        </div>
+    </div>
+</div>
+
+<div id="ListConnected" class="" style="list-style: none">
+    <ul>
+        @if (devices != null)
+        {
+            @foreach (DeviceModel device in devices)
+            {
+                <DeviceComponent deviceInfo="device"></DeviceComponent>
+            }
+        }
+    </ul>
+</div>
+
+@code {
+
+    public string pathToApi = "api/ConnectedDevices";
+    IEnumerable<DeviceModel> devices = null;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        string uriBase = navigationManager.BaseUri;
+        string path = uriBase + pathToApi;
+        try
+        {
+            devices = await Http.GetFromJsonAsync<IEnumerable<DeviceModel>>(new Uri(path));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Exception thrown: " + ex.Message);
+        }
+    }
+}

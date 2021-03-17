@@ -1,20 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Instrument_Communicator_Library.Interface;
+﻿using Instrument_Communicator_Library.Interface;
 
-namespace Instrument_Communicator_Library.Information_Classes {
+namespace Instrument_Communicator_Library {
+
 	/// <summary>
 	/// Represents a Frame of video - CURRENTLY NOT SETUP FOR VIDEO TODO: Make video frame
 	/// </summary>
-	
-	public class VideoFrame : ISerializeableObject {
+	public class VideoFrame : ISerializable {
+
+		/// <summary>
+		/// Value of the video frame in bytes
+		/// </summary>
 		public byte[] value;
 
 		public VideoFrame(byte[] value) {
 			this.value = value;
 		}
 
+		/// <summary>
+		/// sets the value of the frame to the same as the input frame
+		/// </summary>
+		/// <param name="v"></param>
 		public void setFrame(VideoFrame v) {
 			value = v.value;
 		}
