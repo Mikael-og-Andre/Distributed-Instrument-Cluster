@@ -61,10 +61,8 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		/// <returns></returns>
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
 			//Run server
-			Task serverTask = new Task(() => {
-				receivingListener.start();
-			});
-			serverTask.Start();
+			Thread listenerThread = new Thread(() => receivingListener.start());
+			listenerThread.Start();
 
 			//Get incoming connections and start providers for them
 			while (!stoppingToken.IsCancellationRequested) {
@@ -75,11 +73,9 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 					remoteDeviceConnections.addConnectionToRemoteDevices(receivingConnection);
 				}
 				else {
-					Thread.Sleep(500);
+					await Task.Delay(50);
 				}
 			}
-
-			await Task.Delay(1000);
 		}
 	}
 }
