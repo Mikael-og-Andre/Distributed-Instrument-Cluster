@@ -89,7 +89,8 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 					new RemoteDevice<T, U>(newInformation.Name, newInformation.Location, newInformation.Type);
 
 				var receivingInstance = typeof(ReceivingConnection<T>);
-				if (receivingInstance.IsInstanceOfType(connection)) {
+				bool isReceivingConnection = receivingInstance.IsInstanceOfType(connection);
+				if (isReceivingConnection) {
 					ReceivingConnection<T> receivingConnection = (ReceivingConnection<T>)connection;
 					newDevice.addReceivingConnection(receivingConnection);
 				}

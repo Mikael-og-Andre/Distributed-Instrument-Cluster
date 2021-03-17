@@ -41,21 +41,23 @@ namespace Blazor_Instrument_Cluster.Server {
 		/// </summary>
 		/// <param name="services"></param>
 		public void configureServices(IServiceCollection services) {
-			//Use controller
-			services.AddControllers();
-			services.AddResponseCompression(opts => {
-				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-					new[] { "application/octet-stream" });
-			});
 
 			//Add Remote device connection tracker
 			services.AddSingleton<IRemoteDeviceConnections<dummyJsonObject,dummyJsonObject>, RemoteDeviceConnections<dummyJsonObject,dummyJsonObject>>();
+
 			//Start Connection listeners as background services
 			services.AddHostedService<VideoListenerService<dummyJsonObject,dummyJsonObject>>();
 			services.AddHostedService<CrestronListenerService<dummyJsonObject,dummyJsonObject>>();
 			//Add singletons for socket handling
 			services.AddSingleton<IVideoSocketHandler, VideoWebsocketHandler<dummyJsonObject,dummyJsonObject>>();
 			services.AddSingleton<ICrestronSocketHandler, CrestronWebsocketHandler<dummyJsonObject,dummyJsonObject>>();
+
+			//Use controller
+			services.AddControllers();
+			services.AddResponseCompression(opts => {
+				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+					new[] { "application/octet-stream" });
+			});
 
 		}
 

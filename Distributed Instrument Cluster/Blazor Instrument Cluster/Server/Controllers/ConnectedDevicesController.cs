@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Blazor_Instrument_Cluster.Server.Object;
 using Blazor_Instrument_Cluster.Server.RemoteDevice;
 using Server_Library.Connection_Types.deprecated;
 
@@ -15,20 +16,21 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 	/// <summary>
 	/// Api Controller for accessing data about connected devices
 	/// </summary>
-	[Route("api/ConnectedDevices")]
 	[ApiController]
-	public class ConnectedDevicesController<T,U> : ControllerBase {
+	[Route("/api/ConnectedDevices")]
+	[Produces("application/json")]
+	public class ConnectedDevicesController : ControllerBase {
 		/// <summary>
 		/// Remote Device connections
 		/// </summary>
-		private RemoteDeviceConnections<T,U> remoteDeviceConnections;
+		private RemoteDeviceConnections<dummyJsonObject,dummyJsonObject> remoteDeviceConnections;
 
 		/// <summary>
 		/// Constructor, Injects Service provider and get remote device connection
 		/// </summary>
 		/// <param name="services"></param>
 		public ConnectedDevicesController(IServiceProvider services) {
-			this.remoteDeviceConnections = (RemoteDeviceConnections<T,U>)services.GetService<IRemoteDeviceConnections<T,U>>();
+			this.remoteDeviceConnections = (RemoteDeviceConnections<dummyJsonObject,dummyJsonObject>)services.GetService<IRemoteDeviceConnections<dummyJsonObject,dummyJsonObject>>();
 		}
 
 		/// <summary>
@@ -38,12 +40,12 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		[HttpGet]
 		[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<DeviceModel>))]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		public IEnumerable<DeviceModel> getVideoConnections() {
+		public IEnumerable<DeviceModel> getRemoteDevices() {
 			//Get list of video connections
-			List<RemoteDevice<T, U>> listOfRemoteDevices = remoteDeviceConnections.getListOfRemoteDevices();
-			if (listOfRemoteDevices.Count>0) {
+			List<RemoteDevice<dummyJsonObject, dummyJsonObject>> listOfRemoteDevices = remoteDeviceConnections.getListOfRemoteDevices();
+			if (listOfRemoteDevices.Any()) {
 				//Create an IEnumerable with device models
-				IEnumerable<DeviceModel> enumerableDeviceModels = new DeviceModel[] { };
+				IEnumerable<DeviceModel> enumerableDeviceModels = Array.Empty<DeviceModel>();
 				//Lock unsafe list
 				lock (listOfRemoteDevices) {
 					foreach (var device in listOfRemoteDevices) {
@@ -51,8 +53,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 						string deviceName = device.name;
 						string deviceLocation = device.location;
 						string deviceType = device.type;
-
-						//TODO: Add has crestron boolean to instrument information
+						
 						enumerableDeviceModels =
 							enumerableDeviceModels.Append(new DeviceModel(deviceName,deviceLocation,deviceType));
 					}
