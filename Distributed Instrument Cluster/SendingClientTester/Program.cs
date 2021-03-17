@@ -13,7 +13,7 @@ namespace SendingClientTester {
 			Console.WriteLine("Starting client...");
 
 	        SendingClient<dummyJsonObject> sendingClient =
-		        new SendingClient<dummyJsonObject>("127.0.0.1", 6980,  new ClientInformation("clientTester", "location", "type"),new AccessToken("access"),new CancellationToken(false));
+		        new SendingClient<dummyJsonObject>("127.0.0.1", 6980,  new ClientInformation("clientTester", "location", "type","videoStream"),new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
 				sendingClient.run();

@@ -95,6 +95,7 @@ namespace Server_Library.Socket_Clients {
 			NetworkingOperations.sendStringWithSocket(information.Name,socket);
 			NetworkingOperations.sendStringWithSocket(information.Location,socket);
 			NetworkingOperations.sendStringWithSocket(information.Type,socket);
+			NetworkingOperations.sendStringWithSocket(information.SubName,socket);
 		}
 
 		/// <summary>

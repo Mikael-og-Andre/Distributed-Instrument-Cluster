@@ -13,7 +13,7 @@ namespace ReceivingClientTester {
 			Console.WriteLine("Starting client...");
 
 	        ReceivingClient<dummyJsonObject> receivingClient = new ReceivingClient<dummyJsonObject>("127.0.0.1", 6981,
-		        new ClientInformation("clientTester", "location", "type"), new AccessToken("access"),new CancellationToken(false));
+		        new ClientInformation("clientTester", "location", "type","crestronControl"), new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
 				receivingClient.run();

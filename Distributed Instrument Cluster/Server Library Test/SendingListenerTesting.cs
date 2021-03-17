@@ -24,18 +24,18 @@ namespace Server_Library_Test {
 			Task.Run(() => {
 				sendingListener.start();
 			});
-			Thread.Sleep(500);
+			Thread.Sleep(5000);
 			//Cancellation Token
 			CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
 			ReceivingClient<TestJsonObject> receivingClient1 = new ReceivingClient<TestJsonObject>("127.0.0.1", 5435,
-				new ClientInformation("receivingClient1", "location 1", "type 1"), new AccessToken("access"), cancellationTokenSource.Token);
+				new ClientInformation("receivingClient1", "location 1", "type 1","receiver1"), new AccessToken("access"), cancellationTokenSource.Token);
 
 			ReceivingClient<TestJsonObject> receivingClient2 = new ReceivingClient<TestJsonObject>("127.0.0.1", 5435,
-				new ClientInformation("receivingClient2", "location 2", "type 2"), new AccessToken("access"), cancellationTokenSource.Token);
+				new ClientInformation("receivingClient2", "location 2", "type 2","receiver2"), new AccessToken("access"), cancellationTokenSource.Token);
 
 			ReceivingClient<TestJsonObject> receivingClient3 = new ReceivingClient<TestJsonObject>("127.0.0.1", 5435,
-				new ClientInformation("receivingClient3", "location 3", "type 3"), new AccessToken("access"), cancellationTokenSource.Token);
+				new ClientInformation("receivingClient3", "location 3", "type 3","receiver3"), new AccessToken("access"), cancellationTokenSource.Token);
 
 			Task.Run(() => {
 				receivingClient1.run();
@@ -48,7 +48,8 @@ namespace Server_Library_Test {
 			Task.Run(() => {
 				receivingClient3.run();
 			});
-			Thread.Sleep(500);
+
+			Thread.Sleep(5000);
 			//List
 			List<TestJsonObject> listFor1 = new List<TestJsonObject>();
 			listFor1.Add(new TestJsonObject("herilolol", 1010, "oggigigigig"));
