@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace Crestron_Library
@@ -15,8 +13,11 @@ namespace Crestron_Library
 		private readonly Commands commands = new();
 		private readonly SerialPortInterface serialPort;
 
-		public CommandParser(SerialPortInterface serialPortInterface) {
+		public CommandParser(SerialPortInterface serialPortInterface, int largeMagnitude = 20, int smallMagnitude = 1, int maxDelta = 1000) {
 			serialPort = serialPortInterface;
+			this.largeMagnitude = largeMagnitude;
+			this.smallMagnitude = smallMagnitude;
+			this.maxDelta = maxDelta;
 		}
 
 		/// <summary>
@@ -32,7 +33,6 @@ namespace Crestron_Library
 
 			string operation = split[0].ToLower();
 			string key = toPars.Substring(operation.Length+1).ToLower();
-			//key = key.Substring(0, key.IndexOf('\0'));		//Trim off null bytes.
 
 			switch (operation) {
 				case "make":
@@ -48,7 +48,7 @@ namespace Crestron_Library
 					mouseClick(key);
 					break;
 				default:
-					throw new Exception("Pars failed, \"" + operation + "\" was not recognized as an operation");
+					throw new Exception($"Pars failed, \"{operation}\" was not recognized as an operation");
 			}
 		}
 
@@ -79,15 +79,15 @@ namespace Crestron_Library
 		/// <summary>
 		/// Threshold for when to use large magnitude movements.
 		/// </summary>
-		private readonly int scaleFactorL = 20;
+		private readonly int largeMagnitude;
 		/// <summary>
 		/// Threshold for when to use small magnitude movements.
 		/// </summary>
-		private readonly int scaleFactorS = 1;
+		private readonly int smallMagnitude;
 		/// <summary>
 		/// How much delta the algorithm will accumulate (per axis) before discarding additional delta.
 		/// </summary>
-		private readonly int maxDelta = 1000;
+		private readonly int maxDelta;
 		
 		private readonly ConcurrentQueue<int[]> deltas = new();
 		private bool isExecuting = false;
@@ -119,10 +119,9 @@ namespace Crestron_Library
 		private void executeMovementThread() {
 			var dx = 0;
 			var dy = 0;
-			while (!deltas.IsEmpty || Math.Abs(dx)>scaleFactorS || Math.Abs(dy)>scaleFactorS) {
+			while (!deltas.IsEmpty || Math.Abs(dx)>smallMagnitude || Math.Abs(dy)>smallMagnitude) {
 				(dx, dy) = fetchDeltas(dx, dy);
 				(dx, dy) = executeMovement(dx,dy);
-				//Console.WriteLine(dx + ":" + dy);
 			}
 			isExecuting = false;
 		}
@@ -153,11 +152,11 @@ namespace Crestron_Library
 			//Don't run method if serial port is still executing.
 			if(serialPort.isExecuting()) return (dx, dy);
 
-			var xScale = Math.Abs(dx) >= scaleFactorL ? scaleFactorL : scaleFactorS;
-			var yScale = Math.Abs(dy) >= scaleFactorS ? scaleFactorL : scaleFactorS;
+			var xScale = Math.Abs(dx) >= largeMagnitude ? largeMagnitude : smallMagnitude;
+			var yScale = Math.Abs(dy) >= smallMagnitude ? largeMagnitude : smallMagnitude;
 
 			//Only change magnitude if deltas are above or bellow current magnitude threshold (scaleFactor).
-			if ((xScale == scaleFactorL || yScale==scaleFactorL) && !isMagnitudeLarge) {
+			if ((xScale == largeMagnitude || yScale==largeMagnitude) && !isMagnitudeLarge) {
 				serialPort.SendBytes(commands.getMakeByte("magnitude large"));
 				isMagnitudeLarge = true;
 			} else {
@@ -165,7 +164,7 @@ namespace Crestron_Library
 				isMagnitudeLarge = false;
 			}
 
-			var executionScale = isMagnitudeLarge ? scaleFactorL : scaleFactorS;
+			var executionScale = isMagnitudeLarge ? largeMagnitude : smallMagnitude;
 			if (Math.Abs(dx) >= executionScale) {
 				serialPort.SendBytes(commands.getMakeByte(dx > 0 ? "right" : "left"));
 				dx -= executionScale * (dx > 0 ? 1 : -1);

@@ -52,7 +52,7 @@ namespace Crestron_Library {
 		/// </summary>
 		/// <param name="b"></param>
 		public void SendBytes(byte b) {
-			SendBytes(new List<byte> { b });
+			byteQueue.Enqueue(b);
 		}
 
 		/// <summary>
@@ -141,7 +141,7 @@ namespace Crestron_Library {
 				}
 			}
 			if (!portValid) {
-				throw new ArgumentException("Invalid port: \"" + port + "\"");
+				throw new ArgumentException($"Invalid port: \"{port}\"");
 			} else {
 				serialPort.PortName = port;
 			}

@@ -3,8 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Video_Demo_Project</RootNamespace>
-    <StartupObject>Video_Demo_Project.Program</StartupObject>
+    <RootNamespace>Video_Demo</RootNamespace>
+    <StartupObject>Video_Demo.test</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

@@ -38,7 +38,7 @@ namespace Crestron_Library {
 				if (commands.TryGetValue(key.ToLower(), out var temp))
 					return Convert.ToByte(temp[0], 16);
 			} catch { }
-			throw new ArgumentException("Make byte not found for: \"" + key +"\".");
+			throw new ArgumentException($"Make byte not found for: \"{key}\".");
 		}
 
 		/// <summary>
@@ -51,7 +51,7 @@ namespace Crestron_Library {
 				if (commands.TryGetValue(key.ToLower(), out var temp))
 					return Convert.ToByte(temp[1], 16);
 			} catch { }
-			throw new ArgumentException("Break byte not found for: \"" + key + "\".");
+			throw new ArgumentException($"Break byte not found for: \"{key}\".");
 			}
 
 		public List<string> getAllCommands() {

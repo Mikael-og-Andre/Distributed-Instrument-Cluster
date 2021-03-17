@@ -1,7 +1,7 @@
 ﻿@using System.Net.Http
 @using Blazor_Instrument_Cluster.Shared
 @using Blazor_Instrument_Cluster.Client.Components
-@layout NothingLayout
+@layout TopBar
 @inject HttpClient Http
 @inject NavigationManager navigationManager
 
@@ -20,8 +20,10 @@
 
 <div id="ListConnected" class="" style="list-style: none">
     <ul>
-        @if (devices != null) {
-            @foreach (DeviceModel device in devices) {
+        @if (devices != null)
+        {
+            @foreach (DeviceModel device in devices)
+            {
                 <DeviceComponent deviceInfo="device"></DeviceComponent>
             }
         }
@@ -32,15 +34,18 @@
 
     public string pathToApi = "api/ConnectedDevices";
     IEnumerable<DeviceModel> devices = null;
-    
 
-    protected override async Task OnInitializedAsync() {
+
+    protected override async Task OnInitializedAsync()
+    {
         string uriBase = navigationManager.BaseUri;
         string path = uriBase + pathToApi;
-        try {
+        try
+        {
             devices = await Http.GetFromJsonAsync<IEnumerable<DeviceModel>>(new Uri(path));
         }
-        catch (Exception ex) {
+        catch (Exception ex)
+        {
             Console.WriteLine("Exception thrown: " + ex.Message);
         }
     }

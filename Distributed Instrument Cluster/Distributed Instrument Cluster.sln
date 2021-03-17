@@ -33,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Communication lib Test", "C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron Test", "Crestron Test\Crestron Test.csproj", "{4B4FDBB1-B6D3-4BA7-A8CC-F4FEC22E5599}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron Demo Project", "Crestron Demo Project\Crestron Demo Project.csproj", "{6DC84601-3842-42F0-8D18-95F45E66F5F8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron Demo", "Crestron Demo Project\Crestron Demo.csproj", "{6DC84601-3842-42F0-8D18-95F45E66F5F8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server and Device Demo Project", "Instrument Communicator Demo Project\Server and Device Demo Project.csproj", "{2EAF1702-3A41-4F56-91F7-3C9B9325A97F}"
 EndProject
