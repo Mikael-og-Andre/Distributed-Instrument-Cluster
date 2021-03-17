@@ -130,6 +130,10 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			}
 		}
 
+		/// <summary>
+		/// Get List Of RemoteDevices
+		/// </summary>
+		/// <returns>List with type RemoteDevice</returns>
 		public List<RemoteDevice<T, U>> getListOfRemoteDevices() {
 			lock (listRemoteDevices) {
 				return listRemoteDevices;
