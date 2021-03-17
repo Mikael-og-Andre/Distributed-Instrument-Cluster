@@ -69,67 +69,73 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Start stopwatch
 			stopwatch.Start();
 
-			while (!listenerCancellationToken.IsCancellationRequested) {
-				//Variable representing protocol to use;
-				protocolOption currentMode;
-				Message message;
-				bool hasValue = inputQueue.TryPeek(out message);
-				Message msg = message;
-				//Check what action to take
-				//If queue is empty and time since last ping is greater than timeToWait, ping
-				if ((!hasValue) && (stopwatch.ElapsedMilliseconds > timeToWait)) {
-					//stop stopwatch
-					stopwatch.Stop();
-					//Set mode to ping
-					currentMode = protocolOption.ping;
+
+			try {
+				while (!listenerCancellationToken.IsCancellationRequested) {
+					//Variable representing protocol to use;
+					protocolOption currentMode;
+					Message message;
+					bool hasValue = inputQueue.TryPeek(out message);
+					Message msg = message;
+					//Check what action to take
+					//If queue is empty and time since last ping is greater than timeToWait, ping
+					if ((!hasValue) && (stopwatch.ElapsedMilliseconds > timeToWait)) {
+						//stop stopwatch
+						stopwatch.Stop();
+						//Set mode to ping
+						currentMode = protocolOption.ping;
+					}
+					//If queue has message check what type it is, and parse protocol type
+					else if (hasValue) {
+						// check first message in queue, set protocol to use to the protocol of that message
+						protocolOption messageOption = msg.getProtocol();
+						currentMode = messageOption;
+					}
+					//if queue is empty and time since last ping isn't big, sleep for an amount of time
+					else {
+						//Was empty and didn't need ping, so restart loop after short sleep
+						Thread.Sleep(timeToSleep);
+						continue;
+					}
+
+					//preform protocol corresponding to the current mode variable
+					switch (currentMode) {
+						case protocolOption.ping:
+							//Preform ping protocol
+							serverProtocolPing(clientConnection);
+							break;
+
+						case protocolOption.message:
+							//preform send protocol
+							this.serverProtocolMessage(clientConnection);
+							break;
+
+						case protocolOption.status:
+							this.serverProtocolStatus(clientConnection);
+							break;
+
+						case protocolOption.authorize:
+							this.serverProtocolAuthorization(clientConnection);
+							break;
+
+						default:
+							break;
+					}
+					//Reset stopwatch
+					stopwatch.Reset();
+					stopwatch.Start();
 				}
-				//If queue has message check what type it is, and parse protocol type
-				else if (hasValue) {
-					// check first message in queue, set protocol to use to the protocol of that message
-					protocolOption messageOption = msg.getProtocol();
-					currentMode = messageOption;
-				}
-				//if queue is empty and time since last ping isn't big, sleep for an amount of time
-				else {
-					//Was empty and didn't need ping, so restart loop after short sleep
-					Thread.Sleep(timeToSleep);
-					continue;
-				}
-
-				//preform protocol corresponding to the current mode variable
-				switch (currentMode) {
-					case protocolOption.ping:
-						//Preform ping protocol
-						serverProtocolPing(clientConnection);
-						break;
-
-					case protocolOption.message:
-						//preform send protocol
-						this.serverProtocolMessage(clientConnection);
-						break;
-
-					case protocolOption.status:
-						this.serverProtocolStatus(clientConnection);
-						break;
-
-					case protocolOption.authorize:
-						this.serverProtocolAuthorization(clientConnection);
-						break;
-
-					default:
-						break;
-				}
-				//Reset stopwatch
-				stopwatch.Reset();
-				stopwatch.Start();
 			}
-			removeClientConnection(clientConnection);
-			//Stop stopwatch if ending i guess
-			stopwatch.Stop();
-			//get socket and disconnect
-			Socket socket = clientConnection.GetSocket();
-			socket.Disconnect(false);
-			//remove client from connections
+			catch (Exception) {
+				removeClientConnection(clientConnection);
+				//Stop stopwatch if ending i guess
+				stopwatch.Stop();
+				//get socket and disconnect
+				Socket socket = clientConnection.GetSocket();
+				socket.Disconnect(false);
+				Console.WriteLine("Exception thrown, closing connection");
+				//remove client from connections
+			}
 		}
 
 		/// <summary>

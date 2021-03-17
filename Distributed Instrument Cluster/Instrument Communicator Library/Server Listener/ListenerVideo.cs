@@ -1,4 +1,5 @@
-﻿using Instrument_Communicator_Library.Helper_Class;
+﻿using System;
+using Instrument_Communicator_Library.Helper_Class;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
@@ -66,15 +67,22 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Get outputQueue
 			ConcurrentQueue<VideoFrame> outputQueue = videoConnection.GetOutputQueue();
 
-			//Do main loop
-			while (!listenerCancellationToken.IsCancellationRequested) {
-				//Get Incoming object
-				VideoFrame newObj = NetworkingOperations.receiveVideoFrameWithSocket(connectionSocket);
+			try {
+				//Do main loop
+				while (!listenerCancellationToken.IsCancellationRequested) {
+					//Get Incoming object
+					VideoFrame newObj = NetworkingOperations.receiveVideoFrameWithSocket(connectionSocket);
 
-				outputQueue.Enqueue(newObj);
+					outputQueue.Enqueue(newObj);
+				}
 			}
-			//remove connection
-			removeVideoConnection(videoConnection);
+			catch (Exception e) {
+				Console.WriteLine(e);
+				
+				//remove connection
+				removeVideoConnection(videoConnection);
+			}
+
 		}
 
 		/// <summary>
