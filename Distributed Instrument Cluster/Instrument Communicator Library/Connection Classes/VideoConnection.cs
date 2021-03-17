@@ -30,6 +30,8 @@ namespace Instrument_Communicator_Library {
 		/// </summary>
 		private ConcurrentQueue<VideoFrame> outputQueue;
 
+		public bool running { get; set; } = true;
+
 		/// <summary>
 		/// Has the instrument information been shared
 		/// </summary>
@@ -80,6 +82,10 @@ namespace Instrument_Communicator_Library {
 			}
 
 			return null;
+		}
+
+		public bool isRunning() {
+			return this.running;
 		}
 	}
 }

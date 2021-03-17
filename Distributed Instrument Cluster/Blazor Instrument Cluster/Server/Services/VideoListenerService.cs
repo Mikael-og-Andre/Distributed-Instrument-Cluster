@@ -124,7 +124,7 @@ namespace Blazor_Instrument_Cluster.Server.Worker {
 			CancellationToken token = new CancellationToken();
 			//Get Queue
 			ConcurrentQueue<VideoFrame> queue = connection.GetOutputQueue();
-			while (!token.IsCancellationRequested) {
+			while (!token.IsCancellationRequested&&connection.isRunning()) {
 				if (queue.TryDequeue(out VideoFrame frameResult)) {
 					//Send frame to all subscribers
 					provider.PushFrame(frameResult);

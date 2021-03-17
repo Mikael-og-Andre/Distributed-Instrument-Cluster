@@ -78,7 +78,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			}
 			catch (Exception e) {
 				Console.WriteLine(e);
-				
+				videoConnection.running = false;
 				//remove connection
 				removeVideoConnection(videoConnection);
 			}
