@@ -24,7 +24,7 @@ namespace Server_Library_Test {
 			Task.Run(() => {
 				sendingListener.start();
 			});
-
+			Thread.Sleep(500);
 			//Cancellation Token
 			CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
@@ -48,7 +48,7 @@ namespace Server_Library_Test {
 			Task.Run(() => {
 				receivingClient3.run();
 			});
-
+			Thread.Sleep(500);
 			//List
 			List<TestJsonObject> listFor1 = new List<TestJsonObject>();
 			listFor1.Add(new TestJsonObject("herilolol", 1010, "oggigigigig"));

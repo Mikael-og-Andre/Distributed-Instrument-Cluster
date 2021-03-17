@@ -1,19 +1,19 @@
-﻿using Blazor_Instrument_Cluster.Server.Events;
-using Blazor_Instrument_Cluster.Server.Object;
+﻿using System;
+using System.Collections.Generic;
+using Blazor_Instrument_Cluster.Server.Events;
+using Blazor_Instrument_Cluster.Server.Injection;
 using Microsoft.Extensions.Logging;
 using Server_Library;
 using Server_Library.Connection_Classes;
 using Server_Library.Connection_Types;
-using System;
-using System.Collections.Generic;
 
-namespace Blazor_Instrument_Cluster.Server.Injection {
+namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 
 	/// <summary>
 	/// Class for storing connection lists
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class RemoteDeviceConnections<T, U> : IRemoteDeviceConnections<T, U> {
+	public class RemoteDeviceConnections<T,U> : IRemoteDeviceConnections<T,U> {
 
 		/// <summary>
 		/// Services
@@ -23,7 +23,7 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<RemoteDeviceConnections<T, U>> logger;
+		private ILogger<RemoteDeviceConnections<T,U>> logger;
 
 		/// <summary>
 		/// Frame Providers
@@ -33,20 +33,24 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 		/// <summary>
 		/// List of remote devices
 		/// </summary>
-		private List<RemoteDevice<T, U>> listRemoteDevices;
+		private List<RemoteDevice<T,U>> listRemoteDevices;
 
 		/// <summary>
 		/// Constructor, Injects logger and service provider
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public RemoteDeviceConnections(ILogger<RemoteDeviceConnections<T, U>> logger, IServiceProvider services) {
+		public RemoteDeviceConnections(ILogger<RemoteDeviceConnections<T,U>> logger, IServiceProvider services) {
 			this.services = services;
 			this.logger = logger;
-			listRemoteDevices = new List<RemoteDevice<T, U>>();
+			listRemoteDevices = new List<RemoteDevice<T,U>>();
 			listFrameProviders = new List<VideoObjectProvider<T>>();
 		}
 
+		/// <summary>
+		/// Adds a connection to the remoteDevice with the corresponding name location and type, if not found it creates a new one
+		/// </summary>
+		/// <param name="connection"></param>
 		public void addConnectionToRemoteDevices(ConnectionBase connection) {
 			ClientInformation newInformation = connection.getInstrumentInformation();
 
@@ -78,12 +82,12 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 					}
 				}
 			}
-			
+
 			//If device did not exist create a new one
 			if (!deviceAlreadyExisted) {
 				RemoteDevice<T, U> newDevice =
 					new RemoteDevice<T, U>(newInformation.Name, newInformation.Location, newInformation.Type);
-				
+
 				var receivingInstance = typeof(ReceivingConnection<T>);
 				if (receivingInstance.IsInstanceOfType(connection)) {
 					ReceivingConnection<T> receivingConnection = (ReceivingConnection<T>)connection;
@@ -99,15 +103,36 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 					listRemoteDevices.Add(newDevice);
 				}
 			}
-
 		}
 
-		public RemoteDevice<T, U> getRemoteDeviceWithNameLocationAndType<T, U>(string name, string location, string type) {
-			throw new NotImplementedException();
+		/// <summary>
+		/// Get a remote device with its name location and type
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="location"></param>
+		/// <param name="type"></param>
+		/// <param name="outputDevice"></param>
+		/// <returns>If it was found or not</returns>
+		public bool getRemoteDeviceWithNameLocationAndType(string name, string location, string type, RemoteDevice<T,U> outputDevice) {
+			lock (listRemoteDevices) {
+				foreach (var device in listRemoteDevices) {
+					//Check if device info is the same
+					if (device.name.Equals(name) && device.location.Equals(location) && device.type.Equals(type)) {
+
+						outputDevice = device;
+						return true;
+					}
+				}
+
+				outputDevice = default;
+				return false;
+			}
 		}
 
-		public bool subscribeToObjectProviderWithName(string name, string location, string type, string subname, VideoObjectConsumer<T> consumer) {
-			throw new NotImplementedException();
+		public List<RemoteDevice<T, U>> getListOfRemoteDevices() {
+			lock (listRemoteDevices) {
+				return listRemoteDevices;
+			}
 		}
 	}
 }

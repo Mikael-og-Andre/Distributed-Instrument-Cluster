@@ -1,6 +1,7 @@
 ﻿using Server_Library;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Blazor_Instrument_Cluster.Server.Events {
 
@@ -14,7 +15,15 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		/// <summary>
 		/// name of the device
 		/// </summary>
-		public string name { get; private set; }
+		public string name { get; set; }
+		/// <summary>
+		/// Location of device
+		/// </summary>
+		public string location { get; set; }
+		/// <summary>
+		/// type of device
+		/// </summary>
+		public string type { get; set; }
 
 		/// <summary>
 		/// //observers of this provider
@@ -22,12 +31,22 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		private List<IObserver<T>> observers;
 
 		/// <summary>
-		/// Constructor, sets name and initializes list of observers
+		/// Cancellation token source
+		/// </summary>
+		private CancellationTokenSource cancellationTokenSource;
+
+		/// <summary>
+		/// Constructor
 		/// </summary>
 		/// <param name="name"></param>
-		public VideoObjectProvider(string name) {
+		/// <param name="location"></param>
+		/// <param name="type"></param>
+		public VideoObjectProvider(string name, string location, string type) {
 			this.name = name;
+			this.location = location;
+			this.type = type;
 			observers = new List<IObserver<T>>();
+			cancellationTokenSource = new CancellationTokenSource();
 		}
 
 		/// <summary>
@@ -55,6 +74,21 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 					observer.OnNext(frameResult);
 				}
 			}
+		}
+
+		/// <summary>
+		/// Gets a cancellation token for this provider
+		/// </summary>
+		/// <returns></returns>
+		public CancellationToken getCancellationToken() {
+			return cancellationTokenSource.Token;
+		}
+
+		/// <summary>
+		/// Signals the cancellation token to cancel
+		/// </summary>
+		public void stop() {
+			cancellationTokenSource.Cancel();
 		}
 	}
 

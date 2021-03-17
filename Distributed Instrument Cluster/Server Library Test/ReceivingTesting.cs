@@ -207,7 +207,7 @@ namespace Server_Library_Test {
 			//Get Client information
 			ClientInformation info = NetworkingOperations.receiveJsonObjectWithSocket<ClientInformation>(socket);
 
-			ReceivingConnection<TestJsonObject> receivingConnection = new ReceivingConnection<TestJsonObject>(thread,
+			ReceivingConnection<TestJsonObject> receivingConnection = new ReceivingConnection<TestJsonObject>(
 				socket, accessToken, info, new CancellationToken(false)) {
 				isSetupCompleted = true, isAuthorized = true
 			};

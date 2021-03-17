@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Blazor_Instrument_Cluster.Server.RemoteDevice;
 using Server_Library.Connection_Types.deprecated;
 
 namespace Blazor_Instrument_Cluster.Server.Controllers {
@@ -39,17 +40,21 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		public IEnumerable<DeviceModel> getVideoConnections() {
 			//Get list of video connections
-			List<VideoConnection> listVideoConnections;
-			if (remoteDeviceConnections.getVideoConnectionList(out listVideoConnections)) {
+			List<RemoteDevice<T, U>> listOfRemoteDevices = remoteDeviceConnections.getListOfRemoteDevices();
+			if (listOfRemoteDevices.Count>0) {
 				//Create an IEnumerable with device models
 				IEnumerable<DeviceModel> enumerableDeviceModels = new DeviceModel[] { };
 				//Lock unsafe list
-				lock (listVideoConnections) {
-					foreach (var videoConnection in listVideoConnections) {
-						ClientInformation info = videoConnection.getInstrumentInformation();
+				lock (listOfRemoteDevices) {
+					foreach (var device in listOfRemoteDevices) {
+
+						string deviceName = device.name;
+						string deviceLocation = device.location;
+						string deviceType = device.type;
+
 						//TODO: Add has crestron boolean to instrument information
 						enumerableDeviceModels =
-							enumerableDeviceModels.Append(new DeviceModel(info.Name, info.Location, info.Type, true));
+							enumerableDeviceModels.Append(new DeviceModel(deviceName,deviceLocation,deviceType));
 					}
 				}
 

@@ -1,8 +1,11 @@
-﻿using Server_Library.Connection_Types;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Server.Events;
+using Server_Library;
+using Server_Library.Connection_Types;
 
-namespace Blazor_Instrument_Cluster.Server.Object {
+namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 	/// <summary>
 	/// A remote device connected to the server
 	/// Stores data about connections belonging to each device, and the providers
@@ -57,13 +60,16 @@ namespace Blazor_Instrument_Cluster.Server.Object {
 		}
 
 		/// <summary>
-		/// Adds a receiving connection to the list of receiving connections for this remote device
+		/// Adds a receiving connection to the list of receiving connections for this remote device and start its corresponding device
+		/// Starts a provider for the incoming connection
 		/// </summary>
 		/// <param name="receivingConnection"></param>
 		public void addReceivingConnection(ReceivingConnection<T> receivingConnection) {
 			lock (listOfReceivingConnections) {
 				listOfReceivingConnections.Add(receivingConnection);
 			}
+			//Start a provider
+			startProvider(receivingConnection);
 		}
 
 		/// <summary>
@@ -75,5 +81,33 @@ namespace Blazor_Instrument_Cluster.Server.Object {
 				listOfSendingConnections.Add(sendingConnection);	
 			}
 		}
+
+
+		private void startProvider(ReceivingConnection<T> receivingConnection) {
+			//Info about client
+			ClientInformation info = receivingConnection.getInstrumentInformation();
+			//Create new provider
+			VideoObjectProvider<T> provider = new VideoObjectProvider<T>(info.Name,info.Location,info.Type);
+
+			//Add to list of providers
+			lock (listOfReceivingConnectionProviders) {
+				listOfReceivingConnectionProviders.Add(provider);
+			}
+
+			//Get cancellation token
+			CancellationToken providerCancellationToken = provider.getCancellationToken();
+			//Run the provider
+			Task.Run(() => {
+				while (!providerCancellationToken.IsCancellationRequested) {
+					if (receivingConnection.getObjectFromConnection(out T output)) {
+						provider.pushObject(output);
+					}
+					else {
+						Thread.Sleep(300);
+					}
+				}
+			});
+		}
+
 	}
 }

@@ -16,13 +16,11 @@ namespace Blazor_Instrument_Cluster.Shared {
 		public string location { get; set; }
 		public string type { get; set; }
 
-		public bool hasCrestron { get; set; }
-
-		public DeviceModel(string name, string location, string type, bool hasCrestron) {
+		public DeviceModel(string name, string location, string type) {
 			this.name = name;
 			this.location = location;
 			this.type = type;
-			this.hasCrestron = hasCrestron;	
+			
 		}
 
     }

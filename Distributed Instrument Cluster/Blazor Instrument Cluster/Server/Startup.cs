@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Server.Object;
+using Blazor_Instrument_Cluster.Server.RemoteDevice;
 using Blazor_Instrument_Cluster.Server.Services;
 using Server_Library;
 
