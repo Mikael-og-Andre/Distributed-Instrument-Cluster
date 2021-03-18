@@ -18,7 +18,19 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		/// <summary>
 		/// Name of the device it wants a queue from
 		/// </summary>
-		private string name;
+		public string name{ get; private set; }
+		/// <summary>
+		/// Location information 
+		/// </summary>
+		public string location{ get; private set; }
+		/// <summary>
+		/// Type information
+		/// </summary>
+		public string type{ get; private set; }
+		/// <summary>
+		/// Subname information
+		/// </summary>
+		public string subname { get; private set; }
 
 		/// <summary>
 		/// Concurrent queue of incoming frames
@@ -29,8 +41,12 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		/// Constructor, sets name and initializes queue
 		/// </summary>
 		/// <param name="name"></param>
-		public VideoObjectConsumer(string name) {
+		public VideoObjectConsumer(string name,string location,string type, string subname) {
 			this.name = name;
+			this.location = location;
+			this.type = type;
+			this.subname = subname;
+
 			this.frameConcurrentQueue = new ConcurrentQueue<T>();
 		}
 

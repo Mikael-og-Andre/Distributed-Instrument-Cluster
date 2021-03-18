@@ -1,6 +1,7 @@
 ﻿using Server_Library;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 
 namespace Blazor_Instrument_Cluster.Server.Events {
@@ -24,6 +25,10 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		/// type of device
 		/// </summary>
 		public string type { get; set; }
+		/// <summary>
+		/// subname value of the connection
+		/// </summary>
+		public string subname { get; set; }
 
 		/// <summary>
 		/// //observers of this provider
@@ -41,10 +46,12 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		/// <param name="name"></param>
 		/// <param name="location"></param>
 		/// <param name="type"></param>
-		public VideoObjectProvider(string name, string location, string type) {
+		public VideoObjectProvider(string name, string location, string type, string subname) {
 			this.name = name;
 			this.location = location;
 			this.type = type;
+			this.subname = subname;
+			
 			observers = new List<IObserver<T>>();
 			cancellationTokenSource = new CancellationTokenSource();
 		}

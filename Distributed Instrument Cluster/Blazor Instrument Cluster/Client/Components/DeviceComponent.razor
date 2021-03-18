@@ -1,6 +1,7 @@
 ﻿@inherits ComponentBase
 @inject NavigationManager navigationManager
 @using Blazor_Instrument_Cluster.Shared
+@using System.Security.Cryptography.X509Certificates
 
 <li id="DeviceItem" class="list-group-item container" style="width: 100%">
     <div class="row">
@@ -16,6 +17,14 @@
         <div class="col">
             <button @onclick="navigateToDevicePage" class="btn-dark">Select</button>
         </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            @foreach (var subName in deviceInfo.subNames) {
+                <p>@subName</p>
+            }
+        </div>
+        
     </div>
 </li>
 

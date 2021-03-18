@@ -25,7 +25,7 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 		/// <param name="type"></param>
 		/// <param name="outputDevice"> The device that was found</param>
 		/// <returns>IF it was successfully found or not</returns>
-		public bool getRemoteDeviceWithNameLocationAndType(string name, string location, string type, RemoteDevice<T,U> outputDevice);
+		public bool getRemoteDeviceWithNameLocationAndType(string name, string location, string type,out RemoteDevice<T,U> outputDevice);
 
 		public List<RemoteDevice<T,U>> getListOfRemoteDevices();
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Server.Events;
@@ -87,7 +88,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			//Info about client
 			ClientInformation info = receivingConnection.getInstrumentInformation();
 			//Create new provider
-			VideoObjectProvider<T> provider = new VideoObjectProvider<T>(info.Name,info.Location,info.Type);
+			VideoObjectProvider<T> provider = new VideoObjectProvider<T>(info.Name,info.Location,info.Type,info.SubName);
 
 			//Add to list of providers
 			lock (listOfReceivingConnectionProviders) {
@@ -99,14 +100,69 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			//Run the provider
 			Task.Run(() => {
 				while (!providerCancellationToken.IsCancellationRequested) {
-					if (receivingConnection.getObjectFromConnection(out T output)) {
-						provider.pushObject(output);
+					try { 
+						//Try to get an object and broadcast it to subscribers
+						if (receivingConnection.getObjectFromConnection(out T output)) {
+							provider.pushObject(output);
+						}
+						else {
+							Thread.Sleep(300);
+						}
 					}
-					else {
-						Thread.Sleep(300);
+					catch (Exception ex) {
+						//Stop provider
+						provider.stop();
 					}
 				}
 			});
+		}
+
+		/// <summary>
+		/// Searches all connections for their sub names and returns a list fo them
+		/// </summary>
+		/// <returns></returns>
+		public List<string> getSubNamesList() {
+			List<string> newList = new List<string>();
+
+			lock (listOfReceivingConnections) {
+				foreach (var receiving in listOfReceivingConnections) {
+					newList.Add(receiving.getInstrumentInformation().SubName);
+				}
+			}
+
+			lock (listOfSendingConnections) {
+				foreach (var sending in listOfSendingConnections) {
+					newList.Add(sending.getInstrumentInformation().SubName);
+				}
+			}
+
+			return newList;
+		}
+
+		/// <summary>
+		/// Checks all providers for a matching subname and subscribes the consumer to it
+		/// </summary>
+		/// <param name="subname">subname of the wanted connection</param>
+		/// <param name="consumer">Consumer that will be subscribed</param>
+		/// <returns>True or false</returns>
+		public bool subscribeToProvider(VideoObjectConsumer<T> consumer) {
+
+			string consumerSubname = consumer.subname;
+
+			lock (listOfReceivingConnectionProviders) {
+				//Check all providers
+				foreach (var provider in listOfReceivingConnectionProviders) {
+					string providerSubname = provider.subname;
+					//Check if subnames match
+					if (providerSubname.ToLower().Equals(consumerSubname.ToLower())) {
+						//Subscribe the consumer and return true
+						provider.Subscribe(consumer);
+						return true;
+					}
+				}
+				//No match found return false
+				return false;
+			}
 		}
 
 	}

@@ -1,4 +1,4 @@
-﻿@page "/video/{name}"
+﻿@page "/video/{name}-{location}-{type}-{subname}"
 @layout NothingLayout
 @using System.Net.WebSockets
 @using System.Text
@@ -13,8 +13,17 @@
     readonly CancellationTokenSource disposalTokenSource = new();           //Disposal token for async communication
     readonly ClientWebSocket videoWebSocket = new();                        //Client websocket
     bool foundDevice = false;                                               //Was the requested device found or not
+
     [Parameter]
-    public string name { get; set; } = "Radar1";                            //Name of the wanted device
+    public string name { get; set; };                            //Name of the wanted device
+    [Parameter]
+    public string location {get; set; }
+    [Parameter]
+    public string type { get; set; }
+    [Parameter]
+    public string subname { get; set; }
+
+
     private string imgsrc = "";                                             //img to show
     private int frameBufferSize = 200000;                                   //Buffer for incoming msg's
 
@@ -79,13 +88,26 @@
             await videoWebSocket.ReceiveAsync(startSignalBuffer, disposalTokenSource.Token);
 
             //Send name
-            ArraySegment<byte> nameBytes = new ArraySegment<byte>(Encoding.ASCII.GetBytes(name));
+            ArraySegment<byte> nameBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(name));
             await videoWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+
+            //Send location
+            ArraySegment<byte> locationBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(location));
+            await videoWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+
+            //Send type
+            ArraySegment<byte> typeBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(type));
+            await videoWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+
+            //Send subanme
+            ArraySegment<byte> subnameBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(subname));
+            await videoWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+
             //Get found or not
             byte[] foundBuffer = new byte[200];
             ArraySegment<byte> foundBytes = new ArraySegment<byte>(foundBuffer);
             await videoWebSocket.ReceiveAsync(foundBytes, disposalTokenSource.Token);
-            string found = Encoding.ASCII.GetString(foundBytes).TrimEnd('\0');
+            string found = Encoding.UTF8.GetString(foundBytes).TrimEnd('\0');
 
             return found.ToLower().Equals("found".ToLower());
         }

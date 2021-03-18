@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using Blazor_Instrument_Cluster.Server.Events;
+﻿using Blazor_Instrument_Cluster.Server.Events;
 using Blazor_Instrument_Cluster.Server.Injection;
 using Microsoft.Extensions.Logging;
 using Server_Library;
 using Server_Library.Connection_Classes;
 using Server_Library.Connection_Types;
+using System;
+using System.Collections.Generic;
 
 namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 
@@ -13,7 +13,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 	/// Class for storing connection lists
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class RemoteDeviceConnections<T,U> : IRemoteDeviceConnections<T,U> {
+	public class RemoteDeviceConnections<T, U> : IRemoteDeviceConnections<T, U> {
 
 		/// <summary>
 		/// Services
@@ -23,7 +23,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<RemoteDeviceConnections<T,U>> logger;
+		private ILogger<RemoteDeviceConnections<T, U>> logger;
 
 		/// <summary>
 		/// Frame Providers
@@ -33,17 +33,17 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// <summary>
 		/// List of remote devices
 		/// </summary>
-		private List<RemoteDevice<T,U>> listRemoteDevices;
+		private List<RemoteDevice<T, U>> listRemoteDevices;
 
 		/// <summary>
 		/// Constructor, Injects logger and service provider
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public RemoteDeviceConnections(ILogger<RemoteDeviceConnections<T,U>> logger, IServiceProvider services) {
+		public RemoteDeviceConnections(ILogger<RemoteDeviceConnections<T, U>> logger, IServiceProvider services) {
 			this.services = services;
 			this.logger = logger;
-			listRemoteDevices = new List<RemoteDevice<T,U>>();
+			listRemoteDevices = new List<RemoteDevice<T, U>>();
 			listFrameProviders = new List<VideoObjectProvider<T>>();
 		}
 
@@ -56,6 +56,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 
 			//Track if the device was found or a new one was added
 			bool deviceAlreadyExisted = false;
+			//Lock list so devices are added in correct order and so on
 			lock (listRemoteDevices) {
 				foreach (var device in listRemoteDevices) {
 					string deviceName = device.name;
@@ -81,26 +82,24 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 						break;
 					}
 				}
-			}
 
-			//If device did not exist create a new one
-			if (!deviceAlreadyExisted) {
-				RemoteDevice<T, U> newDevice =
-					new RemoteDevice<T, U>(newInformation.Name, newInformation.Location, newInformation.Type);
+				//If device did not exist create a new one
+				if (!deviceAlreadyExisted) {
+					RemoteDevice<T, U> newDevice =
+						new RemoteDevice<T, U>(newInformation.Name, newInformation.Location, newInformation.Type);
 
-				var receivingInstance = typeof(ReceivingConnection<T>);
-				bool isReceivingConnection = receivingInstance.IsInstanceOfType(connection);
-				if (isReceivingConnection) {
-					ReceivingConnection<T> receivingConnection = (ReceivingConnection<T>)connection;
-					newDevice.addReceivingConnection(receivingConnection);
-				}
-				//If it was not receiving it is sending
-				else {
-					SendingConnection<U> sendingConnection = (SendingConnection<U>)connection;
-					newDevice.addSendingConnection(sendingConnection);
-				}
-				//Add to list of remote devices
-				lock (listRemoteDevices) {
+					var receivingInstance = typeof(ReceivingConnection<T>);
+					bool isReceivingConnection = receivingInstance.IsInstanceOfType(connection);
+					if (isReceivingConnection) {
+						ReceivingConnection<T> receivingConnection = (ReceivingConnection<T>)connection;
+						newDevice.addReceivingConnection(receivingConnection);
+					}
+					//If it was not receiving it is sending
+					else {
+						SendingConnection<U> sendingConnection = (SendingConnection<U>)connection;
+						newDevice.addSendingConnection(sendingConnection);
+					}
+					//Add to list of remote devices
 					listRemoteDevices.Add(newDevice);
 				}
 			}
@@ -114,12 +113,11 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// <param name="type"></param>
 		/// <param name="outputDevice"></param>
 		/// <returns>If it was found or not</returns>
-		public bool getRemoteDeviceWithNameLocationAndType(string name, string location, string type, RemoteDevice<T,U> outputDevice) {
+		public bool getRemoteDeviceWithNameLocationAndType(string name, string location, string type, out RemoteDevice<T, U> outputDevice) {
 			lock (listRemoteDevices) {
 				foreach (var device in listRemoteDevices) {
 					//Check if device info is the same
 					if (device.name.Equals(name) && device.location.Equals(location) && device.type.Equals(type)) {
-
 						outputDevice = device;
 						return true;
 					}

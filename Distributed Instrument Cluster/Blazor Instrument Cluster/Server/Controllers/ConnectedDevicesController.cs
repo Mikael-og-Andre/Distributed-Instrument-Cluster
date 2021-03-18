@@ -54,8 +54,11 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 						string deviceLocation = device.location;
 						string deviceType = device.type;
 						
+						//Get sub devices
+						List<string> subNames = device.getSubNamesList();
+
 						enumerableDeviceModels =
-							enumerableDeviceModels.Append(new DeviceModel(deviceName,deviceLocation,deviceType));
+							enumerableDeviceModels.Append(new DeviceModel(deviceName,deviceLocation,deviceType,subNames));
 					}
 				}
 
