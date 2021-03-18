@@ -80,7 +80,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 			string encodingTarget = str;
 			byte[] stringBuffer = Encoding.UTF8.GetBytes(encodingTarget);
 			//Send message string to client
-			connectionSocket.Send(stringBuffer, 2048, SocketFlags.None);
+			connectionSocket.Send(stringBuffer, stringBuffer.Length, SocketFlags.None);
 		}
 		
 
