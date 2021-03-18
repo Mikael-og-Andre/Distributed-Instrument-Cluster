@@ -61,7 +61,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		public static string receiveStringWithSocket(Socket connectionSocket) {
 			
 			//receive main object
-			byte[] incomingObjectBuffer = new byte[2048];
+			byte[] incomingObjectBuffer = new byte[5000];
 			connectionSocket.Receive(incomingObjectBuffer, 0, 2048, SocketFlags.None);
 			//get string from object
 			string receivedObj = Encoding.UTF8.GetString(incomingObjectBuffer);
@@ -80,7 +80,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 			string encodingTarget = str;
 			byte[] stringBuffer = Encoding.UTF8.GetBytes(encodingTarget);
 			//Send message string to client
-			connectionSocket.Send(stringBuffer, 2048, SocketFlags.None);
+			connectionSocket.Send(stringBuffer, 5000, SocketFlags.None);
 		}
 		
 
