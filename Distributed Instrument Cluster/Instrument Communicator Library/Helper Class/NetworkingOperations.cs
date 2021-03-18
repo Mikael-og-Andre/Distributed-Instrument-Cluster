@@ -62,7 +62,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 			
 			//receive main object
 			byte[] incomingObjectBuffer = new byte[5000];
-			connectionSocket.Receive(incomingObjectBuffer, 0, 5000, SocketFlags.None);
+			connectionSocket.Receive(incomingObjectBuffer, 0, 2048, SocketFlags.None);
 			//get string from object
 			string receivedObj = Encoding.UTF8.GetString(incomingObjectBuffer);
 			//Trim null bytes
