@@ -59,10 +59,15 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		/// <param name="connectionSocket">Connected socket</param>
 		/// <returns>string</returns>
 		public static string receiveStringWithSocket(Socket connectionSocket) {
-			
+			//Get size of incoming object
+			byte[] sizeOfIncomingBuffer = new byte[sizeof(int)];
+			connectionSocket.Blocking = true;
+			connectionSocket.Receive(sizeOfIncomingBuffer, 0, sizeof(int), SocketFlags.None);
+			//extract int
+			int sizeOfIncoming = BitConverter.ToInt32(sizeOfIncomingBuffer);
 			//receive main object
-			byte[] incomingObjectBuffer = new byte[2048];
-			connectionSocket.Receive(incomingObjectBuffer, 0, 2048, SocketFlags.None);
+			byte[] incomingObjectBuffer = new byte[sizeOfIncoming];
+			connectionSocket.Receive(incomingObjectBuffer, 0, sizeOfIncoming, SocketFlags.None);
 			//get string from object
 			string receivedObj = Encoding.UTF8.GetString(incomingObjectBuffer);
 			//Trim null bytes
@@ -79,6 +84,10 @@ namespace Instrument_Communicator_Library.Helper_Class {
 			//Send name
 			string encodingTarget = str;
 			byte[] stringBuffer = Encoding.UTF8.GetBytes(encodingTarget);
+			byte[] sizeBuffer = BitConverter.GetBytes(stringBuffer.Length);
+			connectionSocket.Blocking = true;
+			connectionSocket.Send(sizeBuffer, sizeof(int), SocketFlags.None);
+
 			//Send message string to client
 			connectionSocket.Send(stringBuffer, stringBuffer.Length, SocketFlags.None);
 		}
