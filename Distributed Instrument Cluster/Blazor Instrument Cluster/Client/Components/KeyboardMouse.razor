@@ -154,7 +154,7 @@
     private async Task<bool> SetupSocket() {
         try {
             //Receive start signal
-            byte[] startBuffer = new byte[1024];
+            byte[] startBuffer = new byte[200];
             ArraySegment<byte> startSignalBuffer = new ArraySegment<byte>(startBuffer);
             await crestronWebSocket.ReceiveAsync(startSignalBuffer, disposalTokenSource.Token);
 
@@ -162,7 +162,7 @@
             ArraySegment<byte> nameBytes = new ArraySegment<byte>(Encoding.ASCII.GetBytes(name));
             await crestronWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
             //Get found or not
-            byte[] foundBuffer = new byte[1024];
+            byte[] foundBuffer = new byte[200];
             ArraySegment<byte> foundBytes = new ArraySegment<byte>(foundBuffer);
             await crestronWebSocket.ReceiveAsync(foundBytes, disposalTokenSource.Token);
             string found = Encoding.ASCII.GetString(foundBytes).TrimEnd('\0');

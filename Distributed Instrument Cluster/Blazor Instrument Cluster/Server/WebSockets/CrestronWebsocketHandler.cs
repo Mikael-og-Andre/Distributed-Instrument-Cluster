@@ -56,7 +56,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				await websocket.SendAsync(startSeg, WebSocketMessageType.Text, true, token);
 
 				//Get name of device'
-				byte[] nameBufferBytes = new byte[1024];
+				byte[] nameBufferBytes = new byte[100];
 				ArraySegment<byte> nameBuffer = new ArraySegment<byte>(nameBufferBytes);
 				await websocket.ReceiveAsync(nameBuffer, token);
 				string name = Encoding.ASCII.GetString(nameBufferBytes).TrimEnd('\0');
@@ -92,7 +92,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 						byte[] cmdBufferBytes = new byte[2048];
 						ArraySegment<byte> receiveBuffer = new ArraySegment<byte>(cmdBufferBytes);
 						await websocket.ReceiveAsync(receiveBuffer, token);
-						string receivedString = Encoding.ASCII.GetString(receiveBuffer);
+						string receivedString = Encoding.ASCII.GetString(receiveBuffer.ToArray());
 						//Trim nullbytes
 						receivedString.Trim('\0');
 
