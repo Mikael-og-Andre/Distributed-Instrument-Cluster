@@ -51,7 +51,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			CancellationToken token = new CancellationToken(false);
 			try {
 				//Send start signal
-				byte[] startBytes = Encoding.UTF8.GetBytes("start");
+				byte[] startBytes = Encoding.ASCII.GetBytes("start");
 				ArraySegment<byte> startSeg = new ArraySegment<byte>(startBytes);
 				await websocket.SendAsync(startSeg, WebSocketMessageType.Text, true, token);
 
@@ -59,7 +59,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				byte[] nameBufferBytes = new byte[1024];
 				ArraySegment<byte> nameBuffer = new ArraySegment<byte>(nameBufferBytes);
 				await websocket.ReceiveAsync(nameBuffer, token);
-				string name = Encoding.UTF8.GetString(nameBufferBytes).TrimEnd('\0');
+				string name = Encoding.ASCII.GetString(nameBufferBytes).TrimEnd('\0');
 
 				//Check if connection with he name exists and is available
 				bool exists = false;
@@ -80,7 +80,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 					//Do connection exclusive control actions
 
 					////Tell device found
-					byte[] yesBytes = Encoding.UTF8.GetBytes("found");
+					byte[] yesBytes = Encoding.ASCII.GetBytes("found");
 					ArraySegment<byte> yesSeg = new ArraySegment<byte>(yesBytes);
 					await websocket.SendAsync(yesSeg, WebSocketMessageType.Text, true, token);
 
@@ -92,7 +92,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 						byte[] cmdBufferBytes = new byte[2048];
 						ArraySegment<byte> receiveBuffer = new ArraySegment<byte>(cmdBufferBytes);
 						await websocket.ReceiveAsync(receiveBuffer, token);
-						string receivedString = Encoding.UTF8.GetString(receiveBuffer);
+						string receivedString = Encoding.ASCII.GetString(receiveBuffer);
 						//Trim nullbytes
 						receivedString.Trim('\0');
 
@@ -106,7 +106,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				else {
 					logger.LogDebug("Crestron Websocket requested a device: {0} that did not exist", name);
 					////Send does not exist and close
-					byte[] noBytes = Encoding.UTF8.GetBytes("failed");
+					byte[] noBytes = Encoding.ASCII.GetBytes("failed");
 					ArraySegment<byte> noSeg = new ArraySegment<byte>(noBytes);
 					await websocket.SendAsync(noSeg, WebSocketMessageType.Text, true, token);
 

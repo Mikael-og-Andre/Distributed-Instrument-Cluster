@@ -152,11 +152,9 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 		/// <param name="connectionSocket">Connected and authorized socket</param>
 		private void protocolMessage(Socket connectionSocket) {
 			string received = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-			received.TrimEnd('\0');
-			if (!received.Equals("message")&&!received.Equals("")) {
-				//Add Command To Concurrent queue
-				commandOutputQueue.Enqueue(received);
-			}
+
+			//Add Command To Concurrent queue
+			commandOutputQueue.Enqueue(received);
 		}
 
 		/// <summary>
