@@ -77,6 +77,8 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				catch (Exception) {
 					//Lower Connection number
 					this.currentConnectionCount -= 1;
+					newSocket.Disconnect(false);
+					newSocket.Close();
 					throw;
 				}
 			}

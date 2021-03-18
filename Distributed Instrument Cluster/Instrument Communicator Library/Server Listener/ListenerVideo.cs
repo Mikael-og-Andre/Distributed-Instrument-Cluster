@@ -67,11 +67,9 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Get outputQueue
 			ConcurrentQueue<VideoFrame> outputQueue = videoConnection.GetOutputQueue();
 
-			videoConnection.running = true;
-
 			try {
 				//Do main loop
-				while (videoConnection.isRunning()) {
+				while (!listenerCancellationToken.IsCancellationRequested) {
 					//Get Incoming object
 					VideoFrame newObj = NetworkingOperations.receiveVideoFrameWithSocket(connectionSocket);
 
@@ -83,7 +81,6 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				videoConnection.running = false;
 				//remove connection
 				removeVideoConnection(videoConnection);
-				stopConnection(videoConnection);
 			}
 
 		}
@@ -130,17 +127,6 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// <returns></returns>
 		public ConcurrentQueue<VideoConnection> getIncomingConnectionQueue() {
 			return incomingConnectionsQueue;
-		}
-
-
-		/// <summary>
-		/// stops the connection
-		/// </summary>
-		/// <param name="connection"></param>
-		private void stopConnection(VideoConnection connection) {
-			connection.running = false;
-			Socket socket =connection.GetSocket();
-			socket.Dispose();
 		}
 	}
 }

@@ -69,10 +69,9 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Start stopwatch
 			stopwatch.Start();
 
-			clientConnection.SetIsConnectionActive(true);
 
 			try {
-				while (clientConnection.isConnectionActive()) {
+				while (!listenerCancellationToken.IsCancellationRequested) {
 					//Variable representing protocol to use;
 					protocolOption currentMode;
 					Message message;
@@ -133,7 +132,7 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				stopwatch.Stop();
 				//get socket and disconnect
 				Socket socket = clientConnection.GetSocket();
-				socket.Dispose();
+				socket.Disconnect(false);
 				Console.WriteLine("Exception thrown, closing connection");
 				//remove client from connections
 			}
@@ -145,9 +144,16 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// <param name="connection"> the ClientConnection to be added</param>
 		/// <returns> Boolean value representing whether the adding was successful</returns>
 		private void addClientConnection(CrestronConnection connection) {
-			//Lock the non thread-safe list, and then add object
-			lock (listCrestronConnections) {
-				this.listCrestronConnections.Add(connection);
+			try {
+				//Lock the non thread-safe list, and then add object
+				lock (listCrestronConnections) {
+					this.listCrestronConnections.Add(connection);
+				}
+
+				return;
+			}
+			catch (Exception) {
+				// ignored
 			}
 		}
 
@@ -170,84 +176,70 @@ namespace Instrument_Communicator_Library.Server_Listener {
 		/// </summary>
 		/// <param name="clientConnection">Client Connection representing The current Connection</param>
 		private void serverProtocolAuthorization(CrestronConnection clientConnection) {
-			try {
-				//get socket
-				Socket connectionSocket = clientConnection.GetSocket();
-				//Send protocol type to client
-				NetworkingOperations.sendStringWithSocket(protocolOption.authorize.ToString(), connectionSocket);
-				//receive token
-				string receivedToken = NetworkingOperations.receiveStringWithSocket(connectionSocket);
+			//get socket
+			Socket connectionSocket = clientConnection.GetSocket();
+			//Send protocol type to client
+			NetworkingOperations.sendStringWithSocket(protocolOption.authorize.ToString(), connectionSocket);
+			//receive token
+			string receivedToken = NetworkingOperations.receiveStringWithSocket(connectionSocket);
 
-				//TODO: Add Encryption to accessTokens
+			//TODO: Add Encryption to accessTokens
 
-				//Create Token
-				AccessToken token = new AccessToken(receivedToken);
-				//Validate token
-				bool validationResult = validateAccessToken(token);
-				//Send success/failure to client
-				if (validationResult) {
-					//Send char y for success
-					NetworkingOperations.sendStringWithSocket("y", connectionSocket);
-					//Add access Token to clientConnection
-					clientConnection.SetAccessToken(token);
-				}
-				else {
-					//Send char n for negative
-					NetworkingOperations.sendStringWithSocket("n", connectionSocket);
-					//authorization failed, set not clientConnection to not active and return
-					clientConnection.SetIsConnectionActive(false);
-					return;
-				}
-
-				//Get instrument Information
-				//Send signal to start instrumentCommunication
+			//Create Token
+			AccessToken token = new AccessToken(receivedToken);
+			//Validate token
+			bool validationResult = validateAccessToken(token);
+			//Send success/failure to client
+			if (validationResult) {
+				//Send char y for success
 				NetworkingOperations.sendStringWithSocket("y", connectionSocket);
-
-				string name = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-				string location = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-				string type = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-
-				//Send signal to for successful finish instrumentCommunication
-				NetworkingOperations.sendStringWithSocket("y", connectionSocket);
-
-				clientConnection.SetInstrumentInformation(new InstrumentInformation(name, location, type));
+				//Add access Token to clientConnection
+				clientConnection.SetAccessToken(token);
 			}
-			catch (Exception) {
-				stopConnection(clientConnection);
+			else {
+				//Send char n for negative
+				NetworkingOperations.sendStringWithSocket("n", connectionSocket);
+				//authorization failed, set not clientConnection to not active and return
+				clientConnection.SetIsConnectionActive(false);
+				return;
 			}
-			
+
+			//Get instrument Information
+			//Send signal to start instrumentCommunication
+			NetworkingOperations.sendStringWithSocket("y", connectionSocket);
+
+			string name = NetworkingOperations.receiveStringWithSocket(connectionSocket);
+			string location = NetworkingOperations.receiveStringWithSocket(connectionSocket);
+			string type = NetworkingOperations.receiveStringWithSocket(connectionSocket);
+
+			//Send signal to for successful finish instrumentCommunication
+			NetworkingOperations.sendStringWithSocket("y", connectionSocket);
+
+			clientConnection.SetInstrumentInformation(new InstrumentInformation(name, location, type));
 		}
 
 		/// <summary>
 		/// Send protocol type PING to client and receives answer
 		/// </summary>
 		/// <param name="clientConnection">Connected and authorized socket</param>
-		private void serverProtocolPing(CrestronConnection clientConnection) {
-			try {
-				//Send protocol type "ping" to client
-				//get socket
-				Socket connectionSocket = clientConnection.GetSocket();
-				NetworkingOperations.sendStringWithSocket(protocolOption.ping.ToString(), connectionSocket);
-				//Receive answer
-				string receiveString = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-				//Check if correct Response
+		private static void serverProtocolPing(CrestronConnection clientConnection) {
+			//Send protocol type "ping" to client
+			//get socket
+			Socket connectionSocket = clientConnection.GetSocket();
+			NetworkingOperations.sendStringWithSocket(protocolOption.ping.ToString(), connectionSocket);
+			//Receive answer
+			string receiveString = NetworkingOperations.receiveStringWithSocket(connectionSocket);
+			//Check if correct Response
 
-				if (receiveString.ToLower().Equals("y")) {
-					//Successful ping
-					Console.WriteLine("SERVER - Client Thread {0} says: Ping successful",
-						Thread.CurrentThread.ManagedThreadId);
-				}
-				else {
-					//failed ping, stop connection
-					Console.WriteLine("SERVER - Client Thread {0} says: Ping failed, received wrong response",
-						Thread.CurrentThread.ManagedThreadId);
-					clientConnection.SetIsConnectionActive(false);
-				}
+			if (receiveString.ToLower().Equals("y")) {
+				//Successful ping
+				Console.WriteLine("SERVER - Client Thread {0} says: Ping successful", Thread.CurrentThread.ManagedThreadId);
 			}
-			catch (Exception) {
-				stopConnection(clientConnection);
+			else {
+				//failed ping, stop connection
+				Console.WriteLine("SERVER - Client Thread {0} says: Ping failed, received wrong response", Thread.CurrentThread.ManagedThreadId);
+				clientConnection.SetIsConnectionActive(false);
 			}
-			
 		}
 
 		//TODO: handle status protocol server
@@ -270,22 +262,25 @@ namespace Instrument_Communicator_Library.Server_Listener {
 					//Get string array from message object
 					string messageString = outMessage.getMessage();
 					if (!messageString.Equals("")) {
+						
 						//Say protocol type to client
 						NetworkingOperations.sendStringWithSocket(protocolOption.message.ToString(), connectionSocket);
 
 						//Send string
 						NetworkingOperations.sendStringWithSocket(messageString, connectionSocket);
+						
 					}
 					else {
 						Console.WriteLine("SERVER - Crestron Listener Message was null string");
 					}
+					
 				}
 				else {
 					Console.WriteLine("SERVER - Crestron Listener Message queue was empty when trying to Send a message");
 				}
 			}
-			catch (Exception) {
-				stopConnection(clientConnection);
+			catch (Exception ex) {
+				throw ex;
 				//return;
 			}
 		}
@@ -339,16 +334,6 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				crestronConnection = null;
 				return false;
 			}
-		}
-
-		/// <summary>
-		/// stops the connection
-		/// </summary>
-		/// <param name="connection"></param>
-		private void stopConnection(CrestronConnection connection) {
-			connection.SetIsConnectionActive(false);
-			Socket socket =connection.GetSocket();
-			socket.Dispose();
 		}
 	}
 }
