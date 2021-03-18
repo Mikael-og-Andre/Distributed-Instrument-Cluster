@@ -165,5 +165,29 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			}
 		}
 
+		/// <summary>
+		/// Get a sending connection with the matching subname
+		/// </summary>
+		/// <param name="subname"></param>
+		/// <param name="output"></param>
+		/// <returns></returns>
+		public bool getSendingConnectionWithSubname(string subname, out SendingConnection<U> output) {
+
+			lock (listOfSendingConnections) {
+				foreach (var connection in listOfSendingConnections) {
+
+					ClientInformation info = connection.getInstrumentInformation();
+
+					//If they match return it
+					if (info.SubName.ToLower().Equals(subname.ToLower())) {
+						output = connection;
+						return true;
+					}
+				}
+			}
+
+			output = default;
+			return false;
+		}
 	}
 }

@@ -9,7 +9,6 @@ namespace Blazor_Instrument_Cluster.Server.QueueController {
 	/// </summary>
 	public class QueueController {
 
-		private Queue<>
 
 
 	}
