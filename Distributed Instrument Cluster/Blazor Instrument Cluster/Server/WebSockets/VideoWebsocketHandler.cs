@@ -49,16 +49,16 @@ namespace Blazor_Instrument_Cluster {
 			CancellationToken token = new CancellationToken(false);
 			try {
 				//Send start signal
-				byte[] startBytes = Encoding.ASCII.GetBytes("start");
+				byte[] startBytes = Encoding.UTF8.GetBytes("start");
 				ArraySegment<byte> startSeg = new ArraySegment<byte>(startBytes);
 				await websocket.SendAsync(startSeg, WebSocketMessageType.Text, true, token);
 
 				//Get name of video device that they want the video from
-				byte[] bufferBytes = new byte[100];
+				byte[] bufferBytes = new byte[1024];
 				ArraySegment<byte> buffer = new ArraySegment<byte>(bufferBytes);
 				await websocket.ReceiveAsync(buffer, token);
 				byte[] nameBytes = buffer.ToArray();
-				string name = Encoding.ASCII.GetString(nameBytes).TrimEnd('\0');
+				string name = Encoding.UTF8.GetString(nameBytes).TrimEnd('\0');
 
 				logger.LogDebug("Websocket Video connection has asked for device with name: {0} ", name);
 				//Setup frame consumer to receive pushed frames from connection
@@ -77,7 +77,7 @@ namespace Blazor_Instrument_Cluster {
 				//if the device was found send found, and continue
 				if (subbed) {
 					logger.LogDebug("Video Websocket requested a device: {0} And the device was found",name);
-					ArraySegment<byte> foundBytes = Encoding.ASCII.GetBytes("found");
+					ArraySegment<byte> foundBytes = Encoding.UTF8.GetBytes("found");
 					await websocket.SendAsync(foundBytes, WebSocketMessageType.Text, true, token);
 
 					//Get consumer queue
@@ -99,7 +99,7 @@ namespace Blazor_Instrument_Cluster {
 				else {
 					logger.LogCritical("Video Websocket requested a device: {0} that did not exist",name);
 					//Not subbed, send fail and close
-					ArraySegment<byte> failedBytes = new ArraySegment<byte>(Encoding.ASCII.GetBytes("failed"));
+					ArraySegment<byte> failedBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes("failed"));
 					await websocket.SendAsync(failedBytes, WebSocketMessageType.Text, true, token);
 
 					//end websokcet connection

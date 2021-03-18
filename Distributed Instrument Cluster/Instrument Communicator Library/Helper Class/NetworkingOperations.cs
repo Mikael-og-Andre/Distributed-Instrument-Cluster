@@ -69,7 +69,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 			byte[] incomingObjectBuffer = new byte[sizeOfIncoming];
 			connectionSocket.Receive(incomingObjectBuffer, 0, sizeOfIncoming, SocketFlags.None);
 			//get string from object
-			string receivedObj = Encoding.ASCII.GetString(incomingObjectBuffer);
+			string receivedObj = Encoding.UTF8.GetString(incomingObjectBuffer);
 			//Trim null bytes
 			receivedObj = receivedObj.TrimEnd('\0');
 			return receivedObj;
@@ -83,7 +83,7 @@ namespace Instrument_Communicator_Library.Helper_Class {
 		public static void sendStringWithSocket(string str, Socket connectionSocket) {
 			//Send name
 			string encodingTarget = str;
-			byte[] stringBuffer = Encoding.ASCII.GetBytes(encodingTarget);
+			byte[] stringBuffer = Encoding.UTF8.GetBytes(encodingTarget);
 			byte[] sizeBuffer = BitConverter.GetBytes(stringBuffer.Length);
 			connectionSocket.Blocking = true;
 			connectionSocket.Send(sizeBuffer, sizeof(int), SocketFlags.None);

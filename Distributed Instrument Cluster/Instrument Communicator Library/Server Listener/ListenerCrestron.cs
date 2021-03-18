@@ -257,14 +257,10 @@ namespace Instrument_Communicator_Library.Server_Listener {
 			//Get Socket
 			Socket connectionSocket = clientConnection.GetSocket();
 			try {
-				//extract message from queue
-				bool isSuccess = inputQueue.TryDequeue(out var messageToSend);
-				Message msg = (Message)messageToSend;
-
 				//Check if success and start sending messages
-				if (isSuccess) {
+				if (inputQueue.TryDequeue(out Message outMessage)) {
 					//Get string array from message object
-					string messageString = msg.getMessage();
+					string messageString = outMessage.getMessage();
 					if (!messageString.Equals("")) {
 						
 						//Say protocol type to client

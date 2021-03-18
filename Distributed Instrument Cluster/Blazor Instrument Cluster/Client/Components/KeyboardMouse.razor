@@ -159,13 +159,13 @@
             await crestronWebSocket.ReceiveAsync(startSignalBuffer, disposalTokenSource.Token);
 
             //send name
-            ArraySegment<byte> nameBytes = new ArraySegment<byte>(Encoding.ASCII.GetBytes(name));
+            ArraySegment<byte> nameBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(name));
             await crestronWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
             //Get found or not
             byte[] foundBuffer = new byte[1024];
             ArraySegment<byte> foundBytes = new ArraySegment<byte>(foundBuffer);
             await crestronWebSocket.ReceiveAsync(foundBytes, disposalTokenSource.Token);
-            string found = Encoding.ASCII.GetString(foundBytes).TrimEnd('\0');
+            string found = Encoding.UTF8.GetString(foundBytes).TrimEnd('\0');
 
             return found.ToLower().Equals("found".ToLower());
         }

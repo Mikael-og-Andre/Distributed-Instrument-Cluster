@@ -72,18 +72,18 @@
     private async Task<bool> SetupSocket() {
         try {
             //Receive start signal
-            byte[] startBuffer = new byte[200];
+            byte[] startBuffer = new byte[1024];
             ArraySegment<byte> startSignalBuffer = new ArraySegment<byte>(startBuffer);
             await videoWebSocket.ReceiveAsync(startSignalBuffer, disposalTokenSource.Token);
 
             //Send name
-            ArraySegment<byte> nameBytes = new ArraySegment<byte>(Encoding.ASCII.GetBytes(name));
+            ArraySegment<byte> nameBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(name));
             await videoWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
             //Get found or not
-            byte[] foundBuffer = new byte[200];
+            byte[] foundBuffer = new byte[1024];
             ArraySegment<byte> foundBytes = new ArraySegment<byte>(foundBuffer);
             await videoWebSocket.ReceiveAsync(foundBytes, disposalTokenSource.Token);
-            string found = Encoding.ASCII.GetString(foundBytes).TrimEnd('\0');
+            string found = Encoding.UTF8.GetString(foundBytes).TrimEnd('\0');
 
             return found.ToLower().Equals("found".ToLower());
         }
