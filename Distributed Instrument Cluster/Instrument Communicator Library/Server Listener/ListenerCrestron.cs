@@ -260,18 +260,24 @@ namespace Instrument_Communicator_Library.Server_Listener {
 				//extract message from queue
 				bool isSuccess = inputQueue.TryDequeue(out var messageToSend);
 				Message msg = (Message)messageToSend;
+
 				//Check if success and start sending messages
 				if (isSuccess) {
-					//Say protocol type to client
-					NetworkingOperations.sendStringWithSocket(protocolOption.message.ToString(), connectionSocket);
-
 					//Get string array from message object
 					string messageString = msg.getMessage();
+					if (!messageString.Equals("")) {
+						
+						//Say protocol type to client
+						NetworkingOperations.sendStringWithSocket(protocolOption.message.ToString(), connectionSocket);
 
-					//Send string
-					NetworkingOperations.sendStringWithSocket(messageString, connectionSocket);
-					//Send end signal to client, singling no more strings are coming
-					NetworkingOperations.sendStringWithSocket("end", connectionSocket);
+						//Send string
+						NetworkingOperations.sendStringWithSocket(messageString, connectionSocket);
+						
+					}
+					else {
+						Console.WriteLine("SERVER - Crestron Listener Message was null string");
+					}
+					
 				}
 				else {
 					Console.WriteLine("SERVER - Crestron Listener Message queue was empty when trying to Send a message");

@@ -151,21 +151,10 @@ namespace Instrument_Communicator_Library.Remote_Device_side_Communicators {
 		/// </summary>
 		/// <param name="connectionSocket">Connected and authorized socket</param>
 		private void protocolMessage(Socket connectionSocket) {
-			//Loop boolean
-			bool isAccepting = true;
-			//Loop until end signal received by server
-			while (isAccepting) {
-				string received = NetworkingOperations.receiveStringWithSocket(connectionSocket);
-				//Check if end in messages
-				if (received.ToLower().Equals("end")) {
-					//Set protocol to be over
-					isAccepting = false;
-					break;
-				}
-				Console.WriteLine("Thread {0} message received " + received, Thread.CurrentThread.ManagedThreadId);
-				//Add Command To Concurrent queue
-				commandOutputQueue.Enqueue(received);
-			}
+			string received = NetworkingOperations.receiveStringWithSocket(connectionSocket);
+
+			//Add Command To Concurrent queue
+			commandOutputQueue.Enqueue(received);
 		}
 
 		/// <summary>
