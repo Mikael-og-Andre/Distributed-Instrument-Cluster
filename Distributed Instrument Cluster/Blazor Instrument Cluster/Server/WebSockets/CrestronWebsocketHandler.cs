@@ -66,22 +66,22 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				//Get name of wanted device
 				ArraySegment<byte> nameSegment = new ArraySegment<byte>(nameBuffer);
 				await websocket.ReceiveAsync(nameSegment, token);
-				string name = Encoding.UTF8.GetString(nameSegment);
+				string name = Encoding.UTF8.GetString(nameSegment).TrimEnd('\0');
 
 				//Get location of wanted device
 				ArraySegment<byte> locationSegment = new ArraySegment<byte>(locationBuffer);
 				await websocket.ReceiveAsync(locationSegment, token);
-				string location = Encoding.UTF8.GetString(locationSegment);
+				string location = Encoding.UTF8.GetString(locationSegment).TrimEnd('\0');
 
 				//Get type of device
 				ArraySegment<byte> typeSegment = new ArraySegment<byte>(typeBuffer);
 				await websocket.ReceiveAsync(typeSegment, token);
-				string type = Encoding.UTF8.GetString(typeSegment);
+				string type = Encoding.UTF8.GetString(typeSegment).TrimEnd('\0');
 
 				//Get subname representing what part of the device u want
 				ArraySegment<byte> subnameSegment = new ArraySegment<byte>(subnameBuffer);
 				await websocket.ReceiveAsync(subnameSegment, token);
-				string subname = Encoding.UTF8.GetString(subnameSegment);
+				string subname = Encoding.UTF8.GetString(subnameSegment).TrimEnd('\0');
 
 				//Check if device exists
 				bool found = false;
@@ -106,8 +106,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 						while (!token.IsCancellationRequested) {
 							ArraySegment<byte> receivedArraySegment = new ArraySegment<byte>(new byte[2048]);
 							await websocket.ReceiveAsync(receivedArraySegment, token);
-							string receivedJson = Encoding.UTF8.GetString(receivedArraySegment);
-							receivedJson.TrimEnd('\0');
+							string receivedJson = Encoding.UTF8.GetString(receivedArraySegment).TrimEnd('\0');
 
 							try {
 								U newObject = JsonSerializer.Deserialize<U>(receivedJson);
@@ -115,7 +114,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 								outputConnection.queueObjectForSending(newObject);
 							}
 							catch (Exception e) {
-								Console.WriteLine(e);
+								logger.LogWarning(e,"Error happened in Json Serializing for crestronWebsocket");
 								throw;
 							}
 						}

@@ -10,7 +10,7 @@ namespace ReceivingClientTester {
     class Program {
         static void Main(string[] args) {
 
-	        Thread.Sleep(20000);
+	        Thread.Sleep(10000);
 			Console.WriteLine("Starting client...");
 
 	        ReceivingClient<ExampleCrestronMsgObject> receivingClient = new ReceivingClient<ExampleCrestronMsgObject>("127.0.0.1", 6981,

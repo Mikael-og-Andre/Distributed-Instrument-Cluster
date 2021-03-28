@@ -92,15 +92,15 @@
 
             //Send location
             ArraySegment<byte> locationBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(location));
-            await videoWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+            await videoWebSocket.SendAsync(locationBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
 
             //Send type
             ArraySegment<byte> typeBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(type));
-            await videoWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+            await videoWebSocket.SendAsync(typeBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
 
             //Send subanme
             ArraySegment<byte> subnameBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(subname));
-            await videoWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+            await videoWebSocket.SendAsync(subnameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
 
             //Get found or not
             byte[] foundBuffer = new byte[1024];
