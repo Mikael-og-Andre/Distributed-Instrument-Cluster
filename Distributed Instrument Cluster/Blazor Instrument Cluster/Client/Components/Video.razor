@@ -1,5 +1,4 @@
-﻿@page "/video/{name}-{location}-{type}-{subname}"
-@layout NothingLayout
+﻿@layout NothingLayout
 @using System.Net.WebSockets
 @using System.Text
 @using System.Threading
@@ -15,7 +14,7 @@
     bool foundDevice = false;                                               //Was the requested device found or not
 
     [Parameter]
-    public string name { get; set; };                            //Name of the wanted device
+    public string name { get; set; }                                        //Name of the wanted device
     [Parameter]
     public string location {get; set; }
     [Parameter]
@@ -83,7 +82,7 @@
     private async Task<bool> SetupSocket() {
         try {
             //Receive start signal
-            byte[] startBuffer = new byte[200];
+            byte[] startBuffer = new byte[1024];
             ArraySegment<byte> startSignalBuffer = new ArraySegment<byte>(startBuffer);
             await videoWebSocket.ReceiveAsync(startSignalBuffer, disposalTokenSource.Token);
 
@@ -104,7 +103,7 @@
             await videoWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
 
             //Get found or not
-            byte[] foundBuffer = new byte[200];
+            byte[] foundBuffer = new byte[1024];
             ArraySegment<byte> foundBytes = new ArraySegment<byte>(foundBuffer);
             await videoWebSocket.ReceiveAsync(foundBytes, disposalTokenSource.Token);
             string found = Encoding.UTF8.GetString(foundBytes).TrimEnd('\0');
