@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Server_Library;
 using Server_Library.Authorization;
 using Server_Library.Socket_Clients;
+using PackageClasses;
 
 namespace SendingClientTester {
     class Program {
@@ -12,8 +13,8 @@ namespace SendingClientTester {
 			Thread.Sleep(20000);
 			Console.WriteLine("Starting client...");
 
-	        SendingClient<dummyJsonObject> sendingClient =
-		        new SendingClient<dummyJsonObject>("127.0.0.1", 6980,  new ClientInformation("clientTester", "location", "type","videoStream"),new AccessToken("access"),new CancellationToken(false));
+	        SendingClient<ExampleVideoObject> sendingClient =
+		        new SendingClient<ExampleVideoObject>("127.0.0.1", 6980,  new ClientInformation("clientTester", "location", "type","videoStream"),new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
 				sendingClient.run();
@@ -21,7 +22,7 @@ namespace SendingClientTester {
 
 	        while (true) {
 		        Thread.Sleep(10000);
-		        dummyJsonObject obj =new dummyJsonObject(0, imgBase64);
+		        ExampleVideoObject obj =new ExampleVideoObject(imgBase64);
 				sendingClient.queueObjectForSending(obj);
 	        }
         }

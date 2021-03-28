@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Server_Library;
 using Server_Library.Authorization;
 using Server_Library.Socket_Clients;
+using PackageClasses;
 
 namespace ReceivingClientTester {
     class Program {
@@ -12,7 +13,7 @@ namespace ReceivingClientTester {
 	        Thread.Sleep(20000);
 			Console.WriteLine("Starting client...");
 
-	        ReceivingClient<dummyJsonObject> receivingClient = new ReceivingClient<dummyJsonObject>("127.0.0.1", 6981,
+	        ReceivingClient<ExampleCrestronMsgObject> receivingClient = new ReceivingClient<ExampleCrestronMsgObject>("127.0.0.1", 6981,
 		        new ClientInformation("clientTester", "location", "type","crestronControl"), new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
@@ -20,8 +21,8 @@ namespace ReceivingClientTester {
 	        });
 
 	        while (true) {
-		        if (receivingClient.getObjectFromClient(out dummyJsonObject output)) {
-					Console.WriteLine("Received object number: {0} text: {1}",output.number,output.text);
+		        if (receivingClient.getObjectFromClient(out ExampleCrestronMsgObject output)) {
+					Console.WriteLine("Received object text: {0}",output.msg);
 		        }
 	        }
 
