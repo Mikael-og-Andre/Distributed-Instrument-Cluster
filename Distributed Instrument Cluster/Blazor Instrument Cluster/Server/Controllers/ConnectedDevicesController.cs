@@ -7,8 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Blazor_Instrument_Cluster.Server.Object;
 using Blazor_Instrument_Cluster.Server.RemoteDevice;
+using PackageClasses;
 using Server_Library.Connection_Types.deprecated;
 
 namespace Blazor_Instrument_Cluster.Server.Controllers {
@@ -23,14 +23,14 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		/// <summary>
 		/// Remote Device connections
 		/// </summary>
-		private RemoteDeviceConnections<dummyJsonObject,dummyJsonObject> remoteDeviceConnections;
+		private RemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject> remoteDeviceConnections;
 
 		/// <summary>
 		/// Constructor, Injects Service provider and get remote device connection
 		/// </summary>
 		/// <param name="services"></param>
 		public ConnectedDevicesController(IServiceProvider services) {
-			this.remoteDeviceConnections = (RemoteDeviceConnections<dummyJsonObject,dummyJsonObject>)services.GetService<IRemoteDeviceConnections<dummyJsonObject,dummyJsonObject>>();
+			this.remoteDeviceConnections = (RemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>)services.GetService<IRemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>>();
 		}
 
 		/// <summary>
@@ -42,7 +42,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		public IEnumerable<DeviceModel> getRemoteDevices() {
 			//Get list of video connections
-			List<RemoteDevice<dummyJsonObject, dummyJsonObject>> listOfRemoteDevices = remoteDeviceConnections.getListOfRemoteDevices();
+			List<RemoteDevice<ExampleVideoObject, ExampleCrestronMsgObject>> listOfRemoteDevices = remoteDeviceConnections.getListOfRemoteDevices();
 			if (listOfRemoteDevices.Any()) {
 				//Create an IEnumerable with device models
 				IEnumerable<DeviceModel> enumerableDeviceModels = Array.Empty<DeviceModel>();

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Blazor_Instrument_Cluster.Server.Events;
-using Blazor_Instrument_Cluster.Server.Object;
 using Blazor_Instrument_Cluster.Server.RemoteDevice;
 using Server_Library.Connection_Classes;
 

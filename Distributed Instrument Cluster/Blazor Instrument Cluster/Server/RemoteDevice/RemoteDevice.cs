@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Server.Events;
+using Blazor_Instrument_Cluster.Server.ProviderAndConsumer;
 using Server_Library;
 using Server_Library.Connection_Types;
 

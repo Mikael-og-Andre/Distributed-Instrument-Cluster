@@ -11,7 +11,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Blazor_Instrument_Cluster.Server.Object;
+using Blazor_Instrument_Cluster.Server.ProviderAndConsumer;
 using Blazor_Instrument_Cluster.Server.RemoteDevice;
 using Networking_Library;
 

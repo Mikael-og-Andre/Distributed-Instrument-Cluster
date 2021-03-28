@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 
-namespace Blazor_Instrument_Cluster.Server.Events {
+namespace Blazor_Instrument_Cluster.Server.ProviderAndConsumer {
 
 	/// <summary>
 	/// A class that can subscribe the a video frame queue and receive incoming video frames

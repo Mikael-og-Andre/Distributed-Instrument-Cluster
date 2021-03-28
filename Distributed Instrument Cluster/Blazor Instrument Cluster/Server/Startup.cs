@@ -11,9 +11,9 @@ using System;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
-using Blazor_Instrument_Cluster.Server.Object;
 using Blazor_Instrument_Cluster.Server.RemoteDevice;
 using Blazor_Instrument_Cluster.Server.Services;
+using PackageClasses;
 using Server_Library;
 
 namespace Blazor_Instrument_Cluster.Server {
@@ -43,14 +43,14 @@ namespace Blazor_Instrument_Cluster.Server {
 		public void configureServices(IServiceCollection services) {
 
 			//Add Remote device connection tracker
-			services.AddSingleton<IRemoteDeviceConnections<dummyJsonObject,dummyJsonObject>, RemoteDeviceConnections<dummyJsonObject,dummyJsonObject>>();
+			services.AddSingleton<IRemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>, RemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>>();
 
 			//Start Connection listeners as background services
-			services.AddHostedService<VideoListenerService<dummyJsonObject,dummyJsonObject>>();
-			services.AddHostedService<CrestronListenerService<dummyJsonObject,dummyJsonObject>>();
+			services.AddHostedService<VideoListenerService<ExampleVideoObject,ExampleCrestronMsgObject>>();
+			services.AddHostedService<CrestronListenerService<ExampleVideoObject,ExampleCrestronMsgObject>>();
 			//Add singletons for socket handling
-			services.AddSingleton<IVideoSocketHandler, VideoWebsocketHandler<dummyJsonObject,dummyJsonObject>>();
-			services.AddSingleton<ICrestronSocketHandler, CrestronWebsocketHandler<dummyJsonObject,dummyJsonObject>>();
+			services.AddSingleton<IVideoSocketHandler, VideoWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject>>();
+			services.AddSingleton<ICrestronSocketHandler, CrestronWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject>>();
 
 			//Use controller
 			services.AddControllers();
@@ -90,8 +90,8 @@ namespace Blazor_Instrument_Cluster.Server {
 						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
 							var socketFinishedTcs = new TaskCompletionSource<object>();
 
-							VideoWebsocketHandler<dummyJsonObject,dummyJsonObject> videoWebsocketHandler =
-								(VideoWebsocketHandler<dummyJsonObject,dummyJsonObject>)app.ApplicationServices.GetService<IVideoSocketHandler>();
+							VideoWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject> videoWebsocketHandler =
+								(VideoWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject>)app.ApplicationServices.GetService<IVideoSocketHandler>();
 							//Start if socketHandler is not null
 							videoWebsocketHandler?.StartWebSocketVideoProtocol(webSocket, socketFinishedTcs);
 							await socketFinishedTcs.Task;
@@ -104,7 +104,7 @@ namespace Blazor_Instrument_Cluster.Server {
 						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
 							var socketFinishedTcs = new TaskCompletionSource<object>();
 
-							var crestronWebsocketHandler = (CrestronWebsocketHandler<dummyJsonObject,dummyJsonObject>)app.ApplicationServices.GetService<ICrestronSocketHandler>();
+							var crestronWebsocketHandler = (CrestronWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject>)app.ApplicationServices.GetService<ICrestronSocketHandler>();
 							crestronWebsocketHandler.StartCrestronWebsocketProtocol(webSocket, socketFinishedTcs);
 
 							await socketFinishedTcs.Task;

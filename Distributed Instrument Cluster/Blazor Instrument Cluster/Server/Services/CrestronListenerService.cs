@@ -67,7 +67,7 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 			while (!stoppingToken.IsCancellationRequested) {
 				if (sendingListener.getIncomingConnection(out ConnectionBase output)) {
 					//Cast to correct type
-					SendingConnection<T> sendingConnection = (SendingConnection<T>)output;
+					SendingConnection<U> sendingConnection = (SendingConnection<U>)output;
 					//Add to remote devices
 					remoteDeviceConnections.addConnectionToRemoteDevices(sendingConnection);
 				}
