@@ -1,10 +1,12 @@
 ﻿using Blazor_Instrument_Cluster.Server.Injection;
-using Instrument_Communicator_Library;
+using Blazor_Instrument_Cluster.Server.RemoteDevice;
 using Microsoft.Extensions.Logging;
+using Server_Library.Connection_Types;
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,14 +16,31 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 	/// Websocket handler for crestron control connections
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class CrestronWebsocketHandler : ICrestronSocketHandler {
-		private ILogger<CrestronWebsocketHandler> logger;       //Logger
-		private IServiceProvider services;                      //Services
-		private RemoteDeviceConnection remoteDeviceConnections; //Remote devices
+	public class CrestronWebsocketHandler<T, U> : ICrestronSocketHandler {
 
-		public CrestronWebsocketHandler(ILogger<CrestronWebsocketHandler> logger, IServiceProvider services) {
+		/// <summary>
+		/// Logger
+		/// </summary>
+		private ILogger<CrestronWebsocketHandler<T, U>> logger;
+
+		/// <summary>
+		///Services
+		/// </summary>
+		private IServiceProvider services;
+
+		/// <summary>
+		/// Remote devices
+		/// </summary>
+		private RemoteDeviceConnections<T, U> remoteDeviceConnections;
+
+		/// <summary>
+		/// Constructor, Injects Logger and service provider and gets Remote device connection Singleton
+		/// </summary>
+		/// <param name="logger"></param>
+		/// <param name="services"></param>
+		public CrestronWebsocketHandler(ILogger<CrestronWebsocketHandler<T, U>> logger, IServiceProvider services) {
 			this.logger = logger;
-			remoteDeviceConnections = (RemoteDeviceConnection)services.GetService(typeof(IRemoteDeviceConnections));
+			remoteDeviceConnections = (RemoteDeviceConnections<T, U>)services.GetService(typeof(IRemoteDeviceConnections<T, U>));
 		}
 
 		/// <summary>
@@ -32,58 +51,98 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		public async void StartCrestronWebsocketProtocol(WebSocket websocket, TaskCompletionSource<object> socketFinishedTcs) {
 			//Create cancellation token
 			CancellationToken token = new CancellationToken(false);
-			//Send start signal
-			byte[] startBytes = Encoding.ASCII.GetBytes("start");
-			ArraySegment<byte> startSeg = new ArraySegment<byte>(startBytes);
-			await websocket.SendAsync(startSeg, WebSocketMessageType.Text, true, token);
 
-			////Get name of device
-			//byte[] bufferBytes = new byte[2048];
-			//ArraySegment<byte> nameBuffer = new ArraySegment<byte>(bufferBytes);
-			//await websocket.ReceiveAsync(nameBuffer, token);
-			//string name = Encoding.ASCII.GetString(nameBuffer.ToArray());
-			////Trim Null btyes
-			//name.Trim('\0');
-			//TODO: Remove hardcoded names
-			string name = "Radar1";
+			try {
+				//Send start signal
+				byte[] startBytes = Encoding.UTF8.GetBytes("start");
+				ArraySegment<byte> startSegment = new ArraySegment<byte>(startBytes);
+				await websocket.SendAsync(startSegment, WebSocketMessageType.Text, true, token);
 
-			//Check if device exists
-			bool exists = remoteDeviceConnections.GetCrestronConnectionWithName(out CrestronConnection con, name);
-			//If it does not exist close connection
-			if (exists) {
-				//TODO: add exclusive control
-				//Do connection exclusive control actions
+				byte[] nameBuffer = new byte[1024];
+				byte[] locationBuffer = new byte[1024];
+				byte[] typeBuffer = new byte[1024];
+				byte[] subnameBuffer = new byte[1024];
 
-				////Tell websocket if they have the control
-				//byte[] yesBytes = Encoding.ASCII.GetBytes("yes");
-				//ArraySegment<byte> yesSeg = new ArraySegment<byte>(yesBytes);
-				//await websocket.SendAsync(yesSeg, WebSocketMessageType.Text, true, token);
+				//Get name of wanted device
+				ArraySegment<byte> nameSegment = new ArraySegment<byte>(nameBuffer);
+				await websocket.ReceiveAsync(nameSegment, token);
+				string name = Encoding.UTF8.GetString(nameSegment).TrimEnd('\0');
 
-				ConcurrentQueue<Message> messageInputQueue = con.GetInputQueue();
+				//Get location of wanted device
+				ArraySegment<byte> locationSegment = new ArraySegment<byte>(locationBuffer);
+				await websocket.ReceiveAsync(locationSegment, token);
+				string location = Encoding.UTF8.GetString(locationSegment).TrimEnd('\0');
 
-				//Start command receive loop
-				while (!token.IsCancellationRequested) {
-					//Receive command
-					byte[] cmdBufferBytes = new byte[2048];
-					ArraySegment<byte> receiveBuffer = new ArraySegment<byte>(cmdBufferBytes);
-					await websocket.ReceiveAsync(receiveBuffer,token);
-					string receivedString = Encoding.ASCII.GetString(receiveBuffer.ToArray());
-					//Trim nullbytes
-					receivedString.Trim('\0');
+				//Get type of device
+				ArraySegment<byte> typeSegment = new ArraySegment<byte>(typeBuffer);
+				await websocket.ReceiveAsync(typeSegment, token);
+				string type = Encoding.UTF8.GetString(typeSegment).TrimEnd('\0');
 
-					Message msg = new Message(protocolOption.message, receivedString);
-					messageInputQueue.Enqueue(msg);
+				//Get subname representing what part of the device u want
+				ArraySegment<byte> subnameSegment = new ArraySegment<byte>(subnameBuffer);
+				await websocket.ReceiveAsync(subnameSegment, token);
+				string subname = Encoding.UTF8.GetString(subnameSegment).TrimEnd('\0');
+
+				//Check if device exists
+				bool found = false;
+				RemoteDevice<T, U> foundDevice = null;
+
+				if (remoteDeviceConnections.getRemoteDeviceWithNameLocationAndType(name, location, type, out RemoteDevice<T, U> outputDevice)) {
+					foundDevice = outputDevice;
+
+					List<string> listOfSubNames = foundDevice.getSubNamesList();
+
+					foreach (var obj in listOfSubNames) {
+						if (obj.ToLower().Equals(subname.ToLower())) {
+							found = true;
+						}
+					}
 				}
-				//Signal finished
-				socketFinishedTcs.TrySetResult(new object());
-			} else {
-				////Send does not exist and close
-				//byte[] noBytes = Encoding.ASCII.GetBytes("no");
-				//ArraySegment<byte> noSeg = new ArraySegment<byte>(noBytes);
-				//await websocket.SendAsync(noSeg, WebSocketMessageType.Text, true, token);
+				//Tell socket if the device was found or not
 
-				socketFinishedTcs.TrySetResult(new object());
+				if (found) {
+					//Get the device
+					if (foundDevice.getSendingConnectionWithSubname(subname, out SendingConnection<U> outputConnection)) {
+						while (!token.IsCancellationRequested) {
+
+							//Receive a command from the socket
+							ArraySegment<byte> receivedArraySegment = new ArraySegment<byte>(new byte[2048]);
+							await websocket.ReceiveAsync(receivedArraySegment, token);
+							string receivedJson = Encoding.UTF8.GetString(receivedArraySegment).TrimEnd('\0');
+
+							try {
+								//Deserialize into U and queue for sending back to the connection
+								U newObject = JsonSerializer.Deserialize<U>(receivedJson);
+
+								outputConnection.queueObjectForSending(newObject);
+							}
+							catch (Exception e) {
+								logger.LogWarning(e,"Error happened in Json Serializing for crestronWebsocket");
+								throw;
+							}
+						}
+					}
+					else {
+						//Send found
+						ArraySegment<byte> foundBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes("found"));
+						await websocket.SendAsync(foundBytes, WebSocketMessageType.Text, true, token);
+					}
+				}
+				else {
+					//Send no match
+					ArraySegment<byte> foundBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes("no match"));
+					await websocket.SendAsync(foundBytes, WebSocketMessageType.Text, true, token);
+					//End socket exchange
+					socketFinishedTcs.TrySetResult(new object());
+					return;
+				}
 			}
+			catch (Exception ex) {
+				logger.LogWarning(ex, "Exception occurred in websocket");
+			}
+
+			//Complete
+			socketFinishedTcs.TrySetResult(new object());
 		}
 	}
 }

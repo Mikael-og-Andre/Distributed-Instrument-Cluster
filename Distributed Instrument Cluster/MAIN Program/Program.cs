@@ -1,12 +1,11 @@
 ﻿using Crestron_Library;
-using Instrument_Communicator_Library;
-using Instrument_Communicator_Library.Remote_Device_side_Communicators;
+using Server_Library;
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Instrument_Communicator_Library.Information_Classes;
-using Instrument_Communicator_Library.Interface;
+using Server_Library.Authorization;
+using Server_Library.Socket_Clients;
 using Video_Library;
 
 namespace MAIN_Program {
@@ -16,13 +15,12 @@ namespace MAIN_Program {
 	/// and communication libraries.
 	/// Produces cli information about system/program status.
 	/// </summary>
-	/// <author>Mikael Nilssen</author>
-	/// <author>Andre Helland</author>
+	/// <author>Andre Helland, Mikael Nilssen</author>
 	internal class Program {
 		private readonly List<VideoDeviceInterface> videoDevices = new List<VideoDeviceInterface>();
 		private CommandParser commandParser;
-		private VideoCommunicator videoCommunicator;
-		private CrestronCommunicator crestronCommunicator;
+		private VideoClient videoClient;
+		private CrestronClient crestronClient;
 
 		private static void Main(string[] args) {
 			//TODO: read config file here and pass it into "Program" constructor.
@@ -31,19 +29,19 @@ namespace MAIN_Program {
 		}
 
 		// TODO: make input config file.
-		private static string serialComPort = "com4";
+		private static string _serialComPort = "com4";
 
 		private Program(string[] args) {
 			//Setup communicators
 			Thread.Sleep(1000);
-			setupVideoCommunicator("127.0.0.1", 5051, "Radar1", "device location", "device type", "access");
-			setupCrestronCommunicator("127.0.0.1", 5050, "Radar1", "device location", "device type", "access");
+			setupVideoCommunicator("127.0.0.1", 5051, "Radar1", "device location", "device type","videoStream", "access");
+			setupCrestronCommunicator("127.0.0.1", 5050, "Radar1", "device location", "device type","crestronControl", "access");
 
 			//TODO: pars config file:
 
 			//TODO: construct/init based on config file
 
-			setupSerialCable(serialComPort);
+			setupSerialCable(_serialComPort);
 			//setupVideoDevice(0);
 			setupVideoDevice(1);
 
@@ -52,16 +50,13 @@ namespace MAIN_Program {
 			var relayThread = new Thread(this.relayThread) {IsBackground = true};
 			relayThread.Start();
 
-			int i = 0;
-			while (true) {
 
+			while (true) {
+				//TODO RENAME
 				//if (videoDevices[0].tryReadFrameBuffer(out Mat ooga)) {
-				if (videoDevices[0].tryReadJpg(out byte[] ooga)) {
-					Console.WriteLine(ooga);
+				if (videoDevices[0].tryReadJpg(out byte[] ooga, 70)) {
 					Thread.Sleep(100);
-					videoCommunicator.GetInputQueue().Enqueue(new VideoFrame(ooga));
-					Console.WriteLine(ooga.Length);
-					i++;
+					videoClient.getInputQueue().Enqueue(new VideoFrame(ooga));
 				}
 			}
 
@@ -127,41 +122,41 @@ namespace MAIN_Program {
 			return true;
 		}
 
-		public void setupVideoCommunicator(string ip, int port, string name, string location, string type, string accessHash) {
+		public void setupVideoCommunicator(string ip, int port, string name, string location, string type,string subName, string accessHash) {
 			//Video networking info
 			string videoIP = ip;
 			int videoPort = port;
 			//Instrument Information
-			InstrumentInformation info = new InstrumentInformation(name, location, type);
+			ClientInformation info = new ClientInformation(name, location, type, subName);
 			//AccessToken -
 			AccessToken accessToken = new AccessToken(accessHash);
 			//cancellation tokens
 			CancellationToken videoCancellationToken = new CancellationToken(false);
 
 			//Video Communicator
-			videoCommunicator =
-				new VideoCommunicator(videoIP, videoPort, info, accessToken, videoCancellationToken);
+			videoClient =
+				new VideoClient(videoIP, videoPort, info, accessToken, videoCancellationToken);
 
 			//TODO: refactor threading
-			Thread videoThread = new Thread(() => videoCommunicator.Start());
+			Thread videoThread = new Thread(() => videoClient.run());
 			videoThread.Start();
 		}
 
-		public void setupCrestronCommunicator(string ip, int port, string name, string location, string type, string accessHash) {
+		public void setupCrestronCommunicator(string ip, int port, string name, string location, string type, string subName, string accessHash) {
 			//Video networking info
 			string crestronIP = ip;
 			int crestronPort = port;
 			//Instrument Information
-			InstrumentInformation info = new InstrumentInformation(name, location, type);
+			ClientInformation info = new ClientInformation(name, location, type,subName);
 			//AccessToken -
 			AccessToken accessToken = new AccessToken(accessHash);
 			//Crestron Cancellation Token
 			CancellationToken crestronCancellationToken = new CancellationToken(false);
 			//Crestron Communicator
-			crestronCommunicator = new CrestronCommunicator(crestronIP, crestronPort, info, accessToken, crestronCancellationToken);
+			crestronClient = new CrestronClient(crestronIP, crestronPort, info, accessToken, crestronCancellationToken);
 
 			//TODO: refactor threading
-			Thread crestronThread = new Thread(() => crestronCommunicator.Start());
+			Thread crestronThread = new Thread(() => crestronClient.run());
 			crestronThread.Start();
 		}
 
@@ -171,7 +166,7 @@ namespace MAIN_Program {
 		/// Thread for relaying commands coming from internet socket to command parser.
 		/// </summary>
 		private void relayThread() {
-			var queue = crestronCommunicator.getCommandOutputQueue();
+			var queue = crestronClient.getCommandOutputQueue();
 			while (true) {
 				try {
 					if (queue.TryDequeue(out string temp)) {
