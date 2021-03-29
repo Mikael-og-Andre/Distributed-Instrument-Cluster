@@ -1,9 +1,4 @@
-﻿using Blazor_Instrument_Cluster.Server.Events;
-using Blazor_Instrument_Cluster.Server.Injection;
-using Blazor_Instrument_Cluster.Server.Worker;
-using Server_Library;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.WebSockets;
@@ -11,26 +6,29 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Blazor_Instrument_Cluster.Server.Injection;
 using Blazor_Instrument_Cluster.Server.ProviderAndConsumer;
 using Blazor_Instrument_Cluster.Server.RemoteDevice;
-using Networking_Library;
+using Blazor_Instrument_Cluster.Server.Worker;
+using Microsoft.Extensions.Logging;
 
-namespace Blazor_Instrument_Cluster {
+namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 	/// <summary>
 	/// Class that handles incoming video websocket connections
-	/// <author></author>
+	/// <author> Mikael Nilssen</author>
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
+	/// <typeparam name="U"></typeparam>
 	public class VideoWebsocketHandler<T,U> : IVideoSocketHandler {
 		/// <summary>
 		/// remote Device connections
 		/// </summary>
-		private RemoteDeviceConnections<T,U> remoteDeviceConnections;
+		private readonly RemoteDeviceConnections<T,U> remoteDeviceConnections;
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<VideoWebsocketHandler<T,U>> logger;
+		private readonly ILogger<VideoWebsocketHandler<T,U>> logger;
 
 		/// <summary>
 		/// Constructor

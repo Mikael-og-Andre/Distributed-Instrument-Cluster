@@ -98,16 +98,22 @@
 
     private async void sendData(string s) {
         if (!(await JS.InvokeAsync<bool>("isLocked"))) return;
+        if (deviceFound) return;
 
-        //Create object
-        ExampleCrestronMsgObject sendingObject = new ExampleCrestronMsgObject(s);
-        //Create json
-        string json = JsonSerializer.Serialize(sendingObject);
-        //Convert to bytes
-        ArraySegment<byte> bytesToSend = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
+        try {
+            //Create object
+            ExampleCrestronMsgObject sendingObject = new ExampleCrestronMsgObject(s);
+            //Create json
+            string json = JsonSerializer.Serialize(sendingObject);
+            //Convert to bytes
+            ArraySegment<byte> bytesToSend = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
 
-        //Send data to socket.
-        await crestronWebSocket.SendAsync(bytesToSend, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+            //Send data to socket.
+            await crestronWebSocket.SendAsync(bytesToSend, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+        }
+        catch (Exception e) {
+            Console.WriteLine(e.Message);
+        }
 
     }
 

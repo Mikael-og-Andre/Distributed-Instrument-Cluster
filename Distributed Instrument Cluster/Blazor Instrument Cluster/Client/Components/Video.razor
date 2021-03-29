@@ -1,7 +1,9 @@
 ﻿@layout NothingLayout
 @using System.Net.WebSockets
 @using System.Text
+@using System.Text.Json
 @using System.Threading
+@using PackageClasses
 @using Server_Library
 @implements IDisposable
 @inject NavigationManager navigationManager
@@ -16,33 +18,31 @@
     [Parameter]
     public string name { get; set; }                                        //Name of the wanted device
     [Parameter]
-    public string location {get; set; }
+    public string location { get; set; }
     [Parameter]
     public string type { get; set; }
     [Parameter]
     public string subname { get; set; }
 
-
     private string imgsrc = "";                                             //img to show
-    private int frameBufferSize = 200000;                                   //Buffer for incoming msg's
+    private int frameBufferSize = 900000;                                   //Buffer for incoming msg's
 
     string pathToVideoWebsocket = "videoStream";
-
 
     protected override async Task OnInitializedAsync() {
         //Get base uri and connect to that
         string basePath = navigationManager.BaseUri;
         basePath = basePath.Replace("https://", "wss://");
 
-        await videoWebSocket.ConnectAsync(new Uri(basePath+pathToVideoWebsocket), disposalTokenSource.Token);
+        await videoWebSocket.ConnectAsync(new Uri(basePath + pathToVideoWebsocket), disposalTokenSource.Token);
 
-        //Sends name and setsup socket
-        foundDevice = await SetupSocket();
+        //Sends name and setup socket
+        foundDevice = await setupSocket();
 
         //Start the video receive loop
         if (foundDevice) {
             Console.WriteLine("Found device, Accepting incoming frames");
-            _ = ReceiveVideo();
+            _ = receiveVideo();
         }
         else {
             Console.WriteLine("Device was with name {0} was not found by server, Or another error occurred with the websocket", name);
@@ -53,24 +53,37 @@
     /// Start Receiving video
     /// </summary>
     /// <returns></returns>
-    async Task ReceiveVideo() {
-        try {
-            while (!disposalTokenSource.IsCancellationRequested) {
-                var buffer = new ArraySegment<byte>(new byte[frameBufferSize]);
-                var received = await videoWebSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
-                Console.WriteLine(buffer);
-                var frame = new VideoFrame(new byte[] { });
-                frame = (VideoFrame)frame.getObject(buffer.ToArray());
-                Console.WriteLine(frame.value.Length);
+    async Task receiveVideo() {
 
-                var base64 = Convert.ToBase64String(frame.value);
-                imgsrc = string.Format("data:image/jpg;base64,{0}", base64);
+        while (!disposalTokenSource.IsCancellationRequested) {
+
+            if (!foundDevice) continue;;
+            try {
+                ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[frameBufferSize]);
+                await videoWebSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
+                Console.WriteLine(buffer.Count);
+                string incomingJson = Encoding.UTF8.GetString(buffer).TrimEnd('\0');
+                Console.WriteLine(incomingJson);
+                ExampleVideoObject exampleVideoObject = null;
+                try {
+                    exampleVideoObject = JsonSerializer.Deserialize<ExampleVideoObject>(incomingJson);
+                }
+                catch (Exception) {
+                    Console.WriteLine("Could not serialize incoming json");
+                    continue;
+                }
+
+
+                imgsrc = string.Format("data:image/jpg;base64,{0}", exampleVideoObject.imgbase64);
+
+                Console.WriteLine("Base64: {0}", exampleVideoObject.imgbase64);
 
                 StateHasChanged();
             }
-        }
-        catch (Exception ex) {
-            Console.WriteLine("Exception thrown: " + ex.Message);
+            catch (Exception e) {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
     }
@@ -79,7 +92,7 @@
     /// Sets up the socket, send name of wanted device, and receive if it was found or not
     /// </summary>
     /// <returns></returns>
-    private async Task<bool> SetupSocket() {
+    private async Task<bool> setupSocket() {
         try {
             //Receive start signal
             byte[] startBuffer = new byte[1024];

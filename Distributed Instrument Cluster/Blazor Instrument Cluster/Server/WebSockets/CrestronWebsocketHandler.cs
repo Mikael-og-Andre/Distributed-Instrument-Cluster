@@ -104,11 +104,14 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 					//Get the device
 					if (foundDevice.getSendingConnectionWithSubname(subname, out SendingConnection<U> outputConnection)) {
 						while (!token.IsCancellationRequested) {
+
+							//Receive a command from the socket
 							ArraySegment<byte> receivedArraySegment = new ArraySegment<byte>(new byte[2048]);
 							await websocket.ReceiveAsync(receivedArraySegment, token);
 							string receivedJson = Encoding.UTF8.GetString(receivedArraySegment).TrimEnd('\0');
 
 							try {
+								//Deserialize into U and queue for sending back to the connection
 								U newObject = JsonSerializer.Deserialize<U>(receivedJson);
 
 								outputConnection.queueObjectForSending(newObject);
