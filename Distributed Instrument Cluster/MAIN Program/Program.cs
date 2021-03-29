@@ -34,8 +34,8 @@ namespace MAIN_Program {
 		private Program(string[] args) {
 			//Setup communicators
 			Thread.Sleep(1000);
-			setupVideoCommunicator("127.0.0.1", 5051, "Radar1", "device location", "device type", "access");
-			setupCrestronCommunicator("127.0.0.1", 5050, "Radar1", "device location", "device type", "access");
+			setupVideoCommunicator("127.0.0.1", 5051, "Radar1", "device location", "device type","videoStream", "access");
+			setupCrestronCommunicator("127.0.0.1", 5050, "Radar1", "device location", "device type","crestronControl", "access");
 
 			//TODO: pars config file:
 
@@ -122,12 +122,12 @@ namespace MAIN_Program {
 			return true;
 		}
 
-		public void setupVideoCommunicator(string ip, int port, string name, string location, string type, string accessHash) {
+		public void setupVideoCommunicator(string ip, int port, string name, string location, string type,string subName, string accessHash) {
 			//Video networking info
 			string videoIP = ip;
 			int videoPort = port;
 			//Instrument Information
-			ClientInformation info = new ClientInformation(name, location, type);
+			ClientInformation info = new ClientInformation(name, location, type, subName);
 			//AccessToken -
 			AccessToken accessToken = new AccessToken(accessHash);
 			//cancellation tokens
@@ -142,12 +142,12 @@ namespace MAIN_Program {
 			videoThread.Start();
 		}
 
-		public void setupCrestronCommunicator(string ip, int port, string name, string location, string type, string accessHash) {
+		public void setupCrestronCommunicator(string ip, int port, string name, string location, string type, string subName, string accessHash) {
 			//Video networking info
 			string crestronIP = ip;
 			int crestronPort = port;
 			//Instrument Information
-			ClientInformation info = new ClientInformation(name, location, type);
+			ClientInformation info = new ClientInformation(name, location, type,subName);
 			//AccessToken -
 			AccessToken accessToken = new AccessToken(accessHash);
 			//Crestron Cancellation Token

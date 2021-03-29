@@ -125,7 +125,8 @@ namespace Server_Library.Server_Listeners.deprecated {
 			string name = NetworkingOperations.receiveStringWithSocket(socket);
 			string location = NetworkingOperations.receiveStringWithSocket(socket);
 			string type = NetworkingOperations.receiveStringWithSocket(socket);
-			ClientInformation info = new ClientInformation(name, location, type);
+			string subName = NetworkingOperations.receiveStringWithSocket(socket);
+			ClientInformation info = new ClientInformation(name, location, type, subName);
 
 			//Create connection and return
 			return createConnectionType(socket, thread, accessToken, info);

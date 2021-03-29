@@ -26,7 +26,7 @@ namespace serverDemo {
 			Thread.Sleep(1000);
 
 			CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-			SendingClient<exampleObject> sendingClient = new SendingClient<exampleObject>("127.0.0.1", 5050, new ClientInformation("sendingClient", "here", "testing"), new AccessToken("access"), cancellationTokenSource.Token);
+			SendingClient<exampleObject> sendingClient = new SendingClient<exampleObject>("127.0.0.1", 5050, new ClientInformation("sendingClient", "here", "testing","testingSub"), new AccessToken("access"), cancellationTokenSource.Token);
 			Task sendingClientTask = new Task(() => sendingClient.run());
 			sendingClientTask.Start();
 

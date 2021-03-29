@@ -1,40 +1,42 @@
-﻿using Blazor_Instrument_Cluster.Server.Events;
-using Blazor_Instrument_Cluster.Server.Injection;
-using Blazor_Instrument_Cluster.Server.Worker;
-using Server_Library;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Networking_Library;
+using Blazor_Instrument_Cluster.Server.Injection;
+using Blazor_Instrument_Cluster.Server.ProviderAndConsumer;
+using Blazor_Instrument_Cluster.Server.RemoteDevice;
+using Blazor_Instrument_Cluster.Server.Worker;
+using Microsoft.Extensions.Logging;
 
-namespace Blazor_Instrument_Cluster {
+namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 	/// <summary>
 	/// Class that handles incoming video websocket connections
-	/// <author></author>
+	/// <author> Mikael Nilssen</author>
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class VideoWebsocketHandler<T> : IVideoSocketHandler where T : ISerializeObject {
+	/// <typeparam name="U"></typeparam>
+	public class VideoWebsocketHandler<T,U> : IVideoSocketHandler {
 		/// <summary>
 		/// remote Device connections
 		/// </summary>
-		private RemoteDeviceConnection remoteDeviceConnections;
+		private readonly RemoteDeviceConnections<T,U> remoteDeviceConnections;
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<VideoWebsocketHandler<T>> logger;
+		private readonly ILogger<VideoWebsocketHandler<T,U>> logger;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public VideoWebsocketHandler(ILogger<VideoWebsocketHandler<T>> logger, IServiceProvider services) {
-			remoteDeviceConnections = (RemoteDeviceConnection)services.GetService(typeof(IRemoteDeviceConnections));
+		public VideoWebsocketHandler(ILogger<VideoWebsocketHandler<T,U>> logger, IServiceProvider services) {
+			remoteDeviceConnections = (RemoteDeviceConnections<T,U>)services.GetService(typeof(IRemoteDeviceConnections<T,U>));
 			this.logger = logger;
 		}
 
@@ -49,72 +51,106 @@ namespace Blazor_Instrument_Cluster {
 			CancellationToken token = new CancellationToken(false);
 			try {
 				//Send start signal
-				byte[] startBytes = Encoding.ASCII.GetBytes("start");
-				ArraySegment<byte> startSeg = new ArraySegment<byte>(startBytes);
-				await websocket.SendAsync(startSeg, WebSocketMessageType.Text, true, token);
+				byte[] startBytes = Encoding.UTF8.GetBytes("start");
+				ArraySegment<byte> startSegment = new ArraySegment<byte>(startBytes);
+				await websocket.SendAsync(startSegment, WebSocketMessageType.Text, true, token);
 
-				//Get name of video device that they want the video from
-				byte[] bufferBytes = new byte[100];
-				ArraySegment<byte> buffer = new ArraySegment<byte>(bufferBytes);
-				await websocket.ReceiveAsync(buffer, token);
-				byte[] nameBytes = buffer.ToArray();
-				string name = Encoding.ASCII.GetString(nameBytes).TrimEnd('\0');
+				byte[] nameBuffer = new byte[1024];
+				byte[] locationBuffer = new byte[1024];
+				byte[] typeBuffer = new byte[1024];
+				byte[] subnameBuffer = new byte[1024];
 
-				logger.LogDebug("Websocket Video connection has asked for device with name: {0} ", name);
-				//Setup frame consumer to receive pushed frames from connection
-				VideoConnectionFrameConsumer consumer = new VideoConnectionFrameConsumer(name);
-				//Check for name
-				bool subbed = false;
-				int maxLoops = 20;
-				int looped = 0;
-				while (!subbed && (looped < maxLoops)) {
-					subbed = remoteDeviceConnections.subscribeToVideoProviderWithName(name, consumer);
-					logger.LogDebug("WebSocket tried to subscribe to {0} but i could not be found in the provider queue", name);
-					looped++;
-					await Task.Delay(100, token);
+			
+				//Get name of wanted device
+				ArraySegment<byte> nameSegment = new ArraySegment<byte>(nameBuffer);
+				await websocket.ReceiveAsync(nameSegment, token);
+				string name = Encoding.UTF8.GetString(nameSegment).TrimEnd('\0');
+
+				//Get location of wanted device
+				ArraySegment<byte> locationSegment = new ArraySegment<byte>(locationBuffer);
+				await websocket.ReceiveAsync(locationSegment, token);
+				string location = Encoding.UTF8.GetString(locationSegment).TrimEnd('\0');
+
+				//Get type of device
+				ArraySegment<byte> typeSegment = new ArraySegment<byte>(typeBuffer);
+				await websocket.ReceiveAsync(typeSegment, token);
+				string type = Encoding.UTF8.GetString(typeSegment).TrimEnd('\0');
+
+				//Get subname representing what part of the device u want
+				ArraySegment<byte> subnameSegment = new ArraySegment<byte>(subnameBuffer);
+				await websocket.ReceiveAsync(subnameSegment, token);
+				string subname = Encoding.UTF8.GetString(subnameSegment).TrimEnd('\0');
+
+				//Check if device exists
+				bool found = false;
+				RemoteDevice<T, U> foundDevice = null;
+
+				if (remoteDeviceConnections.getRemoteDeviceWithNameLocationAndType(name,location,type, out RemoteDevice<T,U> outputDevice)) {
+					foundDevice = outputDevice;
+
+					List<string> listOfSubNames = foundDevice.getSubNamesList();
+
+					foreach (var obj in listOfSubNames) {
+						if (obj.ToLower().Equals(subname.ToLower())) {
+							found = true;
+						}
+					}
+
 				}
-
-				//if the device was found send found, and continue
-				if (subbed) {
-					logger.LogDebug("Video Websocket requested a device: {0} And the device was found",name);
-					ArraySegment<byte> foundBytes = Encoding.ASCII.GetBytes("found");
+				//Tell socket if the device was found or not
+				
+				if (found) {
+					//Send found
+					ArraySegment<byte> foundBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes("found"));
 					await websocket.SendAsync(foundBytes, WebSocketMessageType.Text, true, token);
 
-					//Get consumer queue
-					ConcurrentQueue<VideoFrame> providerQueue = consumer.GetConcurrentQueue();
+					//subscribe to provider and push frames
+					VideoObjectConsumer<T> objectConsumer = new VideoObjectConsumer<T>(name,location,type,subname);
+					//Subscribe consumer to the correct provider, if not found cancel connection
+					if (foundDevice.subscribeToProvider(objectConsumer)) {
+						//Get queue for the objects pushed to the consumer
+						ConcurrentQueue<T> consumerQueue = objectConsumer.GetConcurrentQueue();
 
-					//Do main loop
-					while (!token.IsCancellationRequested) {
-						//Check if something in queue
-						if (!providerQueue.TryPeek(out _)) continue;
-						//Dequeue and send
-						providerQueue.TryDequeue(out VideoFrame result);
-						ArraySegment<byte> bytesSegment = new ArraySegment<byte>(result.getBytes());
-						await websocket.SendAsync(bytesSegment, WebSocketMessageType.Binary, true, token);
+						//Loop and send objects tot he connected websocket
+						while (!token.IsCancellationRequested) {
+							if (consumerQueue.TryDequeue(out T output)) {
+								//Serialize object
+								string json = JsonSerializer.Serialize(output);
+								//Send
+								ArraySegment<byte> jsonSegment = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
+								await websocket.SendAsync(jsonSegment, WebSocketMessageType.Text, true, token);
+
+							}
+							else {
+								await Task.Delay(10);
+							}
+						}
+
 					}
-					//After loop end websokcet connection
+					else {
+						//End socket exchange
+						socketFinishedTcs.TrySetResult(new object());
+						return;
+					}
+				}
+				else {
+					//Send no match
+					ArraySegment<byte> foundBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes("no match"));
+					await websocket.SendAsync(foundBytes, WebSocketMessageType.Text, true, token);
+					//End socket exchange
 					socketFinishedTcs.TrySetResult(new object());
 					return;
 				}
-				else {
-					logger.LogCritical("Video Websocket requested a device: {0} that did not exist",name);
-					//Not subbed, send fail and close
-					ArraySegment<byte> failedBytes = new ArraySegment<byte>(Encoding.ASCII.GetBytes("failed"));
-					await websocket.SendAsync(failedBytes, WebSocketMessageType.Text, true, token);
 
-					//end websokcet connection
-					socketFinishedTcs.TrySetResult(new object());
-				}
 
 			}
 			catch (Exception ex) {
-				//if websocket is running send close, and close socket pipeline
-				if (websocket.State != WebSocketState.Closed) {
-					await websocket.CloseAsync(WebSocketCloseStatus.InternalServerError, "Closing socket", token);
-				}
-				logger.LogError(ex, "Exception Thrown in VideoWebsocketHandler");
-				socketFinishedTcs.TrySetResult(new object());
+				logger.LogWarning(ex, "Exception occurred in websocket");
 			}
+
+			//Complete
+			socketFinishedTcs.TrySetResult(new object());
+			
 		}
 	}
 }

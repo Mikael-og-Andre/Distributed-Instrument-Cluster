@@ -1,10 +1,13 @@
 ﻿using Networking_Library;
 using Server_Library.Authorization;
 using System;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
+using Server_Library.Connection_Classes;
 
 namespace Server_Library.Server_Listeners {
 
@@ -45,6 +48,11 @@ namespace Server_Library.Server_Listeners {
 		private int currentConnectionCount;
 
 		/// <summary>
+		/// Queue containing incoming connections
+		/// </summary>
+		private ConcurrentQueue<ConnectionBase> queueOfIncomingConnections;
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="ipEndPoint"></param>
@@ -56,6 +64,9 @@ namespace Server_Library.Server_Listeners {
 			this.maxPendingConnections = maxPendingConnections;
 			cancellationTokenSource = new CancellationTokenSource();
 			currentConnectionCount = 0;
+
+			//Init queue
+			queueOfIncomingConnections = new ConcurrentQueue<ConnectionBase>();
 		}
 
 		/// <summary>
@@ -77,14 +88,16 @@ namespace Server_Library.Server_Listeners {
 				//Increment Current Connections
 				currentConnectionCount += 1;
 
-				//Creates a new Thread to run a client communication on
-				Thread newThread = new Thread(handleIncomingConnection) { IsBackground = true };
+				
 
 				//Authorize and setup connection
-				object newClientConnection = setupConnection(newSocket, newThread);
+				object newClientConnection = setupConnection(newSocket);
 
-				//Pass connection type to thread and start
-				newThread.Start(newClientConnection);
+				//Creates a new Thread to run a client communication on
+				Task newTask = new Task(() => handleIncomingConnection(newClientConnection));
+
+				//Start the task
+				newTask.Start();
 			}
 		}
 
@@ -107,7 +120,7 @@ namespace Server_Library.Server_Listeners {
 		/// <param name="socket">Socket Of the incoming connection</param>
 		/// <param name="thread">Thread the new connection will be running on</param>
 		/// <returns> a Connection of one of the child types of ConnectionBase</returns>
-		protected abstract object createConnectionType(Socket socket, Thread thread, AccessToken accessToken, ClientInformation info);
+		protected abstract object createConnectionType(Socket socket, AccessToken accessToken, ClientInformation info);
 
 		/// <summary>
 		/// Gets authorization instrument information from connecting client
@@ -115,7 +128,7 @@ namespace Server_Library.Server_Listeners {
 		/// <param name="socket"></param>
 		/// <param name="thread"></param>
 		/// <returns>Connection object</returns>
-		private object setupConnection(Socket socket, Thread thread) {
+		private object setupConnection(Socket socket) {
 			//Send start Auth signal
 			NetworkingOperations.sendStringWithSocket("auth", socket);
 
@@ -128,7 +141,30 @@ namespace Server_Library.Server_Listeners {
 			ClientInformation info = NetworkingOperations.receiveJsonObjectWithSocket<ClientInformation>(socket);
 
 			//Create connection and return
-			return createConnectionType(socket, thread, accessToken, info);
+			return createConnectionType(socket, accessToken, info);
+		}
+
+		/// <summary>
+		/// Queue the incoming connection
+		/// </summary>
+		/// <param name="connection"></param>
+		protected void addConnectionToQueueOfIncomingConnections(ConnectionBase connection) {
+			queueOfIncomingConnections.Enqueue(connection);
+		}
+
+		/// <summary>
+		/// Get a connection from the queue of incoming accepted connections
+		/// </summary>
+		/// <param name="output">Connection of a child class of ConnectionBase</param>
+		/// <returns>True if object was found</returns>
+		public bool getIncomingConnection(out ConnectionBase output) {
+			if (queueOfIncomingConnections.TryDequeue(out ConnectionBase result)) {
+				output = result;
+				return true;
+			}
+
+			output = default;
+			return false;
 		}
 	}
 }

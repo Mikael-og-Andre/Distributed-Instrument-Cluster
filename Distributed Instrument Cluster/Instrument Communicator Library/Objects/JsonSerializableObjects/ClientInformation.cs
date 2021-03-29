@@ -22,6 +22,11 @@
 		public string Type { get; set; }
 
 		/// <summary>
+		/// The name of the specific connection socket this was sent on, Used to distinguish 
+		/// </summary>
+		public string SubName {get;set; }
+
+		/// <summary>
 		/// Empty constructor
 		/// </summary>
 		public ClientInformation() {
@@ -34,10 +39,11 @@
 		/// <param name="name"></param>
 		/// <param name="location"></param>
 		/// <param name="type"></param>
-		public ClientInformation(string name, string location, string type) {
+		public ClientInformation(string name, string location, string type, string subName) {
 			this.Name = name;
 			this.Location = location;
 			this.Type = type;
+			this.SubName = subName;
 		}
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using Server_Library.Authorization;
 
 namespace Server_Library.Connection_Classes {
@@ -9,10 +10,6 @@ namespace Server_Library.Connection_Classes {
 	/// </summary>
 	public abstract class ConnectionBase {
 
-		/// <summary>
-		/// The thread the connection is running on
-		/// </summary>
-		private Thread homeThread;
 
 		/// <summary>
 		/// Token representing a valid connection to the server
@@ -47,13 +44,11 @@ namespace Server_Library.Connection_Classes {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="homeThread"> Thread Connection is running on</param>
 		/// <param name="socket">Socket</param>
 		/// <param name="accessToken">Token for authorization</param>
 		/// <param name="info">Information About Client</param>
 		/// <param name="cancellation">Token for cancelling</param>
-		protected ConnectionBase(Thread homeThread, Socket socket, AccessToken accessToken, ClientInformation info, CancellationToken cancellation) {
-			this.homeThread = homeThread;
+		protected ConnectionBase(Socket socket, AccessToken accessToken, ClientInformation info, CancellationToken cancellation) {
 			this.socket = socket;
 			this.accessToken = accessToken;
 			this.info = info;

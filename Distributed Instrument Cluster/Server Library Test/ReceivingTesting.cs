@@ -30,15 +30,15 @@ namespace Server_Library_Test {
 			CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
 			SendingClient<TestJsonObject> sendingClient1 = new SendingClient<TestJsonObject>("127.0.0.1", 4090,
-				new ClientInformation("sendingClient1", "location 1", "type 1"), new AccessToken("access"),
+				new ClientInformation("sendingClient1", "location 1", "type 1","subType"), new AccessToken("access"),
 				cancellationTokenSource.Token);
 
 			SendingClient<TestJsonObject> sendingClient2 = new SendingClient<TestJsonObject>("127.0.0.1", 4090,
-				new ClientInformation("sendingClient2", "location 2", "type 2"), new AccessToken("access"),
+				new ClientInformation("sendingClient2", "location 2", "type 2","subType"), new AccessToken("access"),
 				cancellationTokenSource.Token);
 
 			SendingClient<TestJsonObject> sendingClient3 = new SendingClient<TestJsonObject>("127.0.0.1", 4090,
-				new ClientInformation("sendingClient3", "location 3", "type 3"), new AccessToken("access"),
+				new ClientInformation("sendingClient3", "location 3", "type 3","subType"), new AccessToken("access"),
 				cancellationTokenSource.Token);
 
 			Task.Run(() => {
@@ -184,7 +184,7 @@ namespace Server_Library_Test {
 			listenerSocket.Listen(10);
 
 			//Client info
-			ClientInformation clientInformation = new ClientInformation("Random Name", "testing location", "testing type");
+			ClientInformation clientInformation = new ClientInformation("Random Name", "testing location", "testing type", "testing sub");
 
 			//Create client
 			SendingClient<TestJsonObject> sendingClient = new SendingClient<TestJsonObject>("127.0.0.1", 4091,
@@ -207,7 +207,7 @@ namespace Server_Library_Test {
 			//Get Client information
 			ClientInformation info = NetworkingOperations.receiveJsonObjectWithSocket<ClientInformation>(socket);
 
-			ReceivingConnection<TestJsonObject> receivingConnection = new ReceivingConnection<TestJsonObject>(thread,
+			ReceivingConnection<TestJsonObject> receivingConnection = new ReceivingConnection<TestJsonObject>(
 				socket, accessToken, info, new CancellationToken(false)) {
 				isSetupCompleted = true, isAuthorized = true
 			};

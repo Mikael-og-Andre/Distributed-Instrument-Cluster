@@ -1,68 +1,81 @@
 ﻿using Blazor_Instrument_Cluster.Server.Injection;
-using Server_Library;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Server_Library.Connection_Classes;
+using Server_Library.Connection_Types;
+using Server_Library.Server_Listeners;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Server_Library.Connection_Types;
-using Server_Library.Connection_Types.deprecated;
-using Server_Library.Server_Listeners;
-using Server_Library.Server_Listeners.deprecated;
+using Blazor_Instrument_Cluster.Server.RemoteDevice;
 
-namespace Blazor_Instrument_Cluster.Server.Worker {
+namespace Blazor_Instrument_Cluster.Server.Services {
 
 	/// <summary>
-	/// Background service for accepting incoming connections from controllers
-	/// <author>Mikael Nilssen</author>
+	/// Starts a Sending listener, that will send commands to incoming receiving listeners
 	/// </summary>
-	public class CrestronListenerService : BackgroundService {
-		private const int Delay = 10;   //Delay after each loop
-
-		private readonly ILogger<VideoListenerService> logger;      //Injected logger
-		private readonly IServiceProvider services;                     //Injected Service provider
-		private ListenerCrestron crestronListener;                       //Video listener server accepting incoming device video connections
-		private RemoteDeviceConnection remoteDeviceConnection;       //Remote device connection
+	/// <typeparam name="T">Type for the receiving listener in the remote device connection</typeparam>
+	/// <typeparam name="U">Type for the sending listener</typeparam>
+	public class CrestronListenerService<T,U> : BackgroundService {
 
 		/// <summary>
-		/// Inject the logger and the thing used to share information with hubs
+		/// Logger
+		/// </summary>
+		private ILogger<CrestronListenerService<T,U>> logger;
+
+		/// <summary>
+		/// Injected Service provider
+		/// </summary>
+		private readonly IServiceProvider services;
+
+		/// <summary>
+		/// Remote device connection
+		/// </summary>
+		private RemoteDeviceConnections<T,U> remoteDeviceConnections;
+
+		/// <summary>
+		/// Sending listener accepting incoming ReceivingClients
+		/// </summary>
+		private SendingListener<U> sendingListener;
+
+		/// <summary>
+		/// Constructor
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public CrestronListenerService(ILogger<VideoListenerService> logger, IServiceProvider services) {
+		public CrestronListenerService(ILogger<CrestronListenerService<T, U>> logger, IServiceProvider services) {
 			this.logger = logger;
 			//Get Remote devices from services
-			remoteDeviceConnection = (RemoteDeviceConnection)services.GetService(typeof(IRemoteDeviceConnections));
-
-			//Create endpoint
-			IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 5050);
-			this.crestronListener = new ListenerCrestron(ipEndPoint);
-
-			//Set remoteDevice connections
-			List<CrestronConnection> crestronConnectionList = crestronListener.getCrestronConnectionList();
-			if (remoteDeviceConnection != null) {
-				remoteDeviceConnection.setCrestronConnectionList(crestronConnectionList);
-			} else {
-				this.logger.LogError("Remote Device connection input was null");
-				throw new NullReferenceException(
-					"Class: VideoListenerService - remoteDeviceConnection Injection was null");
-			}
+			remoteDeviceConnections = (RemoteDeviceConnections<T, U>)services.GetService(typeof(IRemoteDeviceConnections<T, U>));
+			//Init Listener
+			//TODO: Add config ip setup
+			sendingListener = new SendingListener<U>(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6981));
 		}
+
 		/// <summary>
-		/// Starts the listener thread for the crestron communicators
+		/// Start the listener
 		/// </summary>
 		/// <param name="stoppingToken"></param>
 		/// <returns></returns>
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
-			logger.LogDebug($"CrestronListenerService is starting.");
-			stoppingToken.Register(() => logger.LogDebug($" Crestron Listener background task is stopping."));
-			//Create and start new thread
-			Thread crestronThread = new Thread(() => crestronListener.start()) {IsBackground = false};
-			crestronThread.Start();
+			//Run server
+			Thread listenerThread = new Thread(() => sendingListener.start());
+			listenerThread.Start();
 
-			await Task.Delay(10);
+			//Get incoming connections
+			while (!stoppingToken.IsCancellationRequested) {
+				if (sendingListener.getIncomingConnection(out ConnectionBase output)) {
+					//Cast to correct type
+					SendingConnection<U> sendingConnection = (SendingConnection<U>)output;
+					//Add to remote devices
+					remoteDeviceConnections.addConnectionToRemoteDevices(sendingConnection);
+				}
+				else {
+					await Task.Delay(50);
+				}
+			}
+			
 		}
 	}
 }
