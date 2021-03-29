@@ -110,7 +110,7 @@ namespace MAIN_Program {
 			//Try to set up communication socket.
 			var communicator = serialCable.communicator;
 			try {
-				setupCrestronCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.accessHash);
+				setupCrestronCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.accessHash,"");
 			} catch (Exception e) {
 				writeWarning("Failed to connect to server.");
 				Console.WriteLine(e);
@@ -161,7 +161,7 @@ namespace MAIN_Program {
 
 			var communicator = device.communicator;
 			try {
-				setupVideoCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.accessHash);
+				setupVideoCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.accessHash,"");
 			} catch (Exception e) {
 				writeWarning("Failed to connect to server.");
 				Console.WriteLine(e);
