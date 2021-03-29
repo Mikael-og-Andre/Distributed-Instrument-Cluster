@@ -5,8 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Instrument Communicator Library\Server Library.csproj" />
-    <ProjectReference Include="..\..\PackageClasses\PackageClasses.csproj" />
+    <ProjectReference Include="..\..\Instrument Communicator Library\Instrument Communicator Library.csproj" />
   </ItemGroup>
 
   <ItemGroup>
