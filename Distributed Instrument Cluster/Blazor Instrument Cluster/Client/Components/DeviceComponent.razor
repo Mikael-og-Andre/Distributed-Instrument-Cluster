@@ -17,6 +17,14 @@
             <button @onclick="navigateToDevicePage" class="btn-dark">Select</button>
         </div>
     </div>
+    <div class="row">
+        <div class="col">
+            @foreach (var subName in deviceInfo.subNames) {
+                <p>@subName</p>
+            }
+        </div>
+        
+    </div>
 </li>
 
 @code {
@@ -29,6 +37,23 @@
     private string basePath = "VideoAndControl/";
 
     private void navigateToDevicePage() {
-        navigationManager.NavigateTo(basePath+deviceInfo.name);
+
+        string crestronSubname = "crestronControl";
+        string videoSubname = "videoStream";
+
+        foreach (var subName in deviceInfo.subNames) {
+
+            if (subName.Contains("crestron")) {
+                crestronSubname = subName;
+            }
+            if (subName.Contains("video")) {
+                videoSubname = subName;
+            }
+
+        }
+
+        string fullPath = basePath + "/" + deviceInfo.name + "/" + deviceInfo.location + "/" + deviceInfo.type + "/" + crestronSubname + "/" + videoSubname;
+
+        navigationManager.NavigateTo(fullPath);
     }
 }

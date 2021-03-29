@@ -11,7 +11,10 @@ using System;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
-using Instrument_Communicator_Library;
+using Blazor_Instrument_Cluster.Server.RemoteDevice;
+using Blazor_Instrument_Cluster.Server.Services;
+using PackageClasses;
+using Server_Library;
 
 namespace Blazor_Instrument_Cluster.Server {
 
@@ -38,21 +41,23 @@ namespace Blazor_Instrument_Cluster.Server {
 		/// </summary>
 		/// <param name="services"></param>
 		public void configureServices(IServiceCollection services) {
+
+			//Add Remote device connection tracker
+			services.AddSingleton<IRemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>, RemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>>();
+
+			//Start Connection listeners as background services
+			services.AddHostedService<VideoListenerService<ExampleVideoObject,ExampleCrestronMsgObject>>();
+			services.AddHostedService<CrestronListenerService<ExampleVideoObject,ExampleCrestronMsgObject>>();
+			//Add singletons for socket handling
+			services.AddSingleton<IVideoSocketHandler, VideoWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject>>();
+			services.AddSingleton<ICrestronSocketHandler, CrestronWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject>>();
+
 			//Use controller
 			services.AddControllers();
 			services.AddResponseCompression(opts => {
 				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
 					new[] { "application/octet-stream" });
 			});
-
-			//Add Connection tracker
-			services.AddSingleton<IRemoteDeviceConnections, RemoteDeviceConnection>();
-			//Start Connection listeners as background services
-			services.AddHostedService<VideoListenerService>();
-			services.AddHostedService<CrestronListenerService>();
-			//Add singletons for socket handling
-			services.AddSingleton<IVideoSocketHandler, VideoWebsocketHandler<VideoFrame>>();
-			services.AddSingleton<ICrestronSocketHandler, CrestronWebsocketHandler>();
 
 		}
 
@@ -73,7 +78,7 @@ namespace Blazor_Instrument_Cluster.Server {
 			}
 			//Websocket setup
 			var webSocketOptions = new WebSocketOptions() {
-				KeepAliveInterval = TimeSpan.FromSeconds(120),
+				KeepAliveInterval = TimeSpan.FromSeconds(360),
 			};
 
 			app.UseWebSockets(webSocketOptions);
@@ -85,8 +90,8 @@ namespace Blazor_Instrument_Cluster.Server {
 						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
 							var socketFinishedTcs = new TaskCompletionSource<object>();
 
-							VideoWebsocketHandler<VideoFrame> videoWebsocketHandler =
-								(VideoWebsocketHandler<VideoFrame>)app.ApplicationServices.GetService<IVideoSocketHandler>();
+							VideoWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject> videoWebsocketHandler =
+								(VideoWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject>)app.ApplicationServices.GetService<IVideoSocketHandler>();
 							//Start if socketHandler is not null
 							videoWebsocketHandler?.StartWebSocketVideoProtocol(webSocket, socketFinishedTcs);
 							await socketFinishedTcs.Task;
@@ -99,7 +104,7 @@ namespace Blazor_Instrument_Cluster.Server {
 						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
 							var socketFinishedTcs = new TaskCompletionSource<object>();
 
-							CrestronWebsocketHandler crestronWebsocketHandler = (CrestronWebsocketHandler)app.ApplicationServices.GetService<ICrestronSocketHandler>();
+							var crestronWebsocketHandler = (CrestronWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject>)app.ApplicationServices.GetService<ICrestronSocketHandler>();
 							crestronWebsocketHandler.StartCrestronWebsocketProtocol(webSocket, socketFinishedTcs);
 
 							await socketFinishedTcs.Task;

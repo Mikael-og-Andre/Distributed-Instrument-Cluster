@@ -1,32 +1,36 @@
 ﻿using Blazor_Instrument_Cluster.Server.Injection;
 using Blazor_Instrument_Cluster.Shared;
-using Instrument_Communicator_Library;
+using Server_Library;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Blazor_Instrument_Cluster.Server.RemoteDevice;
+using PackageClasses;
+using Server_Library.Connection_Types.deprecated;
 
 namespace Blazor_Instrument_Cluster.Server.Controllers {
 
 	/// <summary>
 	/// Api Controller for accessing data about connected devices
 	/// </summary>
-	[Route("api/ConnectedDevices")]
 	[ApiController]
+	[Route("/api/ConnectedDevices")]
+	[Produces("application/json")]
 	public class ConnectedDevicesController : ControllerBase {
 		/// <summary>
 		/// Remote Device connections
 		/// </summary>
-		private RemoteDeviceConnection remoteDeviceConnection;
+		private RemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject> remoteDeviceConnections;
 
 		/// <summary>
 		/// Constructor, Injects Service provider and get remote device connection
 		/// </summary>
 		/// <param name="services"></param>
 		public ConnectedDevicesController(IServiceProvider services) {
-			this.remoteDeviceConnection = (RemoteDeviceConnection)services.GetService<IRemoteDeviceConnections>();
+			this.remoteDeviceConnections = (RemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>)services.GetService<IRemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>>();
 		}
 
 		/// <summary>
@@ -36,19 +40,25 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		[HttpGet]
 		[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<DeviceModel>))]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		public IEnumerable<DeviceModel> GetVideoConnections() {
+		public IEnumerable<DeviceModel> getRemoteDevices() {
 			//Get list of video connections
-			List<VideoConnection> listVideoConnections;
-			if (remoteDeviceConnection.GetVideoConnectionList(out listVideoConnections)) {
+			List<RemoteDevice<ExampleVideoObject, ExampleCrestronMsgObject>> listOfRemoteDevices = remoteDeviceConnections.getListOfRemoteDevices();
+			if (listOfRemoteDevices.Any()) {
 				//Create an IEnumerable with device models
-				IEnumerable<DeviceModel> enumerableDeviceModels = new DeviceModel[] { };
+				IEnumerable<DeviceModel> enumerableDeviceModels = Array.Empty<DeviceModel>();
 				//Lock unsafe list
-				lock (listVideoConnections) {
-					foreach (var videoConnection in listVideoConnections) {
-						InstrumentInformation info = videoConnection.GetInstrumentInformation();
-						//TODO: Add has crestron boolean to instrument information
+				lock (listOfRemoteDevices) {
+					foreach (var device in listOfRemoteDevices) {
+
+						string deviceName = device.name;
+						string deviceLocation = device.location;
+						string deviceType = device.type;
+						
+						//Get sub devices
+						List<string> subNames = device.getSubNamesList();
+
 						enumerableDeviceModels =
-							enumerableDeviceModels.Append(new DeviceModel(info.Name, info.Location, info.Type, true));
+							enumerableDeviceModels.Append(new DeviceModel(deviceName,deviceLocation,deviceType,subNames));
 					}
 				}
 
