@@ -75,7 +75,7 @@ namespace Server_Library_Test {
 			while (!found1) {
 				lock (listOfSendingConnection) {
 					foreach (var connection in listOfSendingConnection) {
-						ClientInformation clientInformation = connection.getInstrumentInformation();
+						ClientInformation clientInformation = connection.getClientInformation();
 						if (clientInformation.Name == "receivingClient1") {
 							sendingConnection1 = connection;
 							found1 = true;
@@ -91,7 +91,7 @@ namespace Server_Library_Test {
 			while (!found2) {
 				lock (listOfSendingConnection) {
 					foreach (var connection in listOfSendingConnection) {
-						ClientInformation clientInformation = connection.getInstrumentInformation();
+						ClientInformation clientInformation = connection.getClientInformation();
 						if (clientInformation.Name == "receivingClient2") {
 							sendingConnection2 = connection;
 							found2 = true;
@@ -107,7 +107,7 @@ namespace Server_Library_Test {
 			while (!found3) {
 				lock (listOfSendingConnection) {
 					foreach (var connection in listOfSendingConnection) {
-						ClientInformation clientInformation = connection.getInstrumentInformation();
+						ClientInformation clientInformation = connection.getClientInformation();
 						if (clientInformation.Name == "receivingClient3") {
 							sendingConnection3 = connection;
 							found3 = true;

@@ -59,7 +59,7 @@ namespace Server_Library.Connection_Classes {
 		/// Get the Instrument information from Crestron connection
 		/// </summary>
 		/// <returns>Instrument Information</returns>
-		public ClientInformation getInstrumentInformation() {
+		public ClientInformation getClientInformation() {
 			return info;
 		}
 
