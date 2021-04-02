@@ -17,7 +17,7 @@ namespace ReceivingClientTester {
 		        new ClientInformation("clientTester", "location", "type","crestronControl"), new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
-				receivingClient.run(1);
+				receivingClient.run(0);
 	        });
 
 	        while (true) {
@@ -25,7 +25,7 @@ namespace ReceivingClientTester {
 					Console.WriteLine("Received object text: {0}",output.msg);
 					continue;
 		        }
-				Thread.Sleep(100);
+				Thread.Sleep(10);
 	        }
 
         }
