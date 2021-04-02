@@ -17,7 +17,7 @@ namespace SendingClientTester {
 		        new SendingClient<ExampleVideoObject>("127.0.0.1", 6980,  new ClientInformation("clientTester", "location", "type","videoStream"),new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
-				sendingClient.run();
+				sendingClient.run(100);
 	        });
 
 	        while (true) {
