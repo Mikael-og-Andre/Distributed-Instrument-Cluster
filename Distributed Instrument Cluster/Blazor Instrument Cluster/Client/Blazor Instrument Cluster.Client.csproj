@@ -22,4 +22,8 @@
     <ProjectReference Include="..\Shared\Blazor Instrument Cluster.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Code\" />
+  </ItemGroup>
+
 </Project>

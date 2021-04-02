@@ -14,6 +14,10 @@
     readonly CancellationTokenSource disposalTokenSource = new();           //Disposal token for async communication
     readonly ClientWebSocket videoWebSocket = new();                        //Client websocket
     bool foundDevice = false;                                               //Was the requested device found or not
+    private bool controlling { get; set; }
+    [CascadingParameter]
+    public int queuePosition { get; set; }
+
 
     [Parameter]
     public string name { get; set; }                                        //Name of the wanted device
@@ -30,62 +34,29 @@
     string pathToVideoWebsocket = "videoStream";
 
     protected override async Task OnInitializedAsync() {
-        //Get base uri and connect to that
-        string basePath = navigationManager.BaseUri;
-        basePath = basePath.Replace("https://", "wss://");
-
-        await videoWebSocket.ConnectAsync(new Uri(basePath + pathToVideoWebsocket), disposalTokenSource.Token);
-
-        //Sends name and setup socket
-        foundDevice = await setupSocket();
-
-        //Start the video receive loop
-        if (foundDevice) {
-            Console.WriteLine("Found device, Accepting incoming frames");
-            _ = receiveVideo();
-        }
-        else {
-            Console.WriteLine("Device was with name {0} was not found by server, Or another error occurred with the websocket", name);
-        }
+        //Try to connect on launch
+        await connectAsync();
     }
 
-    /// <summary>
-    /// Start Receiving video
-    /// </summary>
-    /// <returns></returns>
-    async Task receiveVideo() {
+    private async Task connectAsync() {
+        try {
+            //Get base uri and connect to that
+            string basePath = navigationManager.BaseUri;
+            basePath = basePath.Replace("https://", "wss://");
 
-        while (!disposalTokenSource.IsCancellationRequested) {
+            await videoWebSocket.ConnectAsync(new Uri(basePath + pathToVideoWebsocket), disposalTokenSource.Token);
 
-            if (!foundDevice) continue; ;
-            try {
-                ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[frameBufferSize]);
-                await videoWebSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
-                Console.WriteLine(buffer.Count);
-                string incomingJson = Encoding.UTF8.GetString(buffer).TrimEnd('\0');
-                Console.WriteLine(incomingJson);
-                ExampleVideoObject exampleVideoObject = null;
-                try {
-                    exampleVideoObject = JsonSerializer.Deserialize<ExampleVideoObject>(incomingJson);
-                }
-                catch (Exception) {
-                    Console.WriteLine("Could not serialize incoming json");
-                    continue;
-                }
-
-
-                imgsrc = string.Format("data:image/jpg;base64,{0}", exampleVideoObject.imgbase64);
-
-                Console.WriteLine("Base64: {0}", exampleVideoObject.imgbase64);
-
-                StateHasChanged();
-            }
-            catch (Exception e) {
-                Console.WriteLine(e);
-                throw;
-            }
+            //Sends name and setup socket
+            foundDevice = await setupSocket();
+            //enter the queue
+            controlling = await enterQueue();
+            //Receive video
+            _ = receiveVideo();
         }
-
+        catch (Exception) {
+            Console.WriteLine("Unable to connect due to unknown error");
+        }
+        return;
     }
 
     /// <summary>
@@ -125,6 +96,89 @@
         }
         catch (Exception) {
             return false;
+        }
+
+    }
+
+    private async Task<bool> enterQueue() {
+
+        //Receive signal for in queue
+        byte[] inqueueBuffer = new byte[1024];
+        ArraySegment<byte> inqueueSegment = new ArraySegment<byte>(inqueueBuffer);
+        await videoWebSocket.ReceiveAsync(inqueueSegment, disposalTokenSource.Token);
+        string inqueueResponse = Encoding.UTF8.GetString(inqueueSegment).TrimEnd('\0');
+        //if the response is not in queue the return false;
+        if (!inqueueResponse.ToLower().Equals("in queue".ToLower())) {
+            return false;
+        }
+        //receive position in queue
+        string receivedMsg = "";
+        while (!disposalTokenSource.IsCancellationRequested) {
+            byte[] queueBytes = new byte[1024];
+            ArraySegment<byte> qSegment = new ArraySegment<byte>(queueBytes);
+            await videoWebSocket.ReceiveAsync(qSegment, disposalTokenSource.Token);
+            receivedMsg = Encoding.UTF8.GetString(qSegment).TrimEnd('\0');
+            //If msg is controlling break
+            if (receivedMsg.ToLower().Equals("controlling".ToLower())) {
+                return true;
+            }
+
+            //try to cast queue position
+            //Check if all chars in string is a number
+            if (receivedMsg.All(char.IsDigit)) {
+                try {
+                    int parsedInt = int.Parse(receivedMsg);
+                    //Update position value
+                    queuePosition = parsedInt;
+                    //Update state
+                    StateHasChanged();
+                }
+                catch (Exception) {
+                    Console.WriteLine("Failed to parse queue position {0}", receivedMsg);
+                }
+            }
+        }
+        //return true
+        return true;
+    }
+
+    /// <summary>
+    /// Start Receiving video
+    /// </summary>
+    /// <returns></returns>
+    private async Task receiveVideo() {
+
+        while (!disposalTokenSource.IsCancellationRequested) {
+            //If device is not found skip
+            if (!foundDevice) continue;
+            //If does not have control skip
+            if (!controlling) continue;
+            //get frames
+            try {
+                ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[frameBufferSize]);
+                await videoWebSocket.ReceiveAsync(buffer, disposalTokenSource.Token);
+                Console.WriteLine(buffer.Count);
+                string incomingJson = Encoding.UTF8.GetString(buffer).TrimEnd('\0');
+                Console.WriteLine(incomingJson);
+                ExampleVideoObject exampleVideoObject = null;
+                try {
+                    exampleVideoObject = JsonSerializer.Deserialize<ExampleVideoObject>(incomingJson);
+                }
+                catch (Exception) {
+                    Console.WriteLine("Could not serialize incoming json");
+                    continue;
+                }
+                //Update image
+                imgsrc = string.Format("data:image/jpg;base64,{0}", exampleVideoObject.imgbase64);
+
+                Console.WriteLine("Base64: {0}", exampleVideoObject.imgbase64);
+
+                StateHasChanged();
+            }
+            catch (Exception e) {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
     }

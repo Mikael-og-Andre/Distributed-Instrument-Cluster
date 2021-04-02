@@ -5,7 +5,10 @@
 
 <div style="width: 1280px; height: 720px; position: relative">
     <KeyboardMouse name="@name" location="@location" type="@type" subname="@subnameCrestron"></KeyboardMouse>
-    <Video name="@name" location="@location" type="@type" subname="@subnameVideo"></Video>
+    <CascadingValue Value="@queuePosition">
+        <Video name="@name" location="@location" type="@type" subname="@subnameVideo"></Video>
+    </CascadingValue>
+    
 </div>
 
 
@@ -20,5 +23,7 @@
     public string subnameCrestron { get; set; }
     [Parameter]
     public string subnameVideo { get; set; }
+
+    int queuePosition;
 
 }
