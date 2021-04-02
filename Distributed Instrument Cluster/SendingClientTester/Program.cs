@@ -21,9 +21,9 @@ namespace SendingClientTester {
 	        });
 
 	        while (true) {
-		        Thread.Sleep(10000);
 		        ExampleVideoObject obj =new ExampleVideoObject(imgBase64);
 				sendingClient.queueObjectForSending(obj);
+				Thread.Sleep(10000);
 	        }
         }
 

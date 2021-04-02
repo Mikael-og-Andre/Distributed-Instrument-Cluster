@@ -36,6 +36,10 @@
     public string subname { get; set; }
 
     private bool deviceFound = false;                                               //Bool representing if the control of the device has been granted
+    private bool controlling = false;
+
+    private int queuePosition = -1;
+
     private string pathToCrestronWebsocket = "crestronControl";
 
     #region Events
@@ -72,7 +76,6 @@
                 break;
         }
     }
-
 
     private Dictionary<string, bool> downedKeys = new();
 
@@ -111,7 +114,8 @@
 
     private async void sendData(string s) {
         if (!(await JS.InvokeAsync<bool>("isLocked"))) return;
-        if (deviceFound) return;
+        if (!deviceFound) return;
+        if(!controlling) return;
 
         try {
             //Create object
@@ -138,7 +142,7 @@
     }
 
     protected override async Task OnInitializedAsync() {
-        await ConnectToCrestronControl();
+        await connectToCrestronControl();
     }
 
     #region socket
@@ -147,7 +151,7 @@
     /// Connect to the backend device
     /// </summary>
     /// <returns></returns>
-    private async Task ConnectToCrestronControl() {
+    private async Task connectToCrestronControl() {
         disposalTokenSource = new CancellationTokenSource();
         crestronWebSocket = new ClientWebSocket();
 
@@ -159,9 +163,11 @@
         //Check if the device requested exists
         try {
             deviceFound = await SetupSocket();
+            //enter the queue
+            controlling = await enterQueue();
         }
         catch (Exception) {
-            deviceFound = false;
+            Console.WriteLine("Connection failed");
         }
 
     }
@@ -205,6 +211,53 @@
         }
 
     }
+
+    private async Task<bool> enterQueue() {
+
+        //Receive signal for in queue
+        byte[] inqueueBuffer = new byte[1024];
+        ArraySegment<byte> inqueueSegment = new ArraySegment<byte>(inqueueBuffer);
+        await crestronWebSocket.ReceiveAsync(inqueueSegment, disposalTokenSource.Token);
+        string inqueueResponse = Encoding.UTF8.GetString(inqueueSegment).TrimEnd('\0');
+        //if the response is not in queue the return false
+        if (!inqueueResponse.ToLower().Equals("in queue".ToLower())) {
+            return false;
+        }
+        //receive position in queue
+        string receivedMsg = "";
+        while (!disposalTokenSource.IsCancellationRequested) {
+            //Receive a message
+            byte[] queueBytes = new byte[1024];
+            ArraySegment<byte> qSegment = new ArraySegment<byte>(queueBytes);
+            await crestronWebSocket.ReceiveAsync(qSegment, disposalTokenSource.Token);
+            receivedMsg = Encoding.UTF8.GetString(qSegment).TrimEnd('\0');
+            //If msg is controlling break
+            if (receivedMsg.ToLower().Equals("controlling".ToLower())) {
+                return true;
+            }
+
+            //try to cast queue position
+            //Check if all chars in string is a number
+            if (receivedMsg.All(char.IsDigit)) {
+                try {
+                    int parsedInt = int.Parse(receivedMsg);
+                    //Update position value
+                    queuePosition = parsedInt;
+                    //Log
+                    Console.WriteLine("Queue position: "+queuePosition);
+                    //Update state
+                    StateHasChanged();
+                }
+                catch (Exception) {
+                    Console.WriteLine("Failed to parse queue position {0}", receivedMsg);
+                }
+            }
+        }
+        //return true
+        return true;
+    }
+
+
 
     #endregion
 }
