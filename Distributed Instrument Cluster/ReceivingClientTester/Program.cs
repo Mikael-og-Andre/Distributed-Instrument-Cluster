@@ -17,7 +17,7 @@ namespace ReceivingClientTester {
 		        new ClientInformation("clientTester", "location", "type","crestronControl"), new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
-				receivingClient.run(100);
+				receivingClient.run(1);
 	        });
 
 	        while (true) {
