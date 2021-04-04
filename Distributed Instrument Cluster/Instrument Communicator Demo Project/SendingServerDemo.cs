@@ -27,7 +27,7 @@ namespace serverDemo {
 
 			CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 			ReceivingClient<exampleObject> receivingClient = new ReceivingClient<exampleObject>("127.0.0.1", 5051, new ClientInformation("receivingClient", "here", "testing","testingSubname"), new AccessToken("access"), cancellationTokenSource.Token);
-			Task receivingClientTask = new Task(() => receivingClient.run());
+			Task receivingClientTask = new Task(() => receivingClient.run(0));
 			receivingClientTask.Start();
 
 			List<SendingConnection<exampleObject>> connections = sender.getListOfSendingConnections();
