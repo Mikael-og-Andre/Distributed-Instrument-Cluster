@@ -42,15 +42,15 @@ namespace Server_Library_Test {
 				cancellationTokenSource.Token);
 
 			Task.Run(() => {
-				sendingClient1.run();
+				sendingClient1.run(0);
 			});
 
 			Task.Run(() => {
-				sendingClient2.run();
+				sendingClient2.run(0);
 			});
 
 			Task.Run(() => {
-				sendingClient3.run();
+				sendingClient3.run(0);
 			});
 
 			//List
@@ -192,7 +192,7 @@ namespace Server_Library_Test {
 
 			//Start client
 			Task.Run(() => {
-				sendingClient.run();
+				sendingClient.run(0);
 			});
 			//Accept socket and authorize
 			Socket socket = listenerSocket.Accept();
