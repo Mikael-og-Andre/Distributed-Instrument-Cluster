@@ -1,15 +1,17 @@
 ﻿using System;
+using System.Threading;
 using Blazor_Instrument_Cluster.Server.CommandHandler;
+using Blazor_Instrument_Cluster.Server.SendingHandler;
 using Server_Library;
 using Server_Library.Connection_Types;
 
-namespace Blazor_Instrument_Cluster.Server.SendingHandler {
+namespace Blazor_Instrument_Cluster.Server.ControlHandler {
 
 	/// <summary>
 	/// Queue for dealing with one at a time control of a remote device
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class SendingControlHandler<U> {
+	public class ControlHandler<U> {
 
 		/// <summary>
 		/// Time the controller is allowed to be inactive before control is relinquished
@@ -19,19 +21,27 @@ namespace Blazor_Instrument_Cluster.Server.SendingHandler {
 		/// <summary>
 		/// Queue of controllers
 		/// </summary>
-		private TrackingQueue<ControlToken> queueControllers;
+		private TrackingQueue<ControlToken<U>> queueControllers;
 
 		/// <summary>
 		/// The current token with control of the system
 		/// </summary>
-		private ControlToken currentController;
+		private ControlToken<U> currentController;
 
 		/// <summary>
 		/// Connection that sends items to the remote device
 		/// </summary>
 		private SendingConnection<U> sendingConnection;
 
+		/// <summary>
+		/// Should the control allow multiple senders
+		/// </summary>
 		private bool allowMultiControl { get; set; }
+		/// <summary>
+		/// Cancellation source
+		/// </summary>
+		private CancellationTokenSource cancellationTokenSource;
+
 
 		/// <summary>
 		/// Constructor
@@ -39,21 +49,22 @@ namespace Blazor_Instrument_Cluster.Server.SendingHandler {
 		/// <param name="allowedInactiveTimeMinutes"></param>
 		/// <param name="sender"></param>
 		/// <param name="allowMultiControl">True if you want to disable the check for current controllers</param>
-		public SendingControlHandler(double allowedInactiveTimeMinutes, SendingConnection<U> sender, bool allowMultiControl) {
-			this.queueControllers = new TrackingQueue<ControlToken>();
+		public ControlHandler(double allowedInactiveTimeMinutes, SendingConnection<U> sender, bool allowMultiControl) {
+			this.queueControllers = new TrackingQueue<ControlToken<U>>();
 			this.currentController = null;
 			this.allowedInactiveTimeMinutes = allowedInactiveTimeMinutes;
 			this.sendingConnection = sender;
 			this.allowMultiControl = allowMultiControl;
+			this.cancellationTokenSource = new CancellationTokenSource();
 		}
 
 		/// <summary>
 		/// Generates a control token and gives it to the caller
 		/// </summary>
 		/// <returns></returns>
-		public ControlToken enterQueue() {
+		public ControlToken<U> enterQueue() {
 			//Create a new control token
-			ControlToken token = new ControlToken();
+			ControlToken<U> token = new ControlToken<U>(this);
 			//if multi user check has control
 			if (allowMultiControl) {
 				token.hasControl = true;
@@ -69,7 +80,10 @@ namespace Blazor_Instrument_Cluster.Server.SendingHandler {
 		/// <summary>
 		/// Updates the handler and relinquishes control of the controller if the specified inactive time has been surpassed or if there is no current controller
 		/// </summary>
-		public void updateController() {
+		private void updateController() {
+			if (allowMultiControl) {
+				return;
+			}
 			//if there is no current controller get the next one from the queue
 			if (currentController is null) {
 				setNextControllerFromQueue();
@@ -91,13 +105,16 @@ namespace Blazor_Instrument_Cluster.Server.SendingHandler {
 		/// Get a controller from queue if possible, set it to controlling, otherwise set a null as current controller
 		/// </summary>
 		private void setNextControllerFromQueue() {
+			if (allowMultiControl) {
+				return;
+			}
 			//If there is a current controller set it to no longer have control
 			if (currentController is not null) {
 				currentController.hasControl = false;
 			}
 
 			//Try to get a new controller
-			if (queueControllers.tryDequeue(out ControlToken output)) {
+			if (queueControllers.tryDequeue(out ControlToken<U> output)) {
 				currentController = output;
 				currentController.hasControl = true;
 			}
@@ -113,7 +130,7 @@ namespace Blazor_Instrument_Cluster.Server.SendingHandler {
 		/// <param name="jsonObject">Object that u want to send</param>
 		/// <param name="token">Token for control, Leave as null if multi control is on</param>
 		/// <returns>True if object was queued for sending</returns>
-		public bool trySend(U jsonObject, ControlToken token) {
+		public bool trySend(U jsonObject, ControlToken<U> token) {
 			//If multi user is on, just send
 			if (allowMultiControl) {
 				sendingConnection.queueObjectForSending(jsonObject);
@@ -149,7 +166,7 @@ namespace Blazor_Instrument_Cluster.Server.SendingHandler {
 		/// </summary>
 		/// <param name="controlToken"></param>
 		/// <returns>-1 if not found, 0 if in control, or int</returns>
-		public int getQueuePosition(ControlToken controlToken) {
+		public int getQueuePosition(ControlToken<U> controlToken) {
 			//If multi user support return 0
 			if (allowMultiControl) {
 				return 0; 
@@ -161,6 +178,23 @@ namespace Blazor_Instrument_Cluster.Server.SendingHandler {
 
 			//Search for position in Tracking queue
 			return queueControllers.getPosition(controlToken);
+		}
+
+		/// <summary>
+		/// Update the controller
+		/// </summary>
+		public void run(int updateDelay) {
+			while (!cancellationTokenSource.IsCancellationRequested) {
+				updateController();
+				Thread.Sleep(updateDelay);
+			}
+		}
+
+		/// <summary>
+		/// Trigger cancellation token
+		/// </summary>
+		public void stop() {
+			cancellationTokenSource.Cancel();
 		}
 	}
 }

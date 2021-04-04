@@ -10,6 +10,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Blazor_Instrument_Cluster.Server.ControlHandler;
+using Blazor_Instrument_Cluster.Shared;
 
 namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
@@ -61,60 +63,65 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				if (result.found) {
 					RemoteDevice<T, U> remoteDevice = result.device;
 					ClientInformation info = result.info;
-					//Queue for control of the sending connection
-					(bool enteredQueue, SendingControlHandler<U> handler, ControlToken controlToken) queueResult = enterQueue(remoteDevice, info);
+					
+					//Get a control token
+					if (remoteDevice.getControlTokenForDevice(info.SubName, out ControlToken<U> output)) {
+						ControlToken<U> controlToken = output;
+						//Update that the control token was found
+						await sendStringWithWebsocketAsync("found controller", websocket, cancellationToken);
 
-					bool hasQueued = queueResult.enteredQueue;
-					SendingControlHandler<U> sendingHandler = queueResult.handler;
-					ControlToken controlToken = queueResult.controlToken;
+						while (!cancellationToken.IsCancellationRequested) {
+							//Break loop if token is abandoned
+							if (controlToken.isInactive) {
+								break;
+							}
 
-					//Check if successfully queued
-					if (!hasQueued) {
-						//end connection
-						await stopConnectionAsync("Sub device was not found", socketFinishedTcs, cancellationToken, websocket, controlToken);
-						return;
-					}
+							//if the token has control, start sending
+							if (controlToken.hasControl) {
+								//Send controlling statement
+								await sendStringWithWebsocketAsync("controlling".ToLower(), websocket, cancellationToken);
+								
+								//Send while having control
+								while (controlToken.hasControl) {
 
-					//Signal that they are in queue
-					await sendStringWithWebsocketAsync("in queue", websocket, cancellationToken);
+									byte[] receivedBytes = new byte[1024];
+									ArraySegment<byte> receivedSegment = new ArraySegment<byte>(receivedBytes);
+									await websocket.ReceiveAsync(receivedSegment, cancellationToken);
+									string receivedString = Encoding.UTF8.GetString(receivedSegment).TrimEnd('\0');
 
-					//While you are in the queue update queue position for the client
-					while (!controlToken.hasControl) {
-						//Update time on token
-						controlToken.updateTime();
-						//update the controller
-						sendingHandler.updateController();
-						//Get the position in queue
-						int position = sendingHandler.getQueuePosition(controlToken);
-						//If returned pos is -1 the control token was not found in the system, so end the connection
-						if (position == -1) {
-							await stopConnectionAsync("Closing Connection", socketFinishedTcs, cancellationToken, websocket, controlToken);
-							return;
+									//Try to deserialize the incoming object
+									try {
+										//Deserialize
+										U receivedObject = JsonSerializer.Deserialize<U>(receivedString);
+										//Send
+										bool sent = controlToken.send(receivedObject);
+									}
+									catch (Exception) {
+										logger.LogWarning("Deserialization in CrestronWebsocket Failed");
+									}
+
+								}
+								//End token
+								controlToken.abandon();
+							}
+
+							//get position
+							int pos = controlToken.getPosition();
+							//check if -1, that means the device was not found in the queue or as a controller
+							if (pos==-1) {
+								await stopConnectionAsync("No longer in queue", socketFinishedTcs, cancellationToken,
+									websocket, controlToken);
+								break;
+							}
+							//Update position
+							await sendStringWithWebsocketAsync("" + pos, websocket, cancellationToken);
+
 						}
-						//Check if we have control
-						if ((position == 0) && controlToken.hasControl) {
-							//Update position for user
-							await sendStringWithWebsocketAsync("" + position, websocket, cancellationToken);
-							break;
-						}
-						//Update position for user
-						await sendStringWithWebsocketAsync("" + position, websocket, cancellationToken);
-						//Wait
-						await Task.Delay(10000, cancellationToken);
 					}
-
-					//Send signal that they are in control
-					await sendStringWithWebsocketAsync("controlling", websocket, cancellationToken);
-
-					//Start receiving commands
-					while (controlToken.hasControl) {
-						//Update time since last action
-						controlToken.updateTime();
-						//Receive a command and push it to remote device
-						await receiveCommandAsync(websocket,controlToken,sendingHandler,2048,cancellationToken);
+					else {
+						//Controller not found
+						await sendStringWithWebsocketAsync("no controller",websocket,cancellationToken);
 					}
-					//Time overdue
-					await stopConnectionAsync("Lost Control", socketFinishedTcs, cancellationToken, websocket, controlToken);
 				}
 				else {
 					//Send no match
@@ -135,9 +142,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			socketFinishedTcs.TrySetResult(new object());
 		}
 
-#region Startup information sharing
-
-
+		#region Startup information sharing
 
 		/// <summary>
 		/// Setup and information sharing with the client websocket
@@ -152,108 +157,47 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			ArraySegment<byte> startSegment = new ArraySegment<byte>(startBytes);
 			await websocket.SendAsync(startSegment, WebSocketMessageType.Text, true, token);
 
-			byte[] nameBuffer = new byte[1024];
-			byte[] locationBuffer = new byte[1024];
-			byte[] typeBuffer = new byte[1024];
-			byte[] subnameBuffer = new byte[1024];
+			byte[] deviceBuffer = new byte[4098];
+			
+			//Get device info
+			ArraySegment<byte> deviceSeg = new ArraySegment<byte>(deviceBuffer);
+			await websocket.ReceiveAsync(deviceSeg, token);
+			string deviceJson = Encoding.UTF8.GetString(deviceSeg).TrimEnd('\0');
 
-			//Get name of wanted device
-			ArraySegment<byte> nameSegment = new ArraySegment<byte>(nameBuffer);
-			await websocket.ReceiveAsync(nameSegment, token);
-			string name = Encoding.UTF8.GetString(nameSegment).TrimEnd('\0');
+			RequestConnectionModel deviceInfo = null;
 
-			//Get location of wanted device
-			ArraySegment<byte> locationSegment = new ArraySegment<byte>(locationBuffer);
-			await websocket.ReceiveAsync(locationSegment, token);
-			string location = Encoding.UTF8.GetString(locationSegment).TrimEnd('\0');
-
-			//Get type of device
-			ArraySegment<byte> typeSegment = new ArraySegment<byte>(typeBuffer);
-			await websocket.ReceiveAsync(typeSegment, token);
-			string type = Encoding.UTF8.GetString(typeSegment).TrimEnd('\0');
-
-			//Get subname representing what part of the device u want
-			ArraySegment<byte> subnameSegment = new ArraySegment<byte>(subnameBuffer);
-			await websocket.ReceiveAsync(subnameSegment, token);
-			string subname = Encoding.UTF8.GetString(subnameSegment).TrimEnd('\0');
+			try {
+				//Deserialize from json
+				deviceInfo = JsonSerializer.Deserialize<RequestConnectionModel>(deviceJson);
+			}
+			catch (Exception) {
+				//failed
+				return (false, null, null);
+			}
 
 			//Check if device exists
 			bool found = false;
 			RemoteDevice<T, U> foundDevice = null;
 			//Try to find the requested device
-			if (remoteDeviceConnections.getRemoteDeviceWithNameLocationAndType(name, location, type, out RemoteDevice<T, U> outputDevice)) {
+			if (remoteDeviceConnections.getRemoteDeviceWithNameLocationAndType(deviceInfo.name, deviceInfo.location, deviceInfo.type, out RemoteDevice<T, U> outputDevice)) {
 				//Device was found, check if the sub name exists on the device
 				foundDevice = outputDevice;
 
 				List<string> listOfSubNames = foundDevice.getSubNamesList();
 
 				foreach (var obj in listOfSubNames) {
-					if (obj.ToLower().Equals(subname.ToLower())) {
+					if (obj.ToLower().Equals(deviceInfo.subname.ToLower())) {
 						found = true;
 					}
 				}
 			}
 
-			(bool, ClientInformation, RemoteDevice<T, U>) result = (found, new ClientInformation(name, location, type, subname), foundDevice);
+			(bool, ClientInformation, RemoteDevice<T, U>) result = (found, new ClientInformation(deviceInfo.name, deviceInfo.location, deviceInfo.type, deviceInfo.subname), foundDevice);
 
 			return result;
 		}
 
-
-#endregion
-
-#region Enter queue
-
-
-		/// <summary>
-		/// Enter the queue for the Control handler that matches the client information
-		/// </summary>
-		/// <param name="device">Device with the controller u want to queue for</param>
-		/// <param name="clientInformation">Information with the subname of the correct sending connection</param>
-		/// <returns></returns>
-		private (bool, SendingControlHandler<U>, ControlToken) enterQueue(RemoteDevice<T, U> device, ClientInformation clientInformation) {
-			//Check if device is found
-			if (device.getSendingControlHandlerWithSubname(clientInformation.SubName, out SendingControlHandler<U> output)) {
-				//enter the queue and get control token
-				ControlToken controlToken = output.enterQueue();
-				return (true, output, controlToken);
-			}
-			else {
-				return (false, default, default);
-			}
-		}
-
-#endregion
-
-#region Handle commands received
-
-		/// <summary>
-		/// Receive a command from the websocket
-		/// </summary>
-		/// <param name="websocket"></param>
-		/// <param name="controlToken"></param>
-		/// <param name="outputConnection"></param>
-		/// <param name="bufferSize">Array size reserved for incoming message</param>
-		/// <param name="token"></param>
-		private async Task receiveCommandAsync(WebSocket websocket, ControlToken controlToken, SendingControlHandler<U> outputConnection,int bufferSize, CancellationToken token) {
-			//Receive a command from the socket
-			ArraySegment<byte> receivedArraySegment = new ArraySegment<byte>(new byte[bufferSize]);
-			await websocket.ReceiveAsync(receivedArraySegment, token);
-			string receivedJson = Encoding.UTF8.GetString(receivedArraySegment).TrimEnd('\0');
-
-			try {
-				//Deserialize into U and queue for sending back to the connection
-				U newObject = JsonSerializer.Deserialize<U>(receivedJson);
-				//attempt to send
-				outputConnection.trySend(newObject, controlToken);
-			}
-			catch (Exception e) {
-				logger.LogWarning(e, "Error happened in Json Serializing for crestronWebsocket");
-				throw;
-			}
-		}
-
-#endregion
+		#endregion Startup information sharing
 
 #region Websocket actions
 
@@ -265,23 +209,28 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// <param name="cancellationToken"></param>
 		/// <param name="webSocket"></param>
 		/// <param name="controlToken"></param>
-		private async Task stopConnectionAsync(string statusDescription, TaskCompletionSource<object> socketFinishedTcs, CancellationToken cancellationToken, WebSocket webSocket, ControlToken controlToken = null) {
+		private async Task stopConnectionAsync(string statusDescription, TaskCompletionSource<object> socketFinishedTcs, CancellationToken cancellationToken, WebSocket webSocket, ControlToken<U> controlToken = null) {
 			//If control token is passed, set as inactive to move the queue along
-			if (controlToken is not null) {
-				controlToken.isInactive = true;
-			}
+			controlToken?.abandon();
 			//Close websocket
 			await webSocket.CloseAsync(WebSocketCloseStatus.ProtocolError, statusDescription, cancellationToken);
 			//signal connection is over
 			socketFinishedTcs.TrySetResult(new object());
 		}
 
+		/// <summary>
+		/// Send a string
+		/// </summary>
+		/// <param name="msg"></param>
+		/// <param name="websocket"></param>
+		/// <param name="token"></param>
+		/// <returns></returns>
 		private async Task sendStringWithWebsocketAsync(string msg, WebSocket websocket, CancellationToken token) {
 			//Send
 			ArraySegment<byte> sendingBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(msg));
 			await websocket.SendAsync(sendingBytes, WebSocketMessageType.Text, true, token);
 		}
 
-#endregion
+		#endregion Websocket actions
 	}
 }

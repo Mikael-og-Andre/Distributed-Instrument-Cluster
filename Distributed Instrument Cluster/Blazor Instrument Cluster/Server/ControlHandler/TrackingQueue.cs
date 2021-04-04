@@ -50,6 +50,7 @@ namespace Blazor_Instrument_Cluster.Server.CommandHandler {
 		/// <summary>
 		/// Returns position in queue of the wanted item, Returns -1 if not found
 		/// the number is position away from being the next dequeue
+		/// The smallest position value will be 1
 		/// </summary>
 		/// <param name="input">Item to search for in the queue</param>
 		/// <returns>position as int, or -1 if not found</returns>
@@ -63,7 +64,7 @@ namespace Blazor_Instrument_Cluster.Server.CommandHandler {
 				//Get last node
 				LinkedListNode<T> currentNode = linkedList.Last;
 				//Loop all nodes and check if matching input
-				for (int i = 0; i < linkedList.Count; i++) {
+				for (int i = 1; i <= linkedList.Count; i++) {
 					//Check if matches input
 					if (currentNode.Equals(input)) {
 						return i;

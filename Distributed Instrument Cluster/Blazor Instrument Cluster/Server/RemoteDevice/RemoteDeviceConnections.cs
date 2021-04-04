@@ -77,7 +77,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 						else {
 							SendingConnection<U> sendingConnection = (SendingConnection<U>)connection;
 							//TODO: Add Allow multiuser control via client information
-							device.addSendingConnection(sendingConnection,false,1*60*1000);
+							device.addSendingConnection(sendingConnection,true,1*60*1000);
 						}
 						//Stop looking
 						break;
@@ -98,7 +98,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 					//If it was not receiving it is sending
 					else {
 						SendingConnection<U> sendingConnection = (SendingConnection<U>)connection;
-						newDevice.addSendingConnection(sendingConnection,false,1*60*1000);
+						newDevice.addSendingConnection(sendingConnection,true,1*60*1000);
 					}
 					//Add to list of remote devices
 					listRemoteDevices.Add(newDevice);

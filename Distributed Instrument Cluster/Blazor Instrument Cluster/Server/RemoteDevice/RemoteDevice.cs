@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Blazor_Instrument_Cluster.Server.ControlHandler;
 
 namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 
@@ -51,7 +52,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// <summary>
 		/// List of Sending connection handlers
 		/// </summary>
-		private List<SendingControlHandler<U>> listOfSendingControlHandlers;
+		private List<ControlHandler<U>> listOfSendingControlHandlers;
 
 		/// <summary>
 		/// Constructor
@@ -66,7 +67,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			this.listOfSendingConnections = new List<SendingConnection<U>>();
 			this.listOfReceivingConnections = new List<ReceivingConnection<T>>();
 			this.listOfReceivingConnectionProviders = new List<VideoObjectProvider<T>>();
-			this.listOfSendingControlHandlers = new List<SendingControlHandler<U>>();
+			this.listOfSendingControlHandlers = new List<ControlHandler<U>>();
 		}
 
 		/// <summary>
@@ -86,12 +87,13 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// Adds a sending connection tot he list of sending connections for this remote device
 		/// </summary>
 		/// <param name="sendingConnection"></param>
+		/// <param name="allowMultiUser"></param>
 		public void addSendingConnection(SendingConnection<U> sendingConnection, bool allowMultiUser, double allowedInactiveMinutes) {
 			lock (listOfSendingConnections) {
 				listOfSendingConnections.Add(sendingConnection);
 			}
 			//create handler
-			createSendingControlHandler(allowedInactiveMinutes,sendingConnection,allowMultiUser);
+			startControlHandler(allowedInactiveMinutes,sendingConnection,allowMultiUser);
 		}
 
 		/// <summary>
@@ -178,20 +180,21 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		}
 		
 		/// <summary>
-		/// Get a sending control handler with the input subname
+		/// Get a control token for a sendingConnection Controlhandler
 		/// </summary>
 		/// <param name="subname">Subname of the wanted device</param>
 		/// <param name="output">Output SendingControlHandler</param>
 		/// <returns>True if found, False if not</returns>
-		public bool getSendingControlHandlerWithSubname(string subname, out SendingControlHandler<U> output) {
+		public bool getControlTokenForDevice(string subname, out ControlToken<U> output) {
 			lock (listOfSendingControlHandlers) {
 				//Loop handlers and check
 				foreach (var handler in listOfSendingControlHandlers) {
 					ClientInformation info = handler.getClientInformation();
 
-					//If subnames match return it
+					//If subnames match return it a token
 					if (info.SubName.ToLower().Equals(subname.ToLower())) {
-						output = handler;
+						ControlToken<U> controlToken = handler.enterQueue();
+						output = controlToken;
 						return true;
 					}
 				}
@@ -207,12 +210,17 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// <param name="allowedInactiveMinutes"></param>
 		/// <param name="sendingConnection"></param>
 		/// <param name="allowMultiUser"></param>
-		private void createSendingControlHandler(double allowedInactiveMinutes, SendingConnection<U> sendingConnection, bool allowMultiUser) {
+		private void startControlHandler(double allowedInactiveMinutes, SendingConnection<U> sendingConnection, bool allowMultiUser) {
 			//Create and add a handler
-			SendingControlHandler<U> handler = new SendingControlHandler<U>(allowedInactiveMinutes, sendingConnection, allowMultiUser);
+			ControlHandler<U> handler = new ControlHandler<U>(allowedInactiveMinutes, sendingConnection, allowMultiUser);
 			lock (listOfSendingControlHandlers) {
 				listOfSendingControlHandlers.Add(handler);
 			}
+			//Runs the update function for the controller
+			Task.Run(() => {
+				handler.run(10000);
+			});
+
 		}
 	}
 }
