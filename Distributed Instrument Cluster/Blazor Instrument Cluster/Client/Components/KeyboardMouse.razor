@@ -30,10 +30,10 @@
             </button>
         </div>
         <div class="col">
-            @if (deviceFound&&(!controlling)) {
+            @if (deviceAndControllerFound&&(!controlling)) {
                 <p><b>Status:</b> In queue, Position: @queuePosition</p>
             }
-            else if (deviceFound&&controlling) {
+            else if (deviceAndControllerFound&&controlling) {
                 <p><b>Status:</b> Controlling</p>
             }
             else {
@@ -61,7 +61,7 @@
     [Parameter]
     public string subname { get; set; }
 
-    private bool deviceFound = false;                                               //Bool representing if the control of the device has been granted
+    private bool deviceAndControllerFound = false;                                               //Bool representing if the control of the device has been granted
     private bool controlling = false;
 
     [CascadingParameter]
@@ -141,7 +141,7 @@
 
     private async void sendData(string s) {
         if (!(await JS.InvokeAsync<bool>("isLocked"))) return;
-        if (!deviceFound) {
+        if (!deviceAndControllerFound) {
             Console.WriteLine("Device not found");
             return;
         }
@@ -192,10 +192,12 @@
         await crestronWebSocket.ConnectAsync(new Uri(basePath + pathToCrestronWebsocket), disposalTokenSource.Token);
         //Check if the device requested exists
         try {
-            deviceFound = await SetupSocket();
+            deviceAndControllerFound = await SetupSocket();
+            StateHasChanged();
             //enter the queue
-            if (deviceFound) {
+            if (deviceAndControllerFound) {
                 controlling = await enterQueue();
+                StateHasChanged();
             }
         }
         catch (Exception) {
@@ -228,7 +230,21 @@
             await crestronWebSocket.ReceiveAsync(foundBytes, disposalTokenSource.Token);
             string found = Encoding.UTF8.GetString(foundBytes).TrimEnd('\0');
 
-            return found.ToLower().Equals("found".ToLower());
+            //Device was found
+            if (found.ToLower().Equals("Found Device".ToLower())) {
+                //Now wait to check if the controller gets found
+                byte[] controllerFoundBuffer = new byte[1024];
+                ArraySegment<byte> controllerFoundSeg = new ArraySegment<byte>(controllerFoundBuffer);
+                await crestronWebSocket.ReceiveAsync(controllerFoundBuffer,disposalTokenSource.Token);
+                string controllerFoundString = Encoding.UTF8.GetString(controllerFoundSeg).TrimEnd('\0');
+
+                //Check if controller is found
+                return controllerFoundString.ToLower().Equals("Found Controller".ToLower());
+            }
+            else {
+                return false;
+            }
+            
         }
         catch (Exception) {
             Console.WriteLine("Error when requesting a device");
@@ -239,6 +255,7 @@
 
     private async Task<bool> enterQueue() {
         try {
+
             //receive position in queue
             string receivedMsg = "";
             while (!disposalTokenSource.IsCancellationRequested) {

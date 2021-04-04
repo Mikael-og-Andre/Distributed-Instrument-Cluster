@@ -61,6 +61,10 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 				//Tell socket if the device was found or not
 				if (result.found) {
+					//Send found to signal that the device was found to the conencting websocket
+					await sendStringWithWebsocketAsync("Found Device".ToLower(), websocket, cancellationToken);
+
+
 					RemoteDevice<T, U> remoteDevice = result.device;
 					ClientInformation info = result.info;
 					
@@ -68,7 +72,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 					if (remoteDevice.getControlTokenForDevice(info.SubName, out ControlToken<U> output)) {
 						ControlToken<U> controlToken = output;
 						//Update that the control token was found
-						await sendStringWithWebsocketAsync("found controller", websocket, cancellationToken);
+						await sendStringWithWebsocketAsync("Found Controller".ToLower(), websocket, cancellationToken);
 
 						while (!cancellationToken.IsCancellationRequested) {
 							//Break loop if token is abandoned
