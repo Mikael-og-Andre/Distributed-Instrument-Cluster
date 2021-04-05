@@ -1,5 +1,6 @@
 ﻿using System;
 using Blazor_Instrument_Cluster.Server.ControlHandler;
+using ConsoleKeyInfo = System.ConsoleKeyInfo;
 
 namespace Blazor_Instrument_Cluster.Server.SendingHandler {
 
@@ -54,20 +55,20 @@ namespace Blazor_Instrument_Cluster.Server.SendingHandler {
 		}
 
 		/// <summary>
-		/// Get the position of the token in queue
+		/// Sets time since last action to current time
 		/// </summary>
-		/// <returns>position, or -1 if not in the queue</returns>
-		public int getPosition() {
-			updateTime();
-			return controlHandler.getQueuePosition(this);
+		public void updateTime() {
+			timeLastAction = DateTime.UtcNow;
 		}
 
 		/// <summary>
-		/// Sets time since last action to current time
+		/// Request control of the device, True if you are granted control
 		/// </summary>
-		private void updateTime() {
-			timeLastAction = DateTime.UtcNow;
+		/// <returns>True if you are now the controller</returns>
+		public bool requestControl() {
+			return controlHandler.requestControl(this);
 		}
+
 		/// <summary>
 		/// Abandon the token
 		/// </summary>

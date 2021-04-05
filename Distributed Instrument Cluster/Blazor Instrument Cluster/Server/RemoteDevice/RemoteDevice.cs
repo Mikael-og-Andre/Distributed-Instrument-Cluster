@@ -193,7 +193,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 
 					//If subnames match return it a token
 					if (info.SubName.ToLower().Equals(subname.ToLower())) {
-						ControlToken<U> controlToken = handler.enterQueue();
+						ControlToken<U> controlToken = handler.generateToken();
 						output = controlToken;
 						return true;
 					}
@@ -216,11 +216,6 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			lock (listOfSendingControlHandlers) {
 				listOfSendingControlHandlers.Add(handler);
 			}
-			//Runs the update function for the controller
-			Task.Run(() => {
-				handler.run(10000);
-			});
-
 		}
 	}
 }
