@@ -42,15 +42,15 @@ namespace Server_Library_Test {
 				cancellationTokenSource.Token);
 
 			Task.Run(() => {
-				sendingClient1.run();
+				sendingClient1.run(0);
 			});
 
 			Task.Run(() => {
-				sendingClient2.run();
+				sendingClient2.run(0);
 			});
 
 			Task.Run(() => {
-				sendingClient3.run();
+				sendingClient3.run(0);
 			});
 
 			//List
@@ -90,7 +90,7 @@ namespace Server_Library_Test {
 			while (!found1) {
 				lock (listOfReceivingConnections) {
 					foreach (var connection in listOfReceivingConnections) {
-						ClientInformation clientInformation = connection.getInstrumentInformation();
+						ClientInformation clientInformation = connection.getClientInformation();
 						if (clientInformation.Name == "sendingClient1") {
 							receivingConnection1 = connection;
 							found1 = true;
@@ -106,7 +106,7 @@ namespace Server_Library_Test {
 			while (!found2) {
 				lock (listOfReceivingConnections) {
 					foreach (var connection in listOfReceivingConnections) {
-						ClientInformation clientInformation = connection.getInstrumentInformation();
+						ClientInformation clientInformation = connection.getClientInformation();
 						if (clientInformation.Name == "sendingClient2") {
 							receivingConnection2 = connection;
 							found2 = true;
@@ -122,7 +122,7 @@ namespace Server_Library_Test {
 			while (!found3) {
 				lock (listOfReceivingConnections) {
 					foreach (var connection in listOfReceivingConnections) {
-						ClientInformation clientInformation = connection.getInstrumentInformation();
+						ClientInformation clientInformation = connection.getClientInformation();
 						if (clientInformation.Name == "sendingClient3") {
 							receivingConnection3 = connection;
 							found3 = true;
@@ -192,7 +192,7 @@ namespace Server_Library_Test {
 
 			//Start client
 			Task.Run(() => {
-				sendingClient.run();
+				sendingClient.run(0);
 			});
 			//Accept socket and authorize
 			Socket socket = listenerSocket.Accept();

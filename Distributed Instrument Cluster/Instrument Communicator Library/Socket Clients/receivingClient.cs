@@ -36,7 +36,7 @@ namespace Server_Library.Socket_Clients {
 		/// <summary>
 		/// receive objects
 		/// </summary>
-		protected override void handleConnected() {
+		protected override void handleConnected(int delay) {
 
 			isSetup = true;
 			isSocketConnected = true;
@@ -44,6 +44,7 @@ namespace Server_Library.Socket_Clients {
 			//Receive Objects
 			while (!isRunningCancellationToken.IsCancellationRequested) {
 				receive();
+				Thread.Sleep(delay);
 			}
 		}
 

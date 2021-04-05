@@ -17,13 +17,15 @@ namespace ReceivingClientTester {
 		        new ClientInformation("clientTester", "location", "type","crestronControl"), new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
-				receivingClient.run();
+				receivingClient.run(0);
 	        });
 
 	        while (true) {
 		        if (receivingClient.getObjectFromClient(out ExampleCrestronMsgObject output)) {
 					Console.WriteLine("Received object text: {0}",output.msg);
+					continue;
 		        }
+				Thread.Sleep(10);
 	        }
 
         }

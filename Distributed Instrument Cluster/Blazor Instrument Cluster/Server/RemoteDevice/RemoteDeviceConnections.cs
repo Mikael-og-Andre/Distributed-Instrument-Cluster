@@ -35,6 +35,12 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// </summary>
 		private List<RemoteDevice<T, U>> listRemoteDevices;
 
+		//TODO:Add configuration of multiuser via remote device
+		/// <summary>
+		/// Can multiple users control a sendingConnection
+		/// </summary>
+		private const bool AllowMultiUser = false;
+
 		/// <summary>
 		/// Constructor, Injects logger and service provider
 		/// </summary>
@@ -52,7 +58,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// </summary>
 		/// <param name="connection"></param>
 		public void addConnectionToRemoteDevices(ConnectionBase connection) {
-			ClientInformation newInformation = connection.getInstrumentInformation();
+			ClientInformation newInformation = connection.getClientInformation();
 
 			//Track if the device was found or a new one was added
 			bool deviceAlreadyExisted = false;
@@ -76,7 +82,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 						//If it was not receiving it is sending
 						else {
 							SendingConnection<U> sendingConnection = (SendingConnection<U>)connection;
-							device.addSendingConnection(sendingConnection);
+							device.addSendingConnection(sendingConnection,AllowMultiUser,1*60*1000);
 						}
 						//Stop looking
 						break;
@@ -97,7 +103,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 					//If it was not receiving it is sending
 					else {
 						SendingConnection<U> sendingConnection = (SendingConnection<U>)connection;
-						newDevice.addSendingConnection(sendingConnection);
+						newDevice.addSendingConnection(sendingConnection,AllowMultiUser,1*60*1000);
 					}
 					//Add to list of remote devices
 					listRemoteDevices.Add(newDevice);

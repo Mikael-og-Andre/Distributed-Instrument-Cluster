@@ -1,13 +1,16 @@
-﻿using System;
+﻿using Blazor_Instrument_Cluster.Server.Events;
+using Blazor_Instrument_Cluster.Server.ProviderAndConsumer;
+using Blazor_Instrument_Cluster.Server.SendingHandler;
+using Server_Library;
+using Server_Library.Connection_Types;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Blazor_Instrument_Cluster.Server.Events;
-using Blazor_Instrument_Cluster.Server.ProviderAndConsumer;
-using Server_Library;
-using Server_Library.Connection_Types;
+using Blazor_Instrument_Cluster.Server.ControlHandler;
 
 namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
+
 	/// <summary>
 	/// A remote device connected to the server
 	/// Stores data about connections belonging to each device, and the providers
@@ -47,6 +50,11 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		private List<VideoObjectProvider<T>> listOfReceivingConnectionProviders;
 
 		/// <summary>
+		/// List of Sending connection handlers
+		/// </summary>
+		private List<ControlHandler<U>> listOfSendingControlHandlers;
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="name"></param>
@@ -59,6 +67,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			this.listOfSendingConnections = new List<SendingConnection<U>>();
 			this.listOfReceivingConnections = new List<ReceivingConnection<T>>();
 			this.listOfReceivingConnectionProviders = new List<VideoObjectProvider<T>>();
+			this.listOfSendingControlHandlers = new List<ControlHandler<U>>();
 		}
 
 		/// <summary>
@@ -78,18 +87,24 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// Adds a sending connection tot he list of sending connections for this remote device
 		/// </summary>
 		/// <param name="sendingConnection"></param>
-		public void addSendingConnection(SendingConnection<U> sendingConnection) {
+		/// <param name="allowMultiUser"></param>
+		public void addSendingConnection(SendingConnection<U> sendingConnection, bool allowMultiUser, double allowedInactiveMinutes) {
 			lock (listOfSendingConnections) {
-				listOfSendingConnections.Add(sendingConnection);	
+				listOfSendingConnections.Add(sendingConnection);
 			}
+			//create handler
+			startControlHandler(allowedInactiveMinutes,sendingConnection,allowMultiUser);
 		}
 
-
+		/// <summary>
+		/// Starts a provider which pushes incoming objects from the receiving connections to all subscribers of the corresponding consumer
+		/// </summary>
+		/// <param name="receivingConnection"></param>
 		private void startProvider(ReceivingConnection<T> receivingConnection) {
 			//Info about client
-			ClientInformation info = receivingConnection.getInstrumentInformation();
+			ClientInformation info = receivingConnection.getClientInformation();
 			//Create new provider
-			VideoObjectProvider<T> provider = new VideoObjectProvider<T>(info.Name,info.Location,info.Type,info.SubName);
+			VideoObjectProvider<T> provider = new VideoObjectProvider<T>(info.Name, info.Location, info.Type, info.SubName);
 
 			//Add to list of providers
 			lock (listOfReceivingConnectionProviders) {
@@ -101,7 +116,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			//Run the provider
 			Task.Run(() => {
 				while (!providerCancellationToken.IsCancellationRequested) {
-					try { 
+					try {
 						//Try to get an object and broadcast it to subscribers
 						if (receivingConnection.getObjectFromConnection(out T output)) {
 							provider.pushObject(output);
@@ -110,7 +125,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 							Thread.Sleep(300);
 						}
 					}
-					catch (Exception ex) {
+					catch (Exception) {
 						//Stop provider
 						provider.stop();
 					}
@@ -127,13 +142,13 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 
 			lock (listOfReceivingConnections) {
 				foreach (var receiving in listOfReceivingConnections) {
-					newList.Add(receiving.getInstrumentInformation().SubName);
+					newList.Add(receiving.getClientInformation().SubName);
 				}
 			}
 
 			lock (listOfSendingConnections) {
 				foreach (var sending in listOfSendingConnections) {
-					newList.Add(sending.getInstrumentInformation().SubName);
+					newList.Add(sending.getClientInformation().SubName);
 				}
 			}
 
@@ -143,11 +158,9 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// <summary>
 		/// Checks all providers for a matching subname and subscribes the consumer to it
 		/// </summary>
-		/// <param name="subname">subname of the wanted connection</param>
 		/// <param name="consumer">Consumer that will be subscribed</param>
 		/// <returns>True or false</returns>
 		public bool subscribeToProvider(VideoObjectConsumer<T> consumer) {
-
 			string consumerSubname = consumer.subname;
 
 			lock (listOfReceivingConnectionProviders) {
@@ -165,30 +178,44 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 				return false;
 			}
 		}
-
+		
 		/// <summary>
-		/// Get a sending connection with the matching subname
+		/// Get a control token for a sendingConnection Controlhandler
 		/// </summary>
-		/// <param name="subname"></param>
-		/// <param name="output"></param>
-		/// <returns></returns>
-		public bool getSendingConnectionWithSubname(string subname, out SendingConnection<U> output) {
+		/// <param name="subname">Subname of the wanted device</param>
+		/// <param name="output">Output SendingControlHandler</param>
+		/// <returns>True if found, False if not</returns>
+		public bool getControlTokenForDevice(string subname, out ControlToken<U> output) {
+			lock (listOfSendingControlHandlers) {
+				//Loop handlers and check
+				foreach (var handler in listOfSendingControlHandlers) {
+					ClientInformation info = handler.getClientInformation();
 
-			lock (listOfSendingConnections) {
-				foreach (var connection in listOfSendingConnections) {
-
-					ClientInformation info = connection.getInstrumentInformation();
-
-					//If they match return it
+					//If subnames match return it a token
 					if (info.SubName.ToLower().Equals(subname.ToLower())) {
-						output = connection;
+						ControlToken<U> controlToken = handler.generateToken();
+						output = controlToken;
 						return true;
 					}
 				}
 			}
-
+			//Not found
 			output = default;
 			return false;
+		}
+
+		/// <summary>
+		/// Adds a handler for a sending connection
+		/// </summary>
+		/// <param name="allowedInactiveMinutes"></param>
+		/// <param name="sendingConnection"></param>
+		/// <param name="allowMultiUser"></param>
+		private void startControlHandler(double allowedInactiveMinutes, SendingConnection<U> sendingConnection, bool allowMultiUser) {
+			//Create and add a handler
+			ControlHandler<U> handler = new ControlHandler<U>(allowedInactiveMinutes, sendingConnection, allowMultiUser);
+			lock (listOfSendingControlHandlers) {
+				listOfSendingControlHandlers.Add(handler);
+			}
 		}
 	}
 }

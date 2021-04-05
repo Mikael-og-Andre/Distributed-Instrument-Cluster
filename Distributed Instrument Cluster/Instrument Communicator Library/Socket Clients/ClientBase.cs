@@ -64,7 +64,7 @@ namespace Server_Library.Socket_Clients {
 		/// <summary>
 		/// Starts the client and attempts to connect to the server
 		/// </summary>
-		public void run() {
+		public void run(int delay) {
 			// Create new socket
 			connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			//Connect
@@ -72,13 +72,13 @@ namespace Server_Library.Socket_Clients {
 			//Setup
 			setupConnection(connectionSocket);
 			//HandleConnection
-			handleConnected();
+			handleConnected(delay);
 		}
 
 		/// <summary>
 		/// The main function of a communicator that gets called after you are connected and preforms actions with the socket
 		/// </summary>
-		protected abstract void handleConnected();
+		protected abstract void handleConnected(int delay);
 
 		/// <summary>
 		/// Attempts to connect to the given host and ip

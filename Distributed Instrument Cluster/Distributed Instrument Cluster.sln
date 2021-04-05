@@ -51,7 +51,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SendingClientTester", "Send
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReceivingClientTester", "ReceivingClientTester\ReceivingClientTester.csproj", "{ECBD0362-B3DE-43FF-8673-860BA0ED8F34}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackageClasses", "PackageClasses\PackageClasses.csproj", "{C7E2C8D0-328A-4F65-BB4D-739CF00FFEF0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PackageClasses", "PackageClasses\PackageClasses.csproj", "{C7E2C8D0-328A-4F65-BB4D-739CF00FFEF0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

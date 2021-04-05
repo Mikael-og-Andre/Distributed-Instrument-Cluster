@@ -1,13 +1,10 @@
 ﻿@page "/VideoAndControl/{name}/{location}/{type}/{subnameCrestron}/{subNameVideo}"
 @layout TopBar
 
-<h3>Combined</h3>
-
-<div style="width: 1280px; height: 720px; position: relative">
+<div style="width: 1280px; height: 720px; position: relative" class="container">
     <KeyboardMouse name="@name" location="@location" type="@type" subname="@subnameCrestron"></KeyboardMouse>
     <Video name="@name" location="@location" type="@type" subname="@subnameVideo"></Video>
 </div>
-
 
 @code {
     [Parameter]

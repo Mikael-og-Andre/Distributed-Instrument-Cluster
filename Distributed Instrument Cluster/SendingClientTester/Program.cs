@@ -17,13 +17,13 @@ namespace SendingClientTester {
 		        new SendingClient<ExampleVideoObject>("127.0.0.1", 6980,  new ClientInformation("clientTester", "location", "type","videoStream"),new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
-				sendingClient.run();
+				sendingClient.run(1);
 	        });
 
 	        while (true) {
-		        Thread.Sleep(10000);
 		        ExampleVideoObject obj =new ExampleVideoObject(imgBase64);
 				sendingClient.queueObjectForSending(obj);
+				Thread.Sleep(10000);
 	        }
         }
 

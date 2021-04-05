@@ -35,7 +35,7 @@ namespace Server_Library.Socket_Clients {
 		/// <summary>
 		/// Send objects from the queue
 		/// </summary>
-		protected override void handleConnected() {
+		protected override void handleConnected(int delay) {
 
 			isSetup = true;
 			isSocketConnected = true;
@@ -43,6 +43,7 @@ namespace Server_Library.Socket_Clients {
 			//Send objects
 			while (!isRunningCancellationToken.IsCancellationRequested) {
 				send();
+				Thread.Sleep(delay);
 			}
 		}
 		/// <summary>

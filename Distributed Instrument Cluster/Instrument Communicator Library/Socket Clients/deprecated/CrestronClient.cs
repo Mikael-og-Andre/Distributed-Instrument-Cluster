@@ -79,10 +79,6 @@ namespace Server_Library.Socket_Clients {
 					protocolMessage(connectionSocket);
 					break;
 
-				case ProtocolOption.status:
-					protocolStatus(connectionSocket);
-					break;
-
 				case ProtocolOption.authorize:
 					protocolAuthorize(connectionSocket);
 					break;
@@ -170,16 +166,7 @@ namespace Server_Library.Socket_Clients {
 			}
 		}
 
-		/// <summary>
-		/// Activates predetermined sequence of socket operations for sending the status to the server
-		/// </summary>
-		/// <param name="connectionSocket">Authorized connection socket</param>
-		private void protocolStatus(Socket connectionSocket) {
-			//TODO: Implement Status Protocol
-			throw new NotImplementedException();
-		}
-
-		#endregion Protocols
+#endregion Protocols
 
 		/// <summary>
 		/// Returns a reference to queue of commands received by receive protocol in string format
