@@ -2,11 +2,8 @@
 @layout TopBar
 
 <div style="width: 1280px; height: 720px; position: relative" class="container">
-    <CascadingValue Value="@queuePosition">
-        <KeyboardMouse name="@name" location="@location" type="@type" subname="@subnameCrestron"></KeyboardMouse>
-    </CascadingValue>
+    <KeyboardMouse name="@name" location="@location" type="@type" subname="@subnameCrestron"></KeyboardMouse>
     <Video name="@name" location="@location" type="@type" subname="@subnameVideo"></Video>
-
 </div>
 
 @code {
@@ -20,7 +17,5 @@
     public string subnameCrestron { get; set; }
     [Parameter]
     public string subnameVideo { get; set; }
-
-    public string queuePosition;
 
 }
