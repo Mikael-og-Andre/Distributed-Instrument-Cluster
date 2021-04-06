@@ -1,6 +1,4 @@
-﻿@inherits ComponentBase
-@inject NavigationManager navigationManager
-@using Blazor_Instrument_Cluster.Shared
+﻿@inherits Blazor_Instrument_Cluster.Client.Code.DeviceComponent
 
 <li id="DeviceItem" class="list-group-item container" style="width: 100%">
     <div class="row">
@@ -26,34 +24,3 @@
         
     </div>
 </li>
-
-@code {
-    /// <summary>
-    /// Get DeviceModel passed in an use it to display info
-    /// </summary>
-    [Parameter]
-    public DeviceModel deviceInfo { get; set; }
-
-    private string basePath = "VideoAndControl";
-
-    private void navigateToDevicePage() {
-
-        string crestronSubname = "crestronControl";
-        string videoSubname = "videoStream";
-
-        foreach (var subName in deviceInfo.subNames) {
-
-            if (subName.Contains("crestron")) {
-                crestronSubname = subName;
-            }
-            if (subName.Contains("video")) {
-                videoSubname = subName;
-            }
-
-        }
-
-        string fullPath = basePath + "/" + deviceInfo.name + "/" + deviceInfo.location + "/" + deviceInfo.type + "/" + crestronSubname + "/" + videoSubname;
-
-        navigationManager.NavigateTo(fullPath);
-    }
-}

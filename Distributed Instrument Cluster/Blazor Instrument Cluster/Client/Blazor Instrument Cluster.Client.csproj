@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Code\" />
+    <Folder Include="Shared\" />
   </ItemGroup>
 
 </Project>
