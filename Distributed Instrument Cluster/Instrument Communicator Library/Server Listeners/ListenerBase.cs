@@ -126,7 +126,6 @@ namespace Server_Library.Server_Listeners {
 		/// Gets authorization instrument information from connecting client
 		/// </summary>
 		/// <param name="socket"></param>
-		/// <param name="thread"></param>
 		/// <returns>Connection object</returns>
 		private object setupConnection(Socket socket) {
 			//Send start Auth signal

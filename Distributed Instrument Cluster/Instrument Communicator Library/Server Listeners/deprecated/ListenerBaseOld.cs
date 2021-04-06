@@ -107,7 +107,7 @@ namespace Server_Library.Server_Listeners.deprecated {
 
 
 		/// <summary>
-		/// Gets authorization instrument information from connecting client
+		/// Gets authorization client information from connecting client
 		/// </summary>
 		/// <param name="socket"></param>
 		/// <param name="thread"></param>
@@ -117,7 +117,6 @@ namespace Server_Library.Server_Listeners.deprecated {
 			NetworkingOperations.sendStringWithSocket("auth", socket);
 
 			//Get Authorization Token info
-			//TODO: Add encryption for auth token
 			string connectionHash = NetworkingOperations.receiveStringWithSocket(socket);
 			AccessToken accessToken = new AccessToken(connectionHash);
 
