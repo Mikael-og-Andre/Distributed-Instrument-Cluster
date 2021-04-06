@@ -118,7 +118,6 @@ namespace Server_Library.Server_Listeners {
 		/// Function for specifying specific type of ConnectionBase child the class should be returning and handing over to the HandleIncomingConnection
 		/// </summary>
 		/// <param name="socket">Socket Of the incoming connection</param>
-		/// <param name="thread">Thread the new connection will be running on</param>
 		/// <returns> a Connection of one of the child types of ConnectionBase</returns>
 		protected abstract object createConnectionType(Socket socket, AccessToken accessToken, ClientInformation info);
 

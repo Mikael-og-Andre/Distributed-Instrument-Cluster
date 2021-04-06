@@ -139,7 +139,7 @@
         }
     }
 
-    //TODO: FIX
+    //TODO: FIX Scroll
     private void scroll() {
         Console.WriteLine("ok?");
         //Console.WriteLine(e.Detail);
@@ -171,14 +171,14 @@
         }
 
         try {
-    //Create object
+            //Create object
             ExampleCrestronMsgObject sendingObject = new ExampleCrestronMsgObject(s);
-    //Create json
+            //Create json
             string json = JsonSerializer.Serialize(sendingObject);
-    //Convert to bytes
+            //Convert to bytes
             ArraySegment<byte> bytesToSend = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
 
-    //Send data to socket.
+            //Send data to socket.
             await crestronWebSocket.SendAsync(bytesToSend, WebSocketMessageType.Text, true, disposalTokenSource.Token);
         }
         catch (Exception e) {
@@ -332,7 +332,6 @@
         }
         catch (Exception) {
             Console.WriteLine("Error occurred while in queue");
-            throw;
             return false;
         }
     }
