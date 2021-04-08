@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using PackageClasses;
 
 namespace Blazor_Instrument_Cluster.Server.ProviderAndConsumer {
 
@@ -8,7 +9,7 @@ namespace Blazor_Instrument_Cluster.Server.ProviderAndConsumer {
 	/// <author>Mikael Nilssen</author>
 	/// Copied from Microsoft docs and modified
 	/// </summary>
-	public class VideoObjectConsumer<T> : IObserver<T> {
+	public class VideoObjectConsumer : IObserver<Jpeg> {
 
 		/// <summary>
 		/// Object used to unsubscribe from provider
@@ -35,7 +36,7 @@ namespace Blazor_Instrument_Cluster.Server.ProviderAndConsumer {
 		/// <summary>
 		/// Concurrent queue of incoming frames
 		/// </summary>
-		private ConcurrentQueue<T> frameConcurrentQueue;
+		private ConcurrentQueue<Jpeg> frameConcurrentQueue;
 
 		/// <summary>
 		/// Constructor, sets name and initializes queue
@@ -47,7 +48,7 @@ namespace Blazor_Instrument_Cluster.Server.ProviderAndConsumer {
 			this.type = type;
 			this.subname = subname;
 
-			this.frameConcurrentQueue = new ConcurrentQueue<T>();
+			this.frameConcurrentQueue = new ConcurrentQueue<Jpeg>();
 		}
 
 		/// <summary>
@@ -55,7 +56,7 @@ namespace Blazor_Instrument_Cluster.Server.ProviderAndConsumer {
 		///
 		/// </summary>
 		/// <param name="provider">VideoObjectProvider</param>
-		public void Subscribe(IObservable<T> provider) {
+		public void Subscribe(IObservable<Jpeg> provider) {
 			if (provider != null) {
 				unsubscriber = provider.Subscribe(this);
 			}
@@ -87,7 +88,7 @@ namespace Blazor_Instrument_Cluster.Server.ProviderAndConsumer {
 		/// Pushes a VideoFrame from the provider to the queue
 		/// </summary>
 		/// <param name="value"></param>
-		public void OnNext(T value) {
+		public void OnNext(Jpeg value) {
 			frameConcurrentQueue.Enqueue(value);
 		}
 
@@ -95,7 +96,7 @@ namespace Blazor_Instrument_Cluster.Server.ProviderAndConsumer {
 		/// Get the concurrent queue
 		/// </summary>
 		/// <returns></returns>
-		public ConcurrentQueue<T> GetConcurrentQueue() {
+		public ConcurrentQueue<Jpeg> GetConcurrentQueue() {
 			return this.frameConcurrentQueue;
 		}
 	}

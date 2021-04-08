@@ -4,17 +4,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Server.Events;
 using Blazor_Instrument_Cluster.Server.ProviderAndConsumer;
+using Blazor_Instrument_Cluster.Shared;
+using PackageClasses;
 using Server_Library;
 using Server_Library.Connection_Types;
+using Video_Library;
 
 namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 	/// <summary>
 	/// A remote device connected to the server
 	/// Stores data about connections belonging to each device, and the providers
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
+	/// <typeparam name="Jpeg"></typeparam>
 	/// <typeparam name="U"></typeparam>
-	public class RemoteDevice<T, U> {
+	public class RemoteDevice<U> {
 
 		/// <summary>
 		/// Top level name of the device
@@ -31,7 +34,9 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// </summary>
 		public string type { get; set; }
 
-		/// <summary>
+        private List<SubDeviceModel> subDeviceInfo;
+
+        /// <summary>
 		/// List of sending connections for the device
 		/// </summary>
 		private List<SendingConnection<U>> listOfSendingConnections;
@@ -39,12 +44,12 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// <summary>
 		/// List of Receiving connections for the device
 		/// </summary>
-		private List<ReceivingConnection<T>> listOfReceivingConnections;
+		private List<ReceivingConnection<Jpeg>> listOfReceivingConnections;
 
 		/// <summary>
 		/// List of video object providers
 		/// </summary>
-		private List<VideoObjectProvider<T>> listOfReceivingConnectionProviders;
+		private List<VideoObjectProvider> listOfReceivingConnectionProviders;
 
 		/// <summary>
 		/// Constructor
@@ -57,16 +62,17 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			this.location = location;
 			this.type = type;
 			this.listOfSendingConnections = new List<SendingConnection<U>>();
-			this.listOfReceivingConnections = new List<ReceivingConnection<T>>();
-			this.listOfReceivingConnectionProviders = new List<VideoObjectProvider<T>>();
-		}
+			this.listOfReceivingConnections = new List<ReceivingConnection<Jpeg>>();
+			this.listOfReceivingConnectionProviders = new List<VideoObjectProvider>();
+            this.subDeviceInfo = new List<SubDeviceModel>();
+        }
 
 		/// <summary>
 		/// Adds a receiving connection to the list of receiving connections for this remote device and start its corresponding device
 		/// Starts a provider for the incoming connection
 		/// </summary>
 		/// <param name="receivingConnection"></param>
-		public void addReceivingConnection(ReceivingConnection<T> receivingConnection) {
+		public void addReceivingConnection(ReceivingConnection<Jpeg> receivingConnection) {
 			lock (listOfReceivingConnections) {
 				listOfReceivingConnections.Add(receivingConnection);
 			}
@@ -85,11 +91,11 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		}
 
 
-		private void startProvider(ReceivingConnection<T> receivingConnection) {
+		private void startProvider(ReceivingConnection<Jpeg> receivingConnection) {
 			//Info about client
 			ClientInformation info = receivingConnection.getInstrumentInformation();
 			//Create new provider
-			VideoObjectProvider<T> provider = new VideoObjectProvider<T>(info.Name,info.Location,info.Type,info.SubName);
+			VideoObjectProvider provider = new VideoObjectProvider(info.Name,info.Location,info.Type,info.SubName);
 
 			//Add to list of providers
 			lock (listOfReceivingConnectionProviders) {
@@ -103,7 +109,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 				while (!providerCancellationToken.IsCancellationRequested) {
 					try { 
 						//Try to get an object and broadcast it to subscribers
-						if (receivingConnection.getObjectFromConnection(out T output)) {
+						if (receivingConnection.getObjectFromConnection(out Jpeg output)) {
 							provider.pushObject(output);
 						}
 						else {
@@ -118,35 +124,13 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			});
 		}
 
-		/// <summary>
-		/// Searches all connections for their sub names and returns a list fo them
-		/// </summary>
-		/// <returns></returns>
-		public List<string> getSubNamesList() {
-			List<string> newList = new List<string>();
-
-			lock (listOfReceivingConnections) {
-				foreach (var receiving in listOfReceivingConnections) {
-					newList.Add(receiving.getInstrumentInformation().SubName);
-				}
-			}
-
-			lock (listOfSendingConnections) {
-				foreach (var sending in listOfSendingConnections) {
-					newList.Add(sending.getInstrumentInformation().SubName);
-				}
-			}
-
-			return newList;
-		}
-
-		/// <summary>
+        /// <summary>
 		/// Checks all providers for a matching subname and subscribes the consumer to it
 		/// </summary>
 		/// <param name="subname">subname of the wanted connection</param>
 		/// <param name="consumer">Consumer that will be subscribed</param>
 		/// <returns>True or false</returns>
-		public bool subscribeToProvider(VideoObjectConsumer<T> consumer) {
+		public bool subscribeToProvider(VideoObjectConsumer consumer) {
 
 			string consumerSubname = consumer.subname;
 
@@ -189,6 +173,10 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 
 			output = default;
 			return false;
+		}
+
+		public List<SubDeviceModel> getSubDeviceInfo() {
+			throw new NotImplementedException();
 		}
 	}
 }

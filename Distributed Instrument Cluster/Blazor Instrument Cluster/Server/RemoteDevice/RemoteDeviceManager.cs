@@ -6,6 +6,9 @@ using Server_Library.Connection_Classes;
 using Server_Library.Connection_Types;
 using System;
 using System.Collections.Generic;
+using Blazor_Instrument_Cluster.Server.Stream;
+using PackageClasses;
+using Video_Library;
 
 namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 
@@ -13,7 +16,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 	/// Class for storing connection lists
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class RemoteDeviceConnections<T, U> : IRemoteDeviceConnections<T, U> {
+	public class RemoteDeviceManager<U> : IRemoteDeviceConnections<U> {
 
 		/// <summary>
 		/// Services
@@ -23,28 +26,31 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<RemoteDeviceConnections<T, U>> logger;
+		private ILogger<RemoteDeviceManager<U>> logger;
 
 		/// <summary>
 		/// Frame Providers
 		/// </summary>
-		private List<VideoObjectProvider<T>> listFrameProviders;
+		private List<VideoObjectProvider> listFrameProviders;
 
 		/// <summary>
 		/// List of remote devices
 		/// </summary>
-		private List<RemoteDevice<T, U>> listRemoteDevices;
+		private List<RemoteDevice<U>> listRemoteDevices;
+
+		private MJPEGStreamManager streamManager;
 
 		/// <summary>
 		/// Constructor, Injects logger and service provider
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public RemoteDeviceConnections(ILogger<RemoteDeviceConnections<T, U>> logger, IServiceProvider services) {
+		public RemoteDeviceManager(ILogger<RemoteDeviceManager<U>> logger, IServiceProvider services) {
 			this.services = services;
 			this.logger = logger;
-			listRemoteDevices = new List<RemoteDevice<T, U>>();
-			listFrameProviders = new List<VideoObjectProvider<T>>();
+			listRemoteDevices = new List<RemoteDevice<U>>();
+			listFrameProviders = new List<VideoObjectProvider>();
+			streamManager = (MJPEGStreamManager) services.GetService(typeof(MJPEGStreamManager));
 		}
 
 		/// <summary>
@@ -68,9 +74,9 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 						deviceAlreadyExisted = true;
 
 						//If found add to the remote device in the correct category, and if it is a receiver create a provider
-						var receivingInstance = typeof(ReceivingConnection<T>);
+						var receivingInstance = typeof(ReceivingConnection<Jpeg>);
 						if (receivingInstance.IsInstanceOfType(connection)) {
-							ReceivingConnection<T> receivingConnection = (ReceivingConnection<T>)connection;
+							ReceivingConnection<Jpeg> receivingConnection = (ReceivingConnection<Jpeg>)connection;
 							device.addReceivingConnection(receivingConnection);
 						}
 						//If it was not receiving it is sending
@@ -85,13 +91,13 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 
 				//If device did not exist create a new one
 				if (!deviceAlreadyExisted) {
-					RemoteDevice<T, U> newDevice =
-						new RemoteDevice<T, U>(newInformation.Name, newInformation.Location, newInformation.Type);
+					RemoteDevice<U> newDevice =
+						new RemoteDevice<U>(newInformation.Name, newInformation.Location, newInformation.Type);
 
-					var receivingInstance = typeof(ReceivingConnection<T>);
+					var receivingInstance = typeof(ReceivingConnection<Jpeg>);
 					bool isReceivingConnection = receivingInstance.IsInstanceOfType(connection);
 					if (isReceivingConnection) {
-						ReceivingConnection<T> receivingConnection = (ReceivingConnection<T>)connection;
+						ReceivingConnection<Jpeg> receivingConnection = (ReceivingConnection<Jpeg>)connection;
 						newDevice.addReceivingConnection(receivingConnection);
 					}
 					//If it was not receiving it is sending
@@ -101,6 +107,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 					}
 					//Add to list of remote devices
 					listRemoteDevices.Add(newDevice);
+					streamManager.streams.Add(new MJPEG_Streamer());
 				}
 			}
 		}
@@ -113,7 +120,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// <param name="type"></param>
 		/// <param name="outputDevice"></param>
 		/// <returns>If it was found or not</returns>
-		public bool getRemoteDeviceWithNameLocationAndType(string name, string location, string type, out RemoteDevice<T, U> outputDevice) {
+		public bool getRemoteDeviceWithNameLocationAndType(string name, string location, string type, out RemoteDevice<U> outputDevice) {
 			lock (listRemoteDevices) {
 				foreach (var device in listRemoteDevices) {
 					//Check if device info is the same
@@ -132,7 +139,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// Get List Of RemoteDevices
 		/// </summary>
 		/// <returns>List with type RemoteDevice</returns>
-		public List<RemoteDevice<T, U>> getListOfRemoteDevices() {
+		public List<RemoteDevice<U>> getListOfRemoteDevices() {
 			lock (listRemoteDevices) {
 				return listRemoteDevices;
 			}

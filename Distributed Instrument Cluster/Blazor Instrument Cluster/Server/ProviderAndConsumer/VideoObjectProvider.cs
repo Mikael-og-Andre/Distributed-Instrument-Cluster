@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
+using Newtonsoft.Json;
+using PackageClasses;
+using Video_Library;
 
 namespace Blazor_Instrument_Cluster.Server.Events {
 
@@ -11,7 +14,7 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 	/// <author>Mikael Nilssen</author>
 	/// Copied from Microsoft docs and modified
 	/// </summary>
-	public class VideoObjectProvider<T> : IObservable<T> {
+	public class VideoObjectProvider : IObservable<Jpeg> {
 
 		/// <summary>
 		/// name of the device
@@ -33,12 +36,14 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		/// <summary>
 		/// //observers of this provider
 		/// </summary>
-		private List<IObserver<T>> observers;
+		private List<IObserver<Jpeg>> observers;
 
 		/// <summary>
 		/// Cancellation token source
 		/// </summary>
 		private CancellationTokenSource cancellationTokenSource;
+
+		public MJPEG_Streamer videoStreamer;
 
 		/// <summary>
 		/// Constructor
@@ -52,8 +57,11 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 			this.type = type;
 			this.subname = subname;
 			
-			observers = new List<IObserver<T>>();
+			observers = new List<IObserver<Jpeg>>();
 			cancellationTokenSource = new CancellationTokenSource();
+			videoStreamer = new MJPEG_Streamer(30, 8080);
+			Console.WriteLine("videoStreamer.portNumber");
+			Console.WriteLine(videoStreamer.portNumber);
 		}
 
 		/// <summary>
@@ -61,13 +69,13 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		/// </summary>
 		/// <param name="observer"> VideoObjectConsumer</param>
 		/// <returns>Unsubscribe implementation of IDisposable</returns>
-		public IDisposable Subscribe(IObserver<T> observer) {
+		public IDisposable Subscribe(IObserver<Jpeg> observer) {
 			lock (observers) {
 				if (!observers.Contains(observer)) {
 					observers.Add(observer);
 				}
 
-				return new Unsubscriber<T>(observers, observer);
+				return new Unsubscriber<Jpeg>(observers, observer);
 			}
 		}
 
@@ -75,7 +83,15 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 		/// Sends a frame to all observers
 		/// </summary>
 		/// <param name="frameResult"></param>
-		public void pushObject(T frameResult) {
+		public void pushObject(Jpeg frameResult) {
+
+			//videoStreamer.image = <Jpeg>frameResult.Get();
+			//videoStreamer.image = JsonSerializer.Deserialize<T>(frameResult);
+			//videoStreamer.image = JsonConvert.DeserializeObject<T>(frameResult);
+			Console.WriteLine(videoStreamer.portNumber);
+
+			videoStreamer.image = frameResult.Get();
+
 			lock (observers) {
 				foreach (var observer in observers) {
 					observer.OnNext(frameResult);

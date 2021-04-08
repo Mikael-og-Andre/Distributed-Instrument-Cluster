@@ -11,6 +11,7 @@ using Blazor_Instrument_Cluster.Server.ProviderAndConsumer;
 using Blazor_Instrument_Cluster.Server.RemoteDevice;
 using Blazor_Instrument_Cluster.Server.Worker;
 using Microsoft.Extensions.Logging;
+using PackageClasses;
 
 namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
@@ -20,23 +21,23 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	/// <typeparam name="U"></typeparam>
-	public class VideoWebsocketHandler<T,U> : IVideoSocketHandler {
+	public class VideoWebsocketHandler<U> : IVideoSocketHandler {
 		/// <summary>
 		/// remote Device connections
 		/// </summary>
-		private readonly RemoteDeviceConnections<T,U> remoteDeviceConnections;
+		private readonly RemoteDeviceManager<U> remoteDeviceManager;
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private readonly ILogger<VideoWebsocketHandler<T,U>> logger;
+		private readonly ILogger<VideoWebsocketHandler<U>> logger;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public VideoWebsocketHandler(ILogger<VideoWebsocketHandler<T,U>> logger, IServiceProvider services) {
-			remoteDeviceConnections = (RemoteDeviceConnections<T,U>)services.GetService(typeof(IRemoteDeviceConnections<T,U>));
+		public VideoWebsocketHandler(ILogger<VideoWebsocketHandler<U>> logger, IServiceProvider services) {
+			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceConnections<U>));
 			this.logger = logger;
 		}
 
@@ -83,9 +84,9 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 				//Check if device exists
 				bool found = false;
-				RemoteDevice<T, U> foundDevice = null;
+				RemoteDevice<U> foundDevice = null;
 
-				if (remoteDeviceConnections.getRemoteDeviceWithNameLocationAndType(name,location,type, out RemoteDevice<T,U> outputDevice)) {
+				if (remoteDeviceManager.getRemoteDeviceWithNameLocationAndType(name,location,type, out RemoteDevice<U> outputDevice)) {
 					foundDevice = outputDevice;
 
 					List<string> listOfSubNames = foundDevice.getSubNamesList();
@@ -105,15 +106,15 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 					await websocket.SendAsync(foundBytes, WebSocketMessageType.Text, true, token);
 
 					//subscribe to provider and push frames
-					VideoObjectConsumer<T> objectConsumer = new VideoObjectConsumer<T>(name,location,type,subname);
+					VideoObjectConsumer objectConsumer = new VideoObjectConsumer(name,location,type,subname);
 					//Subscribe consumer to the correct provider, if not found cancel connection
 					if (foundDevice.subscribeToProvider(objectConsumer)) {
 						//Get queue for the objects pushed to the consumer
-						ConcurrentQueue<T> consumerQueue = objectConsumer.GetConcurrentQueue();
+						ConcurrentQueue<Jpeg> consumerQueue = objectConsumer.GetConcurrentQueue();
 
 						//Loop and send objects tot he connected websocket
 						while (!token.IsCancellationRequested) {
-							if (consumerQueue.TryDequeue(out T output)) {
+							if (consumerQueue.TryDequeue(out Jpeg output)) {
 								//Serialize object
 								string json = JsonSerializer.Serialize(output);
 								//Send

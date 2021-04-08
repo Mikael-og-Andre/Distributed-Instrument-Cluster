@@ -1,16 +1,17 @@
 {
   "serialCable": {
-    "portName": "com4",
+    "portName": "com3",
     "largeMagnitude": 20,
     "smallMagnitude": 1,
     "maxDelta": 1000, 
 
     "communicator": {
       "ip": "127.0.0.1",
-      "port": 5050,
+      "port": 6981,
       "name": "Radar1",
       "location": "device location",
       "type": "device type",
+      "subName" :  "crestronControl",
       "accessHash": "access" 
     }
   },
@@ -22,10 +23,11 @@
       "height": 720,
       "communicator": {
         "ip": "127.0.0.1",
-        "port": 5051,
+        "port": 6980,
         "name": "Radar1",
         "location": "device location",
         "type": "device type",
+        "subName" : "videoStream",
         "accessHash": "access"
       }
     }

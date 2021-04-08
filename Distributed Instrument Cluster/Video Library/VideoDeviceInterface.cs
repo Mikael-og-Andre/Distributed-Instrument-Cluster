@@ -52,7 +52,7 @@ namespace Video_Library {
 			return frameBuffer.TryDequeue(out framePointer);
 		}
 
-		public bool tryReadJpg(out byte[] buffer, int quality) {
+		public bool tryReadJpg(out byte[] buffer, int quality=95) {
 			if (frameBuffer.TryDequeue(out Mat frame)) {
 				Cv2.ImEncode(".jpg", frame, out buffer, new ImageEncodingParam(ImwriteFlags.JpegQuality, quality));
 

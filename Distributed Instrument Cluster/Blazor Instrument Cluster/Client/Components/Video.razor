@@ -64,9 +64,9 @@
                 Console.WriteLine(buffer.Count);
                 string incomingJson = Encoding.UTF8.GetString(buffer).TrimEnd('\0');
                 Console.WriteLine(incomingJson);
-                ExampleVideoObject exampleVideoObject = null;
+                Jpeg Jpeg = null;
                 try {
-                    exampleVideoObject = JsonSerializer.Deserialize<ExampleVideoObject>(incomingJson);
+                    Jpeg = JsonSerializer.Deserialize<Jpeg>(incomingJson);
                 }
                 catch (Exception) {
                     Console.WriteLine("Could not serialize incoming json");
@@ -74,9 +74,9 @@
                 }
 
 
-                imgsrc = string.Format("data:image/jpg;base64,{0}", exampleVideoObject.imgbase64);
+                imgsrc = string.Format("data:image/jpg;base64,{0}", Jpeg);
 
-                Console.WriteLine("Base64: {0}", exampleVideoObject.imgbase64);
+                //Console.WriteLine("Base64: {0}", Jpeg);
 
                 StateHasChanged();
             }

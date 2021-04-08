@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Instrument Communicator Library\Server Library.csproj" />
+    <ProjectReference Include="..\..\Video Library\Video Library.csproj" />
     <ProjectReference Include="..\Client\Blazor Instrument Cluster.Client.csproj" />
     <ProjectReference Include="..\Shared\Blazor Instrument Cluster.Shared.csproj" />
   </ItemGroup>

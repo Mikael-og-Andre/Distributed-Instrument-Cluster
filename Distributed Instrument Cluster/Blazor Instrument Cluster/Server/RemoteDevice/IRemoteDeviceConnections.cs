@@ -9,7 +9,7 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 	/// Interface for sharing video connection lists between classes
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public interface IRemoteDeviceConnections<T,U> {
+	public interface IRemoteDeviceConnections<U> {
 
 		/// <summary>
 		/// Adds a connection to the list of remote devices, If a remote device with the correct location and type don't exists create a new one
@@ -24,9 +24,9 @@ namespace Blazor_Instrument_Cluster.Server.Injection {
 		/// <param name="type"></param>
 		/// <param name="outputDevice"> The device that was found</param>
 		/// <returns>IF it was successfully found or not</returns>
-		public bool getRemoteDeviceWithNameLocationAndType(string name, string location, string type,out RemoteDevice<T,U> outputDevice);
+		public bool getRemoteDeviceWithNameLocationAndType(string name, string location, string type,out RemoteDevice<U> outputDevice);
 
-		public List<RemoteDevice<T,U>> getListOfRemoteDevices();
+		public List<RemoteDevice<U>> getListOfRemoteDevices();
 
 	}
 }

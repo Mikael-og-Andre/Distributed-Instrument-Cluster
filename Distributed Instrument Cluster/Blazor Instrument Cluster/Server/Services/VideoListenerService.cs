@@ -18,12 +18,12 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 	/// </summary>
 	/// <typeparam name="T">Type for receiving connections</typeparam>
 	/// <typeparam name="U">Type for sending connections</typeparam>
-	public class VideoListenerService<T, U> : BackgroundService {
+	public class VideoListenerService<T,U> : BackgroundService {
 
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<VideoListenerService<T, U>> logger;
+		private ILogger<VideoListenerService<T,U>> logger;
 
 		/// <summary>
 		/// Injected Service provider
@@ -33,7 +33,7 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		/// <summary>
 		/// Remote device connection
 		/// </summary>
-		private RemoteDeviceConnections<T, U> remoteDeviceConnections;
+		private RemoteDeviceManager<U> remoteDeviceManager;
 
 		/// <summary>
 		/// ReceivingListener for accepting SendingClients
@@ -48,7 +48,7 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		public VideoListenerService(ILogger<VideoListenerService<T, U>> logger, IServiceProvider services) {
 			this.logger = logger;
 			//Get Remote devices from services
-			remoteDeviceConnections = (RemoteDeviceConnections<T, U>)services.GetService(typeof(IRemoteDeviceConnections<T, U>));
+			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceConnections<U>));
 			//Init ReceivingListener
 			//TODO: Add config for ip of endpoint
 			receivingListener = new ReceivingListener<T>(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6980));
@@ -70,7 +70,7 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 					//Cast to correct connection
 					ReceivingConnection<T> receivingConnection = (ReceivingConnection<T>)output;
 					//Add to list of remote devices
-					remoteDeviceConnections.addConnectionToRemoteDevices(receivingConnection);
+					remoteDeviceManager.addConnectionToRemoteDevices(receivingConnection);
 				}
 				else {
 					await Task.Delay(50);

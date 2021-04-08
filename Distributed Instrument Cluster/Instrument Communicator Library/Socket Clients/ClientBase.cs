@@ -3,6 +3,7 @@ using Server_Library.Authorization;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Server_Library.Socket_Clients {
 
@@ -72,8 +73,11 @@ namespace Server_Library.Socket_Clients {
 			//Setup
 			setupConnection(connectionSocket);
 			//HandleConnection
-			handleConnected();
+
+			Task task = new Task(() => handleConnected());
+			task.Start();
 		}
+
 
 		/// <summary>
 		/// The main function of a communicator that gets called after you are connected and preforms actions with the socket

@@ -32,7 +32,7 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		/// <summary>
 		/// Remote device connection
 		/// </summary>
-		private RemoteDeviceConnections<T,U> remoteDeviceConnections;
+		private RemoteDeviceManager<U> remoteDeviceManager;
 
 		/// <summary>
 		/// Sending listener accepting incoming ReceivingClients
@@ -44,10 +44,10 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public CrestronListenerService(ILogger<CrestronListenerService<T, U>> logger, IServiceProvider services) {
+		public CrestronListenerService(ILogger<CrestronListenerService<T,U>> logger, IServiceProvider services) {
 			this.logger = logger;
 			//Get Remote devices from services
-			remoteDeviceConnections = (RemoteDeviceConnections<T, U>)services.GetService(typeof(IRemoteDeviceConnections<T, U>));
+			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceConnections<U>));
 			//Init Listener
 			//TODO: Add config ip setup
 			sendingListener = new SendingListener<U>(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6981));
@@ -69,7 +69,7 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 					//Cast to correct type
 					SendingConnection<U> sendingConnection = (SendingConnection<U>)output;
 					//Add to remote devices
-					remoteDeviceConnections.addConnectionToRemoteDevices(sendingConnection);
+					remoteDeviceManager.addConnectionToRemoteDevices(sendingConnection);
 				}
 				else {
 					await Task.Delay(50);

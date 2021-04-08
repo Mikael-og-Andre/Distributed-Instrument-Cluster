@@ -29,6 +29,7 @@ namespace MAIN_Program {
 			public string name { get; set; }
 			public string location { get; set; }
 			public string type { get; set; }
+			public string subName { get; set; }
 			public string accessHash { get; set; }
 		}
 	}

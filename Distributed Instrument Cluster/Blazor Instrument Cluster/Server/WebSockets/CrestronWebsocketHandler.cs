@@ -16,12 +16,12 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 	/// Websocket handler for crestron control connections
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class CrestronWebsocketHandler<T, U> : ICrestronSocketHandler {
+	public class CrestronWebsocketHandler<U> : ICrestronSocketHandler {
 
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<CrestronWebsocketHandler<T, U>> logger;
+		private ILogger<CrestronWebsocketHandler<U>> logger;
 
 		/// <summary>
 		///Services
@@ -31,16 +31,16 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// <summary>
 		/// Remote devices
 		/// </summary>
-		private RemoteDeviceConnections<T, U> remoteDeviceConnections;
+		private RemoteDeviceManager<U> remoteDeviceManager;
 
 		/// <summary>
 		/// Constructor, Injects Logger and service provider and gets Remote device connection Singleton
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public CrestronWebsocketHandler(ILogger<CrestronWebsocketHandler<T, U>> logger, IServiceProvider services) {
+		public CrestronWebsocketHandler(ILogger<CrestronWebsocketHandler<U>> logger, IServiceProvider services) {
 			this.logger = logger;
-			remoteDeviceConnections = (RemoteDeviceConnections<T, U>)services.GetService(typeof(IRemoteDeviceConnections<T, U>));
+			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceConnections<U>));
 		}
 
 		/// <summary>
@@ -85,9 +85,9 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 				//Check if device exists
 				bool found = false;
-				RemoteDevice<T, U> foundDevice = null;
+				RemoteDevice<U> foundDevice = null;
 
-				if (remoteDeviceConnections.getRemoteDeviceWithNameLocationAndType(name, location, type, out RemoteDevice<T, U> outputDevice)) {
+				if (remoteDeviceManager.getRemoteDeviceWithNameLocationAndType(name, location, type, out RemoteDevice<U> outputDevice)) {
 					foundDevice = outputDevice;
 
 					List<string> listOfSubNames = foundDevice.getSubNamesList();

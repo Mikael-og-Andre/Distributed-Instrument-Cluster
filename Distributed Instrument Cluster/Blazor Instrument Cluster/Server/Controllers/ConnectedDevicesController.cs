@@ -23,14 +23,14 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		/// <summary>
 		/// Remote Device connections
 		/// </summary>
-		private RemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject> remoteDeviceConnections;
+		private RemoteDeviceManager<ExampleCrestronMsgObject> remoteDeviceManager;
 
 		/// <summary>
 		/// Constructor, Injects Service provider and get remote device connection
 		/// </summary>
 		/// <param name="services"></param>
 		public ConnectedDevicesController(IServiceProvider services) {
-			this.remoteDeviceConnections = (RemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>)services.GetService<IRemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>>();
+			this.remoteDeviceManager = (RemoteDeviceManager<ExampleCrestronMsgObject>)services.GetService<IRemoteDeviceConnections<ExampleCrestronMsgObject>>();
 		}
 
 		/// <summary>
@@ -42,7 +42,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		public IEnumerable<DeviceModel> getRemoteDevices() {
 			//Get list of video connections
-			List<RemoteDevice<ExampleVideoObject, ExampleCrestronMsgObject>> listOfRemoteDevices = remoteDeviceConnections.getListOfRemoteDevices();
+			List<RemoteDevice<ExampleCrestronMsgObject>> listOfRemoteDevices = remoteDeviceManager.getListOfRemoteDevices();
 			if (listOfRemoteDevices.Any()) {
 				//Create an IEnumerable with device models
 				IEnumerable<DeviceModel> enumerableDeviceModels = Array.Empty<DeviceModel>();
@@ -55,10 +55,11 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 						string deviceType = device.type;
 						
 						//Get sub devices
-						List<string> subNames = device.getSubNamesList();
+                        List<SubDeviceModel> subDeviceInfo = device.getSubDeviceInfo();
+
 
 						enumerableDeviceModels =
-							enumerableDeviceModels.Append(new DeviceModel(deviceName,deviceLocation,deviceType,subNames));
+							enumerableDeviceModels.Append(new DeviceModel(deviceName,deviceLocation,deviceType,subDeviceInfo));
 					}
 				}
 
