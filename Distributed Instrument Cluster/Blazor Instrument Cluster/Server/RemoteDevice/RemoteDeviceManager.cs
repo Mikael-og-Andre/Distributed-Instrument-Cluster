@@ -1,5 +1,4 @@
 ﻿using Blazor_Instrument_Cluster.Server.Events;
-using Blazor_Instrument_Cluster.Server.Injection;
 using Microsoft.Extensions.Logging;
 using Server_Library;
 using Server_Library.Connection_Classes;
@@ -16,7 +15,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 	/// Class for storing connection lists
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class RemoteDeviceManager<U> : IRemoteDeviceConnections<U> {
+	public class RemoteDeviceManager<U> : IRemoteDeviceManager<U> {
 
 		/// <summary>
 		/// Services

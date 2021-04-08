@@ -1,5 +1,4 @@
-﻿using Blazor_Instrument_Cluster.Server.Injection;
-using Blazor_Instrument_Cluster.Server.RemoteDevice;
+﻿using Blazor_Instrument_Cluster.Server.RemoteDevice;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Server_Library.Connection_Classes;
@@ -48,7 +47,7 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		public VideoListenerService(ILogger<VideoListenerService<T, U>> logger, IServiceProvider services) {
 			this.logger = logger;
 			//Get Remote devices from services
-			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceConnections<U>));
+			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceManager<U>));
 			//Init ReceivingListener
 			//TODO: Add config for ip of endpoint
 			receivingListener = new ReceivingListener<T>(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6980));

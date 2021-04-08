@@ -1,5 +1,4 @@
-﻿using Blazor_Instrument_Cluster.Server.Injection;
-using Blazor_Instrument_Cluster.Shared;
+﻿using Blazor_Instrument_Cluster.Shared;
 using Server_Library;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +29,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		/// </summary>
 		/// <param name="services"></param>
 		public ConnectedDevicesController(IServiceProvider services) {
-			this.remoteDeviceManager = (RemoteDeviceManager<ExampleCrestronMsgObject>)services.GetService<IRemoteDeviceConnections<ExampleCrestronMsgObject>>();
+			this.remoteDeviceManager = (RemoteDeviceManager<ExampleCrestronMsgObject>)services.GetService<IRemoteDeviceManager<ExampleCrestronMsgObject>>();
 		}
 
 		/// <summary>

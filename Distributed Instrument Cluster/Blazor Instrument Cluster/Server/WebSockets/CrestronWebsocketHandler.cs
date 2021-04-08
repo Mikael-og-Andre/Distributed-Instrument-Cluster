@@ -1,5 +1,4 @@
-﻿using Blazor_Instrument_Cluster.Server.Injection;
-using Blazor_Instrument_Cluster.Server.RemoteDevice;
+﻿using Blazor_Instrument_Cluster.Server.RemoteDevice;
 using Microsoft.Extensions.Logging;
 using Server_Library.Connection_Types;
 using System;
@@ -40,7 +39,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// <param name="services"></param>
 		public CrestronWebsocketHandler(ILogger<CrestronWebsocketHandler<U>> logger, IServiceProvider services) {
 			this.logger = logger;
-			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceConnections<U>));
+			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceManager<U>));
 		}
 
 		/// <summary>

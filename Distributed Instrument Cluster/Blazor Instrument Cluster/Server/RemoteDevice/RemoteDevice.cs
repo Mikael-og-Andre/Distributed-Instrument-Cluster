@@ -96,6 +96,12 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			}
 		}
 
+		private void addControlDevice(SendingConnection<U> sendingConnection) {
+			lock (listOfSubDevices) {
+				listOfSubDevices.Add(new SubDevice(false,sendingConnection.getInstrumentInformation().SubName,0,""));
+			}
+		}
+
 		/// <summary>
 		/// Adds a sending connection tot he list of sending connections for this remote device
 		/// </summary>
@@ -104,6 +110,8 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			lock (listOfSendingConnections) {
 				listOfSendingConnections.Add(sendingConnection);	
 			}
+			//Add subdevice
+			addControlDevice(sendingConnection);
 		}
 
 

@@ -1,15 +1,13 @@
 ﻿using System.Collections.Generic;
-using Blazor_Instrument_Cluster.Server.Events;
-using Blazor_Instrument_Cluster.Server.RemoteDevice;
 using Server_Library.Connection_Classes;
 
-namespace Blazor_Instrument_Cluster.Server.Injection {
+namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 
 	/// <summary>
 	/// Interface for sharing video connection lists between classes
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public interface IRemoteDeviceConnections<U> {
+	public interface IRemoteDeviceManager<U> {
 
 		/// <summary>
 		/// Adds a connection to the list of remote devices, If a remote device with the correct location and type don't exists create a new one

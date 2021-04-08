@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Blazor_Instrument_Cluster.Server.Injection;
 using Blazor_Instrument_Cluster.Server.ProviderAndConsumer;
 using Blazor_Instrument_Cluster.Server.RemoteDevice;
 using Blazor_Instrument_Cluster.Server.Worker;
@@ -37,7 +36,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
 		public VideoWebsocketHandler(ILogger<VideoWebsocketHandler<U>> logger, IServiceProvider services) {
-			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceConnections<U>));
+			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceManager<U>));
 			this.logger = logger;
 		}
 

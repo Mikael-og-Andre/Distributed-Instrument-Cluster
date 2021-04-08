@@ -1,4 +1,3 @@
-using Blazor_Instrument_Cluster.Server.Injection;
 using Blazor_Instrument_Cluster.Server.WebSockets;
 using Blazor_Instrument_Cluster.Server.Worker;
 using Microsoft.AspNetCore.Builder;
@@ -47,7 +46,7 @@ namespace Blazor_Instrument_Cluster.Server {
 			services.AddSingleton<MJPEGStreamManager>();
 
 			//Add Remote device connection tracker
-			services.AddSingleton<IRemoteDeviceConnections<ExampleCrestronMsgObject>, RemoteDeviceManager<ExampleCrestronMsgObject>>();
+			services.AddSingleton<IRemoteDeviceManager<ExampleCrestronMsgObject>, RemoteDeviceManager<ExampleCrestronMsgObject>>();
 
 			//Start Connection listeners as background services
 			services.AddHostedService<VideoListenerService<Jpeg,ExampleCrestronMsgObject>>();

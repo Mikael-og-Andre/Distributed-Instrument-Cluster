@@ -1,5 +1,4 @@
-﻿using Blazor_Instrument_Cluster.Server.Injection;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Server_Library.Connection_Classes;
 using Server_Library.Connection_Types;
@@ -47,7 +46,7 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		public CrestronListenerService(ILogger<CrestronListenerService<T,U>> logger, IServiceProvider services) {
 			this.logger = logger;
 			//Get Remote devices from services
-			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceConnections<U>));
+			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceManager<U>));
 			//Init Listener
 			//TODO: Add config ip setup
 			sendingListener = new SendingListener<U>(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6981));

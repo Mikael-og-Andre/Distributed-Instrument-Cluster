@@ -153,39 +153,39 @@
             Unsubscribes
             </summary>
         </member>
-        <member name="T:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceConnections">
+        <member name="T:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceManager">
             <summary>
             Interface for sharing video connection lists between classes
             <author>Mikael Nilssen</author>
             </summary>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceConnections.SetCrestronConnectionList(System.Collections.Generic.List{Instrument_Communicator_Library.CrestronConnection})">
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceManager.SetCrestronConnectionList(System.Collections.Generic.List{Instrument_Communicator_Library.CrestronConnection})">
             <summary>
             Set the Crestron Connection List
             </summary>
             <param name="listCrestronConnections">List containing all crestron connections</param>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceConnections.SetVideoConnectionList(System.Collections.Generic.List{Instrument_Communicator_Library.VideoConnection})">
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceManager.SetVideoConnectionList(System.Collections.Generic.List{Instrument_Communicator_Library.VideoConnection})">
             <summary>
             Set video Connection list
             </summary>
             <param name="listVideoConnections"> List Containing Video Connections</param>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceConnections.GetCrestronConnectionList(System.Collections.Generic.List{Instrument_Communicator_Library.CrestronConnection}@)">
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceManager.GetCrestronConnectionList(System.Collections.Generic.List{Instrument_Communicator_Library.CrestronConnection}@)">
             <summary>
             Get list of Crestron Connections
             </summary>
             <param name="listCrestronConnections">List of type CrestronConnection</param>
             <returns>success or not</returns>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceConnections.GetVideoConnectionList(System.Collections.Generic.List{Instrument_Communicator_Library.VideoConnection}@)">
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceManager.GetVideoConnectionList(System.Collections.Generic.List{Instrument_Communicator_Library.VideoConnection}@)">
             <summary>
             Get list with videoConnections
             </summary>
             <param name="listVideoConnections">List of type VideoConnection</param>
             <returns>success or not</returns>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceConnections.GetCrestronConnectionWithName(Instrument_Communicator_Library.CrestronConnection@,System.String)">
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceManager.GetCrestronConnectionWithName(Instrument_Communicator_Library.CrestronConnection@,System.String)">
             <summary>
             Get a specific crestron connection with the instrument name matching the input name
             </summary>
@@ -193,7 +193,7 @@
             <param name="name">Name of wanted device</param>
             <returns>If it was found or not</returns>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceConnections.GetVideoConcurrentQueueWithName(System.Collections.Concurrent.ConcurrentQueue{Instrument_Communicator_Library.VideoFrame}@,System.String)">
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceManager.GetVideoConcurrentQueueWithName(System.Collections.Concurrent.ConcurrentQueue{Instrument_Communicator_Library.VideoFrame}@,System.String)">
             <summary>
             Get a concurrent queue from a video connection with the specified name
             </summary>
@@ -201,7 +201,7 @@
             <param name="name"></param>
             <returns></returns>
         </member>
-        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceConnections.SubscribeToVideoProviderWithName(System.String,Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer)">
+        <member name="M:Blazor_Instrument_Cluster.Server.Injection.IRemoteDeviceManager.SubscribeToVideoProviderWithName(System.String,Blazor_Instrument_Cluster.Server.Events.VideoObjectConsumer)">
             <summary>
             Subscribes the Consumer to a video provider with the name inputted
             </summary>
