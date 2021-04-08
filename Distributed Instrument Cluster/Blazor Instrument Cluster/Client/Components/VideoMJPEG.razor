@@ -1,4 +1,5 @@
 ﻿@inject NavigationManager navigationManager
+@inject HttpClient httpClient
 
 <img src="@uri" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0" />
 
@@ -8,9 +9,10 @@
 
     private string uri;
 
-    protected override void OnInitialized() {
+    protected override async Task OnInitializedAsync() {
         uri = navigationManager.BaseUri + ":" + port;
+        HttpResponseMessage response = await httpClient.GetAsync(uri);
+        Console.WriteLine(response);
     }
-
 
 }
