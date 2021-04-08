@@ -19,8 +19,8 @@
     </div>
     <div class="row">
         <div class="col">
-            @foreach (var subName in deviceInfo.subNames) {
-                <p>@subName</p>
+            @foreach (var subDev in deviceInfo.subDevice) {
+                <p>@subDev.subname</p>
             }
         </div>
         
@@ -41,13 +41,13 @@
         string crestronSubname = "crestronControl";
         string videoSubname = "videoStream";
 
-        foreach (var subName in deviceInfo.subNames) {
+        foreach (var subDevice in deviceInfo.subDevice) {
 
-            if (subName.Contains("crestron")) {
-                crestronSubname = subName;
+            if (subDevice.subname.Contains("crestron")) {
+                crestronSubname = subDevice.subname;
             }
-            if (subName.Contains("video")) {
-                videoSubname = subName;
+            if (subDevice.subname.Contains("video")) {
+                videoSubname = subDevice.subname;
             }
 
         }

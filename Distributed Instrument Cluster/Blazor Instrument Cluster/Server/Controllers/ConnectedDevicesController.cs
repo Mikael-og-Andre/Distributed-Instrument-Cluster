@@ -55,11 +55,17 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 						string deviceType = device.type;
 						
 						//Get sub devices
-                        List<SubDeviceModel> subDeviceInfo = device.getSubDeviceInfo();
+                        List<SubDevice> subDeviceInfo = device.getSubDeviceList();
+
+						//Create a list of models
+                        List<SubDeviceModel> modelList = new List<SubDeviceModel>();
+						foreach(SubDevice subDevice in subDeviceInfo){
+							modelList.Add(new SubDeviceModel(subDevice.subname,subDevice.port,subDevice.streamType));
+						}
 
 
 						enumerableDeviceModels =
-							enumerableDeviceModels.Append(new DeviceModel(deviceName,deviceLocation,deviceType,subDeviceInfo));
+							enumerableDeviceModels.Append(new DeviceModel(deviceName,deviceLocation,deviceType,modelList));
 					}
 				}
 

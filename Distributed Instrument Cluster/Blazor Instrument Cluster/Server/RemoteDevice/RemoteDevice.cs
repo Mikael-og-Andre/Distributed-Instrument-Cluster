@@ -34,8 +34,6 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// </summary>
 		public string type { get; set; }
 
-        private List<SubDeviceModel> subDeviceInfo;
-
         /// <summary>
 		/// List of sending connections for the device
 		/// </summary>
@@ -52,6 +50,11 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		private List<VideoObjectProvider> listOfReceivingConnectionProviders;
 
 		/// <summary>
+		/// List of sub devices
+		/// </summary>
+		private List<SubDevice> listOfSubDevices;
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="name"></param>
@@ -64,7 +67,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			this.listOfSendingConnections = new List<SendingConnection<U>>();
 			this.listOfReceivingConnections = new List<ReceivingConnection<Jpeg>>();
 			this.listOfReceivingConnectionProviders = new List<VideoObjectProvider>();
-            this.subDeviceInfo = new List<SubDeviceModel>();
+            this.listOfSubDevices = new List<SubDevice>();
         }
 
 		/// <summary>
@@ -72,12 +75,25 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// Starts a provider for the incoming connection
 		/// </summary>
 		/// <param name="receivingConnection"></param>
-		public void addReceivingConnection(ReceivingConnection<Jpeg> receivingConnection) {
+		/// <param name="streamer"></param>
+		public void addReceivingConnection(ReceivingConnection<Jpeg> receivingConnection, MJPEG_Streamer streamer) {
 			lock (listOfReceivingConnections) {
 				listOfReceivingConnections.Add(receivingConnection);
 			}
-			//Start a provider
-			startProvider(receivingConnection);
+			//Add sub device
+			addVideoSubdevice(receivingConnection, streamer);
+
+			////Start a provider
+			//startVideoFrameProvider(receivingConnection);
+		}
+
+		private void addVideoSubdevice(ReceivingConnection<Jpeg> receivingConnection, MJPEG_Streamer streamer) {
+			
+			string streamtype = "Mjpeg";
+
+			lock (listOfSubDevices) {
+				listOfSubDevices.Add(new SubDevice(true,receivingConnection.getInstrumentInformation().SubName,streamer.portNumber,streamtype));
+			}
 		}
 
 		/// <summary>
@@ -91,26 +107,19 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		}
 
 
-		private void startProvider(ReceivingConnection<Jpeg> receivingConnection) {
+		private void startVideoFrameProvider(ReceivingConnection<Jpeg> receivingConnection, MJPEG_Streamer stream) {
 			//Info about client
 			ClientInformation info = receivingConnection.getInstrumentInformation();
-			//Create new provider
-			VideoObjectProvider provider = new VideoObjectProvider(info.Name,info.Location,info.Type,info.SubName);
 
-			//Add to list of providers
-			lock (listOfReceivingConnectionProviders) {
-				listOfReceivingConnectionProviders.Add(provider);
-			}
+			CancellationToken streamCancellationToken = stream.getCancellationToken();
 
-			//Get cancellation token
-			CancellationToken providerCancellationToken = provider.getCancellationToken();
 			//Run the provider
 			Task.Run(() => {
-				while (!providerCancellationToken.IsCancellationRequested) {
+				while (!streamCancellationToken.IsCancellationRequested) {
 					try { 
 						//Try to get an object and broadcast it to subscribers
 						if (receivingConnection.getObjectFromConnection(out Jpeg output)) {
-							provider.pushObject(output);
+							stream.image = output.Get();
 						}
 						else {
 							Thread.Sleep(300);
@@ -118,7 +127,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 					}
 					catch (Exception ex) {
 						//Stop provider
-						provider.stop();
+						stream.Dispose();
 					}
 				}
 			});
@@ -175,8 +184,14 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			return false;
 		}
 
-		public List<SubDeviceModel> getSubDeviceInfo() {
-			throw new NotImplementedException();
+		/// <summary>
+		/// Get a list of sub device
+		/// </summary>
+		/// <returns></returns>
+		public List<SubDevice> getSubDeviceList() {
+			lock (listOfSubDevices) {
+				return listOfSubDevices;
+			}
 		}
 	}
 }

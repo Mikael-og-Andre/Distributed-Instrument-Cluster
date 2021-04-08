@@ -90,10 +90,10 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				if (remoteDeviceManager.getRemoteDeviceWithNameLocationAndType(name, location, type, out RemoteDevice<U> outputDevice)) {
 					foundDevice = outputDevice;
 
-					List<string> listOfSubNames = foundDevice.getSubNamesList();
+					List<SubDevice> listOfSubDevices = foundDevice.getSubDeviceList();
 
-					foreach (var obj in listOfSubNames) {
-						if (obj.ToLower().Equals(subname.ToLower())) {
+					foreach (var obj in listOfSubDevices) {
+						if (obj.subname.ToLower().Equals(subname.ToLower())) {
 							found = true;
 						}
 					}

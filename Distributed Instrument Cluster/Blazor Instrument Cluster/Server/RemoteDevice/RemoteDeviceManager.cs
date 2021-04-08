@@ -77,7 +77,12 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 						var receivingInstance = typeof(ReceivingConnection<Jpeg>);
 						if (receivingInstance.IsInstanceOfType(connection)) {
 							ReceivingConnection<Jpeg> receivingConnection = (ReceivingConnection<Jpeg>)connection;
-							device.addReceivingConnection(receivingConnection);
+
+							//Create a new stream
+							MJPEG_Streamer streamer = new MJPEG_Streamer();
+							streamManager.streams.Add(streamer);
+
+							device.addReceivingConnection(receivingConnection,streamer);
 						}
 						//If it was not receiving it is sending
 						else {
@@ -98,7 +103,12 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 					bool isReceivingConnection = receivingInstance.IsInstanceOfType(connection);
 					if (isReceivingConnection) {
 						ReceivingConnection<Jpeg> receivingConnection = (ReceivingConnection<Jpeg>)connection;
-						newDevice.addReceivingConnection(receivingConnection);
+
+						//Create a new video stream
+						MJPEG_Streamer streamer = new MJPEG_Streamer();
+						streamManager.streams.Add(streamer);
+
+						newDevice.addReceivingConnection(receivingConnection,streamer);
 					}
 					//If it was not receiving it is sending
 					else {
@@ -107,7 +117,6 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 					}
 					//Add to list of remote devices
 					listRemoteDevices.Add(newDevice);
-					streamManager.streams.Add(new MJPEG_Streamer());
 				}
 			}
 		}

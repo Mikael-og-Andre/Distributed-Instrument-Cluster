@@ -16,11 +16,16 @@ namespace Video_Library {
 
 		private readonly List<Socket> clients;
 		private Thread thread;
+		private CancellationTokenSource disposalTokenSource;
 
 		private const string Boundary = "--boundary";
 		private readonly byte[] header;
 
+
+
 		public MJPEG_Streamer(int fps=30, int port=0) {
+			disposalTokenSource = new CancellationTokenSource();
+
 			this.fps = fps;
 			clients = new List<Socket>();
 			thread = null;
@@ -105,6 +110,18 @@ namespace Video_Library {
 		private byte[] getBytes(string s) {
 			return Encoding.ASCII.GetBytes(s);
 		}
+
+		/// <summary>
+		/// Get cancellation token
+		/// </summary>
+		/// <returns></returns>
+		public CancellationToken getCancellationToken() {
+			return disposalTokenSource.Token;
+		}
+
+		public void Dispose() {
+			throw new NotImplementedException();
+		}
 	}
 
 	internal static class SocketExtensions {
@@ -113,4 +130,5 @@ namespace Video_Library {
 				yield return server.Accept();
 		}
 	}
+
 }
