@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PackageClasses {
 	public class Jpeg {
-		public string jpeg;
+		public string jpeg { get; set; }
 
 		public Jpeg() { }
 

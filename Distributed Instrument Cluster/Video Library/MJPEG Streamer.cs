@@ -123,7 +123,7 @@ namespace Video_Library {
 		}
 
 		public void Dispose() {
-			throw new NotImplementedException();
+			disposalTokenSource.Cancel();
 		}
 	}
 

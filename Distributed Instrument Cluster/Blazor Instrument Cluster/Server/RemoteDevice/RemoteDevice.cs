@@ -84,7 +84,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			addVideoSubdevice(receivingConnection, streamer);
 
 			////Start a provider
-			//startVideoFrameProvider(receivingConnection);
+			startVideoFrameProvider(receivingConnection, streamer);
 		}
 
 		private void addVideoSubdevice(ReceivingConnection<Jpeg> receivingConnection, MJPEG_Streamer streamer) {
@@ -134,12 +134,13 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 							stream.image = output.Get();
 						}
 						else {
-							Thread.Sleep(300);
+							Thread.Sleep(50);
 						}
 					}
 					catch (Exception ex) {
 						//Stop provider
 						stream.Dispose();
+						throw;
 					}
 				}
 			});

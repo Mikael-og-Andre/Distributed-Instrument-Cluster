@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Server_Library;
@@ -13,8 +14,8 @@ namespace SendingClientTester {
 			Thread.Sleep(10000);
 			Console.WriteLine("Starting client...");
 
-	        SendingClient<ExampleVideoObject> sendingClient =
-		        new SendingClient<ExampleVideoObject>("127.0.0.1", 6980,  new ClientInformation("clientTester", "location", "type","videoStream"),new AccessToken("access"),new CancellationToken(false));
+	        SendingClient<Jpeg> sendingClient =
+		        new SendingClient<Jpeg>("127.0.0.1", 6980,  new ClientInformation("clientTester", "location", "type","videoStream"),new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
 				sendingClient.run();
@@ -22,7 +23,7 @@ namespace SendingClientTester {
 
 	        while (true) {
 		        Thread.Sleep(10000);
-		        ExampleVideoObject obj =new ExampleVideoObject(imgBase64);
+		        Jpeg obj =new Jpeg(new byte[0]);
 				sendingClient.queueObjectForSending(obj);
 	        }
         }
