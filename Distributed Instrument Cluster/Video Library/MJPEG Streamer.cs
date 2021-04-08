@@ -13,6 +13,7 @@ namespace Video_Library {
 		public byte[] image { get; set; }
 		public int fps { get; set; }
 		public int portNumber { get; private set; }
+		public bool isPortSet { get; set; } = false;
 
 		private readonly List<Socket> clients;
 		private Thread thread;
@@ -46,6 +47,8 @@ namespace Video_Library {
 
 				var endpoint = new IPEndPoint(IPAddress.Any, (int) state);
 				portNumber = endpoint.Port;
+
+				isPortSet = true;
 
 				Server.Bind(endpoint);
 				Server.Listen(10);

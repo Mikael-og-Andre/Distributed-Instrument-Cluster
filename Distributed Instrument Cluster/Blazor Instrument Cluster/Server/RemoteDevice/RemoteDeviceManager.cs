@@ -78,7 +78,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 							ReceivingConnection<Jpeg> receivingConnection = (ReceivingConnection<Jpeg>)connection;
 
 							//Create a new stream
-							MJPEG_Streamer streamer = new MJPEG_Streamer();
+							MJPEG_Streamer streamer = new MJPEG_Streamer(30,8080);
 							streamManager.streams.Add(streamer);
 
 							device.addReceivingConnection(receivingConnection,streamer);
@@ -104,7 +104,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 						ReceivingConnection<Jpeg> receivingConnection = (ReceivingConnection<Jpeg>)connection;
 
 						//Create a new video stream
-						MJPEG_Streamer streamer = new MJPEG_Streamer();
+						MJPEG_Streamer streamer = new MJPEG_Streamer(30,8080);
 						streamManager.streams.Add(streamer);
 
 						newDevice.addReceivingConnection(receivingConnection,streamer);

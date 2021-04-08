@@ -91,6 +91,10 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			
 			string streamtype = "Mjpeg";
 
+			while (!streamer.isPortSet) {
+				Thread.Sleep(50);
+			}
+
 			lock (listOfSubDevices) {
 				listOfSubDevices.Add(new SubDevice(true,receivingConnection.getInstrumentInformation().SubName,streamer.portNumber,streamtype));
 			}
