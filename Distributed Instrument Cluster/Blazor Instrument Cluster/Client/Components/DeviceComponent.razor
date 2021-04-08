@@ -1,6 +1,7 @@
 ﻿@inherits ComponentBase
 @inject NavigationManager navigationManager
 @using Blazor_Instrument_Cluster.Shared
+@using System.ComponentModel.Design
 
 <li id="DeviceItem" class="list-group-item container" style="width: 100%">
     <div class="row">
@@ -39,21 +40,25 @@
     private void navigateToDevicePage() {
 
         string crestronSubname = "crestronControl";
-        string videoSubname = "videoStream";
+        int videoPort = 0;
 
         foreach (var subDevice in deviceInfo.subDevice) {
 
-            if (subDevice.subname.Contains("crestron")) {
+            if (subDevice.isVideoDevice) {
+                videoPort = subDevice.port;
+            }
+            else {
                 crestronSubname = subDevice.subname;
             }
-            if (subDevice.subname.Contains("video")) {
-                videoSubname = subDevice.subname;
-            }
-
+                
         }
 
-        string fullPath = basePath + "/" + deviceInfo.name + "/" + deviceInfo.location + "/" + deviceInfo.type + "/" + crestronSubname + "/" + videoSubname;
+        string fullPath = basePath + deviceInfo.name + "/" + deviceInfo.location + "/" + deviceInfo.type + "/" + crestronSubname + "/" + videoPort;
 
         navigationManager.NavigateTo(fullPath);
+
     }
+
 }
+
+        

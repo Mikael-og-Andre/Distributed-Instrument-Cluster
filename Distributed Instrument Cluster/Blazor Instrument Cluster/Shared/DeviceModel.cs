@@ -16,8 +16,11 @@ namespace Blazor_Instrument_Cluster.Shared {
 		public string location { get; set; }
 		public string type { get; set; }
 
-        public List<SubDeviceModel> subDevice;
+		public List<SubDeviceModel> subDevice { get; set;}
 
+		public DeviceModel() {
+	        
+        }
 		public DeviceModel(string name, string location, string type, List<SubDeviceModel> subDeviceList) {
 			this.name = name;
 			this.location = location;

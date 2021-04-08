@@ -59,7 +59,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 						//Create a list of models
                         List<SubDeviceModel> modelList = new List<SubDeviceModel>();
 						foreach(SubDevice subDevice in subDeviceInfo){
-							modelList.Add(new SubDeviceModel(subDevice.subname,subDevice.port,subDevice.streamType));
+							modelList.Add(new SubDeviceModel(subDevice.videoDevice,subDevice.subname,subDevice.port,subDevice.streamType));
 						}
 
 

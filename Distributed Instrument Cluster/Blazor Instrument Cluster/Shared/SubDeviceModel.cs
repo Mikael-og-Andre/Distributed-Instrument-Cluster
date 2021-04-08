@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace Blazor_Instrument_Cluster.Shared {
 	public class SubDeviceModel {
 
+		public bool isVideoDevice { get; set; }
         public string subname { get; set; }
         public int port { get; set; }
         public string streamType { get; set; }
@@ -15,7 +16,8 @@ namespace Blazor_Instrument_Cluster.Shared {
             
         }
 
-        public SubDeviceModel(string subname, int port, string streamType) {
+        public SubDeviceModel(bool isVideoDevice, string subname, int port, string streamType) {
+	        this.isVideoDevice = isVideoDevice;
 	        this.subname = subname;
 	        this.port = port;
 	        this.streamType = streamType;
