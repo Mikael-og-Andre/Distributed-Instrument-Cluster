@@ -87,19 +87,28 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			startVideoFrameProvider(receivingConnection, streamer);
 		}
 
+		/// <summary>
+		/// Add a Video Subdevice to the remote device
+		/// </summary>
+		/// <param name="receivingConnection"></param>
+		/// <param name="streamer"></param>
 		private void addVideoSubdevice(ReceivingConnection<Jpeg> receivingConnection, MJPEG_Streamer streamer) {
 			
 			string streamtype = "Mjpeg";
-
+			//Wait for a port to be assigned in the streamer
 			while (!streamer.isPortSet) {
-				Thread.Sleep(50);
+				Thread.Sleep(10);
 			}
-
+			//Add a sub device
 			lock (listOfSubDevices) {
 				listOfSubDevices.Add(new SubDevice(true,receivingConnection.getInstrumentInformation().SubName,streamer.portNumber,streamtype));
 			}
 		}
 
+		/// <summary>
+		/// Add a Control Subdevice to the remote device
+		/// </summary>
+		/// <param name="sendingConnection"></param>
 		private void addControlDevice(SendingConnection<U> sendingConnection) {
 			lock (listOfSubDevices) {
 				listOfSubDevices.Add(new SubDevice(false,sendingConnection.getInstrumentInformation().SubName,0,""));
@@ -118,7 +127,11 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			addControlDevice(sendingConnection);
 		}
 
-
+		/// <summary>
+		/// start a task that Pushes objects from the receiving connection to the stream
+		/// </summary>
+		/// <param name="receivingConnection"></param>
+		/// <param name="stream"></param>
 		private void startVideoFrameProvider(ReceivingConnection<Jpeg> receivingConnection, MJPEG_Streamer stream) {
 			//Info about client
 			ClientInformation info = receivingConnection.getInstrumentInformation();
@@ -134,7 +147,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 							stream.image = output.Get();
 						}
 						else {
-							Thread.Sleep(50);
+							Thread.Sleep(5);
 						}
 					}
 					catch (Exception ex) {
@@ -149,8 +162,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
         /// <summary>
 		/// Checks all providers for a matching subname and subscribes the consumer to it
 		/// </summary>
-		/// <param name="subname">subname of the wanted connection</param>
-		/// <param name="consumer">Consumer that will be subscribed</param>
+        /// <param name="consumer">Consumer that will be subscribed</param>
 		/// <returns>True or false</returns>
 		public bool subscribeToProvider(VideoObjectConsumer consumer) {
 
