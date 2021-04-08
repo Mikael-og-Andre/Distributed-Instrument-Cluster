@@ -1,18 +1,30 @@
-﻿@inject NavigationManager navigationManager
-@inject HttpClient httpClient
+﻿@using System.Net
+@using System.IO
+@using System.Threading
+@inject NavigationManager navigationManager
+@implements IDisposable
 
 <img src="@uri" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0" />
 
 @code {
+
+    private CancellationTokenSource disposalTokenSource = new CancellationTokenSource();
+
+
     [Parameter]
     public string port { set; get; }
 
     private string uri;
 
     protected override async Task OnInitializedAsync() {
-        uri = navigationManager.BaseUri + ":" + port;
-        HttpResponseMessage response = await httpClient.GetAsync(uri);
-        Console.WriteLine(response);
+        string httpBase = navigationManager.BaseUri.Replace("https://", "http://");
+        string[] httpSplit = httpBase.Split(":");
+        string httpReconstruction = httpSplit[0]+":"+ httpSplit[1];
+        uri = httpReconstruction + ":" + port;
+    }
+
+    public void Dispose() {
+        disposalTokenSource.Cancel();
     }
 
 }
