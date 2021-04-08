@@ -15,6 +15,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 
 	/// <summary>
 	/// Api Controller for accessing data about connected devices
+	/// https://docs.microsoft.com/en-us/aspnet/core/web-api/?view=aspnetcore-5.0
 	/// </summary>
 	[ApiController]
 	[Route("/api/ConnectedDevices")]
