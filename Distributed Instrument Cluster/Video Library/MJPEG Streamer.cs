@@ -23,7 +23,12 @@ namespace Video_Library {
 		private readonly byte[] header;
 
 
-
+		/// <summary>
+		/// Class for making a http mjpeg stream.
+		/// </summary>
+		/// <param name="fps">frame rate of stream (how fast images are sent to connected clients)</param>
+		/// <param name="port">what port to start server on (default 0 assigns available port automatically</param>
+		/// <author>Andre Helland</author>
 		public MJPEG_Streamer(int fps=30, int port=0) {
 			disposalTokenSource = new CancellationTokenSource();
 
@@ -34,6 +39,10 @@ namespace Video_Library {
 			Start(port);
 		}
 
+		/// <summary>
+		/// Starts mjpeg server.
+		/// </summary>
+		/// <param name="port">what port to start server on (default 0 assigns available port automatically</param>
 		private void Start(int port) {
 			lock (this) {
 				thread = new Thread(ServerThread) { IsBackground = true };
@@ -41,6 +50,10 @@ namespace Video_Library {
 			}
 		}
 
+		/// <summary>
+		/// Starts server thread for handling new clients connecting.
+		/// </summary>
+		/// <param name="state">port number server is running at</param>
 		private void ServerThread(object state) {
 			try {
 				Socket Server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -63,6 +76,10 @@ namespace Video_Library {
 			}
 		}
 
+		/// <summary>
+		/// Thread for providing a connected client with http response and mjpeg data.
+		/// </summary>
+		/// <param name="client"></param>
 		private void ClientThread(object client) {
 
 			Socket socket = (Socket)client;
@@ -93,6 +110,11 @@ namespace Video_Library {
 			}
 		}
 
+		/// <summary>
+		/// Sends jpeg with header info for MJPEG streaming to specified network stream.
+		/// </summary>
+		/// <param name="ns">network stream data will be sent to</param>
+		/// <param name="image">jpeg image to send</param>
 		private void writeImage(NetworkStream ns, byte[] image) {
 			var sb = new StringBuilder();
 
@@ -110,6 +132,11 @@ namespace Video_Library {
 			ns.Flush();
 		}
 
+		/// <summary>
+		/// Get byte data from string
+		/// </summary>
+		/// <param name="s"></param>
+		/// <returns></returns>
 		private byte[] getBytes(string s) {
 			return Encoding.ASCII.GetBytes(s);
 		}
