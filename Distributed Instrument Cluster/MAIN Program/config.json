@@ -1,6 +1,6 @@
 {
   "serialCable": {
-    "portName": "com3",
+    "portName": "com4",
     "largeMagnitude": 20,
     "smallMagnitude": 1,
     "maxDelta": 1000, 
@@ -19,8 +19,8 @@
     {
       "deviceIndex": 0,
       "apiIndex": 700,
-      "width": 1280,
-      "height": 720,
+      "width": 1920,
+      "height": 1080,
       "communicator": {
         "ip": "127.0.0.1",
         "port": 6980,
