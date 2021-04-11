@@ -17,7 +17,7 @@
   },
   "videoDevices": [
     {
-      "deviceIndex": 1,
+      "deviceIndex": 0,
       "apiIndex": 700,
       "width": 1280,
       "height": 720,

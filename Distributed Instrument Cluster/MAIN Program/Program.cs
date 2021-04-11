@@ -4,6 +4,7 @@ using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -70,8 +71,8 @@ namespace MAIN_Program {
 			while (true) {
 
 				//TODO: make cmd interface read.
-				////if (videoDevices[0].tryReadFrameBuffer(out Mat ooga)) {
-				//if (videoDevices[0].tryReadJpg(out byte[] ooga, 70)) {
+				////if (videoDevices[0].readFrame(out Mat ooga)) {
+				//if (videoDevices[0].readJpg(out byte[] ooga, 70)) {
 				//	Thread.Sleep(100);
 				//	videoClient.getInputQueue().Enqueue(new VideoFrame(ooga));
 				//}
@@ -164,8 +165,7 @@ namespace MAIN_Program {
 			var videoDevice = new VideoDeviceInterface(index: device.deviceIndex, API: (VideoCaptureAPIs) device.apiIndex, frameWidth: device.width, frameHeight: device.height);
 
 			//Wait for video device frames.
-			Mat temp;
-			while (!(videoDevice.tryReadFrameBuffer(out temp))) ;
+			Mat temp = videoDevice.readFrame();
 
 			// Checking if frame has more than 1 color channel (hacky way to check if frames are being produced properly)
 			if (temp.Channels() < 2) {
@@ -229,17 +229,19 @@ namespace MAIN_Program {
 		private void videoThread(object index) {
 			var device = videoConnections[(int) index].device;
 			var connection = videoConnections[(int) index].connection;
+			var quality = 50; //TODO add quality to videoConnections. Also fps mby?
 
 			while (true) {
 				try {
-					if (device.tryReadJpg(out var jpg)) {
-						var byteList = new List<byte>();
-						foreach (var b in jpg) {
-							byteList.Add(b);
-						}
-						connection.queueObjectForSending(new Jpeg(byteList));
+					var jpg = device.readJpg(50);
+					var byteList = new List<byte>();
+					foreach (var b in jpg) {
+						byteList.Add(b);
 					}
-				}catch (Exception e) {
+
+					connection.queueObjectForSending(new Jpeg(byteList));
+				}
+				catch (Exception e) {
 					Console.WriteLine(e);
 				}
 			}

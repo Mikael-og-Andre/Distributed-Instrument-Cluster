@@ -12,7 +12,7 @@ namespace Video_Library {
 
 		public byte[] image { get; set; }
 		public int fps { get; set; }
-		public int portNumber { get; private set; }
+		public int portNumber {private set; get; }
 		public bool isPortSet { get; set; } = false;
 
 		private readonly List<Socket> clients;
