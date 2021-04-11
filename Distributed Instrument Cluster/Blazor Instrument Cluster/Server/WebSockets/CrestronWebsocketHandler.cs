@@ -53,7 +53,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 			try {
 				//Send start signal
-				byte[] startBytes = Encoding.UTF8.GetBytes("start");
+				byte[] startBytes = Encoding.UTF32.GetBytes("start");
 				ArraySegment<byte> startSegment = new ArraySegment<byte>(startBytes);
 				await websocket.SendAsync(startSegment, WebSocketMessageType.Text, true, token);
 
@@ -65,22 +65,22 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				//Get name of wanted device
 				ArraySegment<byte> nameSegment = new ArraySegment<byte>(nameBuffer);
 				await websocket.ReceiveAsync(nameSegment, token);
-				string name = Encoding.UTF8.GetString(nameSegment).TrimEnd('\0');
+				string name = Encoding.UTF32.GetString(nameSegment).TrimEnd('\0');
 
 				//Get location of wanted device
 				ArraySegment<byte> locationSegment = new ArraySegment<byte>(locationBuffer);
 				await websocket.ReceiveAsync(locationSegment, token);
-				string location = Encoding.UTF8.GetString(locationSegment).TrimEnd('\0');
+				string location = Encoding.UTF32.GetString(locationSegment).TrimEnd('\0');
 
 				//Get type of device
 				ArraySegment<byte> typeSegment = new ArraySegment<byte>(typeBuffer);
 				await websocket.ReceiveAsync(typeSegment, token);
-				string type = Encoding.UTF8.GetString(typeSegment).TrimEnd('\0');
+				string type = Encoding.UTF32.GetString(typeSegment).TrimEnd('\0');
 
 				//Get subname representing what part of the device u want
 				ArraySegment<byte> subnameSegment = new ArraySegment<byte>(subnameBuffer);
 				await websocket.ReceiveAsync(subnameSegment, token);
-				string subname = Encoding.UTF8.GetString(subnameSegment).TrimEnd('\0');
+				string subname = Encoding.UTF32.GetString(subnameSegment).TrimEnd('\0');
 
 				//Check if device exists
 				bool found = false;
@@ -107,7 +107,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 							//Receive a command from the socket
 							ArraySegment<byte> receivedArraySegment = new ArraySegment<byte>(new byte[2048]);
 							await websocket.ReceiveAsync(receivedArraySegment, token);
-							string receivedJson = Encoding.UTF8.GetString(receivedArraySegment).TrimEnd('\0');
+							string receivedJson = Encoding.UTF32.GetString(receivedArraySegment).TrimEnd('\0');
 
 							try {
 								//Deserialize into U and queue for sending back to the connection
@@ -123,13 +123,13 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 					}
 					else {
 						//Send found
-						ArraySegment<byte> foundBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes("found"));
+						ArraySegment<byte> foundBytes = new ArraySegment<byte>(Encoding.UTF32.GetBytes("found"));
 						await websocket.SendAsync(foundBytes, WebSocketMessageType.Text, true, token);
 					}
 				}
 				else {
 					//Send no match
-					ArraySegment<byte> foundBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes("no match"));
+					ArraySegment<byte> foundBytes = new ArraySegment<byte>(Encoding.UTF32.GetBytes("no match"));
 					await websocket.SendAsync(foundBytes, WebSocketMessageType.Text, true, token);
 					//End socket exchange
 					socketFinishedTcs.TrySetResult(new object());

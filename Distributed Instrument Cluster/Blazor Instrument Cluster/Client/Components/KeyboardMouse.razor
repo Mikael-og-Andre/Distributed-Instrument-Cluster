@@ -119,7 +119,7 @@
             //Create json
             string json = JsonSerializer.Serialize(sendingObject);
             //Convert to bytes
-            ArraySegment<byte> bytesToSend = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
+            ArraySegment<byte> bytesToSend = new ArraySegment<byte>(Encoding.UTF32.GetBytes(json));
 
             //Send data to socket.
             await crestronWebSocket.SendAsync(bytesToSend, WebSocketMessageType.Text, true, disposalTokenSource.Token);
@@ -177,26 +177,26 @@
             await crestronWebSocket.ReceiveAsync(startSignalBuffer, disposalTokenSource.Token);
 
             //Send name
-            ArraySegment<byte> nameBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(name));
+            ArraySegment<byte> nameBytes = new ArraySegment<byte>(Encoding.UTF32.GetBytes(name));
             await crestronWebSocket.SendAsync(nameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
 
             //Send location
-            ArraySegment<byte> locationBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(location));
+            ArraySegment<byte> locationBytes = new ArraySegment<byte>(Encoding.UTF32.GetBytes(location));
             await crestronWebSocket.SendAsync(locationBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
 
             //Send type
-            ArraySegment<byte> typeBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(type));
+            ArraySegment<byte> typeBytes = new ArraySegment<byte>(Encoding.UTF32.GetBytes(type));
             await crestronWebSocket.SendAsync(typeBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
 
             //Send subanme
-            ArraySegment<byte> subnameBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(subname));
+            ArraySegment<byte> subnameBytes = new ArraySegment<byte>(Encoding.UTF32.GetBytes(subname));
             await crestronWebSocket.SendAsync(subnameBytes, WebSocketMessageType.Text, true, disposalTokenSource.Token);
 
             //Get found or not
             byte[] foundBuffer = new byte[1024];
             ArraySegment<byte> foundBytes = new ArraySegment<byte>(foundBuffer);
             await crestronWebSocket.ReceiveAsync(foundBytes, disposalTokenSource.Token);
-            string found = Encoding.UTF8.GetString(foundBytes).TrimEnd('\0');
+            string found = Encoding.UTF32.GetString(foundBytes).TrimEnd('\0');
 
             return found.ToLower().Equals("found".ToLower());
         }
