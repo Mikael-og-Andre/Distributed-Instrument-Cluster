@@ -13,16 +13,16 @@ namespace ReceivingClientTester {
 	        Thread.Sleep(10000);
 			Console.WriteLine("Starting client...");
 
-	        ReceivingClient<ExampleCrestronMsgObject> receivingClient = new ReceivingClient<ExampleCrestronMsgObject>("127.0.0.1", 6981,
-		        new ClientInformation("clientTester", "location", "type","crestronControl"), new AccessToken("access"),new CancellationToken(false));
+	        ReceivingClient receivingClient = new ReceivingClient("127.0.0.1", 6981,
+		        new ClientInformation("Radar1", "device location", "device type","crestronControl"), new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
 				receivingClient.run();
 	        });
 
 	        while (true) {
-		        if (receivingClient.getObjectFromClient(out ExampleCrestronMsgObject output)) {
-					Console.WriteLine("Received object text: {0}",output.msg);
+		        if (receivingClient.getBytesFromClient(out byte[] output)) {
+					Console.WriteLine("Received object text: {0}",output);
 		        }
 	        }
 

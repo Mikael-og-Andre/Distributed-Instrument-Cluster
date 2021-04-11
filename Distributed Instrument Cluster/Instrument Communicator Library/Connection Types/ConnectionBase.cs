@@ -32,6 +32,11 @@ namespace Server_Library.Connection_Classes {
 		protected Socket socket { get; private set; }
 
 		/// <summary>
+		/// Network Stream for the connection
+		/// </summary>
+		protected NetworkStream connectionNetworkStream { get; set; }
+
+		/// <summary>
 		/// Token for cancelling operations
 		/// </summary>
 		protected CancellationToken cancellation { get; private set; }
@@ -53,6 +58,7 @@ namespace Server_Library.Connection_Classes {
 			this.accessToken = accessToken;
 			this.info = info;
 			this.cancellation = cancellation;
+			this.connectionNetworkStream = new NetworkStream(socket, true);
 		}
 
 		/// <summary>

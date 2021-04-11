@@ -113,7 +113,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 								//Deserialize into U and queue for sending back to the connection
 								U newObject = JsonSerializer.Deserialize<U>(receivedJson);
 
-								outputConnection.queueObjectForSending(newObject);
+								outputConnection.queueByteArrayForSending(newObject);
 							}
 							catch (Exception e) {
 								logger.LogWarning(e,"Error happened in Json Serializing for crestronWebsocket");

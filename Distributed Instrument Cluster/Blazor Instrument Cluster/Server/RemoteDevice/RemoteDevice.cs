@@ -145,7 +145,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 				while (!streamCancellationToken.IsCancellationRequested) {
 					try { 
 						//Try to get an object and broadcast it to subscribers
-						if (receivingConnection.getObjectFromConnection(out Jpeg output)) {
+						if (receivingConnection.getDataFromConnection(out Jpeg output)) {
 							stream.image = output.jpeg.ToArray();
 						}
 						else {

@@ -11,12 +11,12 @@ namespace Server_Library.Server_Listeners {
 	/// Server for listening and creating sending connections, This class is made to work with Receiving Clients
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class SendingListener<T> : ListenerBase {
+	public class SendingListener : ListenerBase {
 
 		/// <summary>
 		/// List of sending connections, for sending to receiving Clients
 		/// </summary>
-		private List<SendingConnection<T>> listSendingConnections;
+		private List<SendingConnection> listSendingConnections;
 
 		/// <summary>
 		/// Constructor
@@ -27,7 +27,7 @@ namespace Server_Library.Server_Listeners {
 		public SendingListener(IPEndPoint ipEndPoint, int maxConnections = 30, int maxPendingConnections = 30) : base(
 			ipEndPoint, maxConnections, maxPendingConnections) {
 			//init list
-			listSendingConnections = new List<SendingConnection<T>>();
+			listSendingConnections = new List<SendingConnection>();
 		}
 
 		/// <summary>
@@ -36,7 +36,7 @@ namespace Server_Library.Server_Listeners {
 		/// <param name="obj">SendingConnection object</param>
 		protected override void handleIncomingConnection(object obj) {
 			//Cast incoming connections
-			SendingConnection<T> connection = (SendingConnection<T>)obj;
+			SendingConnection connection = (SendingConnection)obj;
 
 			//Add Connection to list of connections
 			lock (listSendingConnections) {
@@ -76,14 +76,14 @@ namespace Server_Library.Server_Listeners {
 		/// <param name="info">Information about remote device</param>
 		/// <returns>SendingConnection object</returns>
 		protected override object createConnectionType(Socket socket, AccessToken authToken, ClientInformation info) {
-			return new SendingConnection<T>(socket, authToken, info, cancellationTokenSource.Token);
+			return new SendingConnection(socket, authToken, info, cancellationTokenSource.Token);
 		}
 
 		/// <summary>
 		/// Get list of connections
 		/// </summary>
 		/// <returns>List SendingConnection</returns>
-		public List<SendingConnection<T>> getListOfSendingConnections() {
+		public List<SendingConnection> getListOfSendingConnections() {
 			lock (listSendingConnections) {
 				return listSendingConnections;
 			}

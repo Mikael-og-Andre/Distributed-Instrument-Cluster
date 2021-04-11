@@ -40,13 +40,13 @@ namespace serverDemo {
 			objectsForSending.Add(new exampleObject("randall",33));
 
 			foreach (var obj in objectsForSending) {
-				sendingClient.queueObjectForSending(obj);
+				sendingClient.queueBytesForSending(obj);
 			}
 
 			while (!cancellationTokenSource.Token.IsCancellationRequested) {
 				lock (connections) {
 					foreach (var con in connections) {
-						if (con.getObjectFromConnection(out exampleObject output)) {
+						if (con.getDataFromConnection(out exampleObject output)) {
 							Console.WriteLine("Received Object: name: {0}, age: {1}", output.name, output.age);
 						}
 					}

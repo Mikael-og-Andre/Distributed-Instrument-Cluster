@@ -46,13 +46,13 @@ namespace serverDemo {
 			lock (connections) {
 				foreach (var connection in connections) {
 					foreach (var obj in objectsForSending) {
-						connection.queueObjectForSending(obj);
+						connection.queueByteArrayForSending(obj);
 					}
 				}
 			}
 
 			while (!cancellationTokenSource.Token.IsCancellationRequested) {
-				if (receivingClient.getObjectFromClient(out exampleObject output)) {
+				if (receivingClient.getBytesFromClient(out exampleObject output)) {
 					Console.WriteLine("Received Object: Name: {0} Age: {1}", output.name, output.age);
 				}
 
