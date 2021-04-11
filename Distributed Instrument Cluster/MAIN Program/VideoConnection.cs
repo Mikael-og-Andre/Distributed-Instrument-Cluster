@@ -9,9 +9,9 @@ namespace MAIN_Program {
 	/// </summary>
 	internal class VideoConnection {
 		public VideoDeviceInterface device { get;}
-		public SendingClient<Jpeg> connection { get;}
+		public SendingClient connection { get;}
 
-		public VideoConnection(VideoDeviceInterface device, SendingClient<Jpeg> connection) {
+		public VideoConnection(VideoDeviceInterface device, SendingClient connection) {
 			this.device = device;
 			this.connection = connection;
 		}

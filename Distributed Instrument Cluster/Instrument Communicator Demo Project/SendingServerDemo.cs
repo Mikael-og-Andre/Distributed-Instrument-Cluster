@@ -6,6 +6,7 @@ using Server_Library.Socket_Clients;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,7 +19,7 @@ namespace serverDemo {
 	public class SendingServerDemo {
 
 		public static void Main(string[] args) {
-			SendingListener<exampleObject> sender = new SendingListener<exampleObject>(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 5051));
+			SendingListener sender = new SendingListener(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 5051));
 
 			Task serverTask = new Task(() => sender.start());
 			serverTask.Start();
@@ -26,11 +27,11 @@ namespace serverDemo {
 			Thread.Sleep(1000);
 
 			CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-			ReceivingClient<exampleObject> receivingClient = new ReceivingClient<exampleObject>("127.0.0.1", 5051, new ClientInformation("receivingClient", "here", "testing","testingSubname"), new AccessToken("access"), cancellationTokenSource.Token);
+			ReceivingClient receivingClient = new ReceivingClient("127.0.0.1", 5051, new ClientInformation("receivingClient", "here", "testing","testingSubname"), new AccessToken("access"), cancellationTokenSource.Token);
 			Task receivingClientTask = new Task(() => receivingClient.run());
 			receivingClientTask.Start();
 
-			List<SendingConnection<exampleObject>> connections = sender.getListOfSendingConnections();
+			List<SendingConnection> connections = sender.getListOfSendingConnections();
 
 			while (connections.Count < 1) {
 				Thread.Sleep(100);
@@ -46,14 +47,16 @@ namespace serverDemo {
 			lock (connections) {
 				foreach (var connection in connections) {
 					foreach (var obj in objectsForSending) {
-						connection.queueByteArrayForSending(obj);
+						byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(obj);
+						connection.queueByteArrayForSending(jsonBytes);
 					}
 				}
 			}
 
 			while (!cancellationTokenSource.Token.IsCancellationRequested) {
-				if (receivingClient.getBytesFromClient(out exampleObject output)) {
-					Console.WriteLine("Received Object: Name: {0} Age: {1}", output.name, output.age);
+				if (receivingClient.getBytesFromClient(out byte[] output)) {
+					exampleObject obj = JsonSerializer.Deserialize<exampleObject>(output);
+					Console.WriteLine("Received Object: Name: {0} Age: {1}", obj.name, obj.age);
 				}
 
 				Thread.Sleep(100);

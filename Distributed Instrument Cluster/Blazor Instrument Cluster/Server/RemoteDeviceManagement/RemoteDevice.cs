@@ -1,25 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Server.Events;
 using Blazor_Instrument_Cluster.Server.ProviderAndConsumer;
-using Blazor_Instrument_Cluster.Shared;
-using OpenCvSharp;
-using PackageClasses;
 using Server_Library;
 using Server_Library.Connection_Types;
 using Video_Library;
 
-namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
+namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 	/// <summary>
 	/// A remote device connected to the server
 	/// Stores data about connections belonging to each device, and the providers
 	/// </summary>
-	/// <typeparam name="Jpeg"></typeparam>
-	/// <typeparam name="U"></typeparam>
-	public class RemoteDevice<U> {
+	public class RemoteDevice {
 
 		/// <summary>
 		/// Top level name of the device
@@ -39,12 +33,12 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
         /// <summary>
 		/// List of sending connections for the device
 		/// </summary>
-		private List<SendingConnection<U>> listOfSendingConnections;
+		private List<SendingConnection> listOfSendingConnections;
 
 		/// <summary>
 		/// List of Receiving connections for the device
 		/// </summary>
-		private List<ReceivingConnection<Jpeg>> listOfReceivingConnections;
+		private List<ReceivingConnection> listOfReceivingConnections;
 
 		/// <summary>
 		/// List of video object providers
@@ -66,8 +60,8 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 			this.name = name;
 			this.location = location;
 			this.type = type;
-			this.listOfSendingConnections = new List<SendingConnection<U>>();
-			this.listOfReceivingConnections = new List<ReceivingConnection<Jpeg>>();
+			this.listOfSendingConnections = new List<SendingConnection>();
+			this.listOfReceivingConnections = new List<ReceivingConnection>();
 			this.listOfReceivingConnectionProviders = new List<VideoObjectProvider>();
             this.listOfSubDevices = new List<SubDevice>();
         }
@@ -78,7 +72,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// </summary>
 		/// <param name="receivingConnection"></param>
 		/// <param name="streamer"></param>
-		public void addReceivingConnection(ReceivingConnection<Jpeg> receivingConnection, MJPEG_Streamer streamer) {
+		public void addReceivingConnection(ReceivingConnection receivingConnection, MJPEG_Streamer streamer) {
 			lock (listOfReceivingConnections) {
 				listOfReceivingConnections.Add(receivingConnection);
 			}
@@ -94,7 +88,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// </summary>
 		/// <param name="receivingConnection"></param>
 		/// <param name="streamer"></param>
-		private void addVideoSubdevice(ReceivingConnection<Jpeg> receivingConnection, MJPEG_Streamer streamer) {
+		private void addVideoSubdevice(ReceivingConnection receivingConnection, MJPEG_Streamer streamer) {
 			
 			string streamtype = "Mjpeg";
 			//Wait for a port to be assigned in the streamer
@@ -111,7 +105,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// Add a Control Subdevice to the remote device
 		/// </summary>
 		/// <param name="sendingConnection"></param>
-		private void addControlDevice(SendingConnection<U> sendingConnection) {
+		private void addControlDevice(SendingConnection sendingConnection) {
 			lock (listOfSubDevices) {
 				listOfSubDevices.Add(new SubDevice(false,sendingConnection.getInstrumentInformation().SubName,0,""));
 			}
@@ -121,7 +115,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// Adds a sending connection tot he list of sending connections for this remote device
 		/// </summary>
 		/// <param name="sendingConnection"></param>
-		public void addSendingConnection(SendingConnection<U> sendingConnection) {
+		public void addSendingConnection(SendingConnection sendingConnection) {
 			lock (listOfSendingConnections) {
 				listOfSendingConnections.Add(sendingConnection);	
 			}
@@ -134,7 +128,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// </summary>
 		/// <param name="receivingConnection"></param>
 		/// <param name="stream"></param>
-		private void startVideoFrameProvider(ReceivingConnection<Jpeg> receivingConnection, MJPEG_Streamer stream) {
+		private void startVideoFrameProvider(ReceivingConnection receivingConnection, MJPEG_Streamer stream) {
 			//Info about client
 			ClientInformation info = receivingConnection.getInstrumentInformation();
 
@@ -145,8 +139,8 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 				while (!streamCancellationToken.IsCancellationRequested) {
 					try { 
 						//Try to get an object and broadcast it to subscribers
-						if (receivingConnection.getDataFromConnection(out Jpeg output)) {
-							stream.image = output.jpeg.ToArray();
+						if (receivingConnection.getDataFromConnection(out byte[] output)) {
+							stream.image = output;
 						}
 						else {
 							Thread.Sleep(5);
@@ -192,7 +186,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// <param name="subname"></param>
 		/// <param name="output"></param>
 		/// <returns></returns>
-		public bool getSendingConnectionWithSubname(string subname, out SendingConnection<U> output) {
+		public bool getSendingConnectionWithSubname(string subname, out SendingConnection output) {
 
 			lock (listOfSendingConnections) {
 				foreach (var connection in listOfSendingConnections) {
