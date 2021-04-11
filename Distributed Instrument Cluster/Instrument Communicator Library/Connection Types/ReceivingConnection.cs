@@ -22,7 +22,6 @@ namespace Server_Library.Connection_Types {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="homeThread"></param>
 		/// <param name="socket"></param>
 		public ReceivingConnection(Socket socket, AccessToken accessToken, ClientInformation info, CancellationToken token) : base(socket, accessToken, info, token) {
 			receivedObjectsConcurrentQueue = new ConcurrentQueue<T>();

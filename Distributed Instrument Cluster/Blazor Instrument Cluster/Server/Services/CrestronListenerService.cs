@@ -71,7 +71,7 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 					remoteDeviceManager.addConnectionToRemoteDevices(sendingConnection);
 				}
 				else {
-					await Task.Delay(50);
+					await Task.Delay(5);
 				}
 			}
 			

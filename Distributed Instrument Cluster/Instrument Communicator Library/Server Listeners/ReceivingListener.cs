@@ -60,7 +60,7 @@ namespace Server_Library.Server_Listeners {
 					
 				}
 				else {
-					Thread.Sleep(50);
+					Thread.Sleep(5);
 				}
 			}
 
@@ -74,7 +74,8 @@ namespace Server_Library.Server_Listeners {
 		/// Creates the connection of the correct type
 		/// </summary>
 		/// <param name="socket">Socket</param>
-		/// <param name="thread">Thread</param>
+		/// <param name="accessToken"></param>
+		/// <param name="info"></param>
 		/// <returns></returns>
 		protected override object createConnectionType(Socket socket, AccessToken accessToken, ClientInformation info) {
 			return new ReceivingConnection<T>(socket, accessToken, info, cancellationTokenSource.Token);

@@ -57,7 +57,7 @@ namespace Server_Library.Server_Listeners {
 
 				}
 				else {
-					Thread.Sleep(100);
+					Thread.Sleep(5);
 				}
 			}
 
@@ -72,7 +72,6 @@ namespace Server_Library.Server_Listeners {
 		/// Creates The correct connection type for this inheritance
 		/// </summary>
 		/// <param name="socket">Socket the connection is on</param>
-		/// <param name="thread">Thread the connection is sending on</param>
 		/// <param name="authToken">authorization token</param>
 		/// <param name="info">Information about remote device</param>
 		/// <returns>SendingConnection object</returns>
