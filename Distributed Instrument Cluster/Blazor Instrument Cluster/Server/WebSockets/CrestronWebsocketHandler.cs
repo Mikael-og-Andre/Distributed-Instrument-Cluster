@@ -1,5 +1,4 @@
-﻿using Blazor_Instrument_Cluster.Server.RemoteDevice;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Server_Library.Connection_Types;
 using System;
 using System.Collections.Generic;
@@ -8,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
 
 namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
@@ -15,12 +15,12 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 	/// Websocket handler for crestron control connections
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class CrestronWebsocketHandler<U> : ICrestronSocketHandler {
+	public class CrestronWebsocketHandler : ICrestronSocketHandler {
 
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<CrestronWebsocketHandler<U>> logger;
+		private ILogger<CrestronWebsocketHandler> logger;
 
 		/// <summary>
 		///Services
@@ -30,16 +30,16 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// <summary>
 		/// Remote devices
 		/// </summary>
-		private RemoteDeviceManager<U> remoteDeviceManager;
+		private RemoteDeviceManager remoteDeviceManager;
 
 		/// <summary>
 		/// Constructor, Injects Logger and service provider and gets Remote device connection Singleton
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public CrestronWebsocketHandler(ILogger<CrestronWebsocketHandler<U>> logger, IServiceProvider services) {
+		public CrestronWebsocketHandler(ILogger<CrestronWebsocketHandler> logger, IServiceProvider services) {
 			this.logger = logger;
-			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceManager<U>));
+			remoteDeviceManager = (RemoteDeviceManager)services.GetService(typeof(IRemoteDeviceManager));
 		}
 
 		/// <summary>
@@ -84,9 +84,9 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 				//Check if device exists
 				bool found = false;
-				RemoteDevice<U> foundDevice = null;
+				RemoteDeviceManagement.RemoteDevice foundDevice = null;
 
-				if (remoteDeviceManager.getRemoteDeviceWithNameLocationAndType(name, location, type, out RemoteDevice<U> outputDevice)) {
+				if (remoteDeviceManager.getRemoteDeviceWithNameLocationAndType(name, location, type, out RemoteDevice outputDevice)) {
 					foundDevice = outputDevice;
 
 					List<SubDevice> listOfSubDevices = foundDevice.getSubDeviceList();
@@ -101,24 +101,13 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 				if (found) {
 					//Get the device
-					if (foundDevice.getSendingConnectionWithSubname(subname, out SendingConnection<U> outputConnection)) {
+					if (foundDevice.getSendingConnectionWithSubname(subname, out SendingConnection outputConnection)) {
 						while (!token.IsCancellationRequested) {
 
 							//Receive a command from the socket
 							ArraySegment<byte> receivedArraySegment = new ArraySegment<byte>(new byte[2048]);
 							await websocket.ReceiveAsync(receivedArraySegment, token);
-							string receivedJson = Encoding.UTF32.GetString(receivedArraySegment).TrimEnd('\0');
-
-							try {
-								//Deserialize into U and queue for sending back to the connection
-								U newObject = JsonSerializer.Deserialize<U>(receivedJson);
-
-								outputConnection.queueObjectForSending(newObject);
-							}
-							catch (Exception e) {
-								logger.LogWarning(e,"Error happened in Json Serializing for crestronWebsocket");
-								throw;
-							}
+							outputConnection.queueByteArrayForSending(receivedArraySegment.ToArray());
 						}
 					}
 					else {

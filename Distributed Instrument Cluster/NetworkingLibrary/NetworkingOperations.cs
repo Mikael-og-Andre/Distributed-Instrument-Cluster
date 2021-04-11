@@ -10,16 +10,18 @@ namespace Networking_Library {
 	/// </summary>
 	public static class NetworkingOperations {
 
+
+#region String
+
 		/// <summary>
 		/// Receive an string with the given socket
 		/// </summary>
 		/// <param name="connectionSocket">Connected socket</param>
 		/// <returns>string</returns>
 		public static string receiveStringWithSocket(Socket connectionSocket) {
-			
 			NetworkStream networkStream = new NetworkStream(connectionSocket, true);
 			//receive bytes with socket stream
-			byte[] incomingBytes=receiveBytes(networkStream);
+			byte[] incomingBytes = receiveBytes(networkStream);
 			//get string from bytes
 			string receivedString = Encoding.UTF32.GetString(incomingBytes);
 			return receivedString;
@@ -28,17 +30,19 @@ namespace Networking_Library {
 		/// <summary>
 		/// Send a string with socket
 		/// </summary>
-		/// <param name="str">String to send</param>
+		/// <param name="inputString"></param>
 		/// <param name="connectionSocket">Connected socket</param>
 		public static void sendStringWithSocket(string inputString, Socket connectionSocket) {
 			//Send name
 			byte[] stringBuffer = Encoding.UTF32.GetBytes(inputString);
 			//send data with stream
-			NetworkStream networkStream = new NetworkStream(connectionSocket,true);
-			sendBytes(networkStream,stringBuffer);
+			NetworkStream networkStream = new NetworkStream(connectionSocket, true);
+			sendBytes(networkStream, stringBuffer);
 		}
 
-#region Json
+#endregion
+
+		#region Json
 
 		/// <summary>
 		/// Serialize object to json and send it
@@ -65,8 +69,7 @@ namespace Networking_Library {
 
 		#endregion Json
 
-
-#region Byte array
+		#region Byte array
 
 		/// <summary>
 		/// Send a byte array with a stream
@@ -76,9 +79,9 @@ namespace Networking_Library {
 		public static void sendBytes(NetworkStream stream, byte[] bytesToSend) {
 			//First send size of incoming objects
 			byte[] size = BitConverter.GetBytes(bytesToSend.Length);
-			stream.Write(size,0,sizeof(int));
+			stream.Write(size, 0, sizeof(int));
 			//Write the data
-			stream.Write(bytesToSend,0,bytesToSend.Length);
+			stream.Write(bytesToSend, 0, bytesToSend.Length);
 			//Flush stream
 			stream.Flush();
 		}
@@ -91,15 +94,15 @@ namespace Networking_Library {
 		public static byte[] receiveBytes(NetworkStream stream) {
 			//Get size of incoming bytes
 			byte[] sizeBytes = new byte[sizeof(int)];
-			stream.Read(sizeBytes,0,sizeof(int));
+			stream.Read(sizeBytes, 0, sizeof(int));
 			int size = BitConverter.ToInt32(sizeBytes);
 			//Receive byte array
 			byte[] incomingBytes = new byte[size];
 			stream.Read(incomingBytes, 0, incomingBytes.Length);
-			
+
 			return incomingBytes;
 		}
 
-#endregion
+		#endregion Byte array
 	}
 }

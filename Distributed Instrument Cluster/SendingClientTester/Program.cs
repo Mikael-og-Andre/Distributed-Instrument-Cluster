@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Server_Library;
@@ -14,8 +15,8 @@ namespace SendingClientTester {
 			Thread.Sleep(10000);
 			Console.WriteLine("Starting client...");
 
-	        SendingClient<Jpeg> sendingClient =
-		        new SendingClient<Jpeg>("127.0.0.1", 6980,  new ClientInformation("clientTester", "location", "type","videoStream"),new AccessToken("access"),new CancellationToken(false));
+	        SendingClient sendingClient =
+		        new SendingClient("127.0.0.1", 6980,  new ClientInformation("clientTester", "location", "type","videoStream"),new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
 				sendingClient.run();
@@ -24,7 +25,7 @@ namespace SendingClientTester {
 	        while (true) {
 		        Thread.Sleep(10000);
 		        Jpeg obj =new Jpeg();
-				sendingClient.queueObjectForSending(obj);
+				sendingClient.queueBytesForSending(JsonSerializer.SerializeToUtf8Bytes(obj));
 	        }
         }
 

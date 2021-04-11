@@ -1,5 +1,4 @@
-﻿using Blazor_Instrument_Cluster.Server.RemoteDevice;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Server_Library.Connection_Classes;
 using Server_Library.Connection_Types;
@@ -8,21 +7,20 @@ using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
 
 namespace Blazor_Instrument_Cluster.Server.Services {
 
 	/// <summary>
 	/// Starts a receiving listener for accepting incoming sending connections
-	///
+	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	/// <typeparam name="T">Type for receiving connections</typeparam>
-	/// <typeparam name="U">Type for sending connections</typeparam>
-	public class VideoListenerService<T,U> : BackgroundService {
+	public class VideoListenerService : BackgroundService {
 
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<VideoListenerService<T,U>> logger;
+		private ILogger<VideoListenerService> logger;
 
 		/// <summary>
 		/// Injected Service provider
@@ -32,25 +30,25 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		/// <summary>
 		/// Remote device connection
 		/// </summary>
-		private RemoteDeviceManager<U> remoteDeviceManager;
+		private RemoteDeviceManager remoteDeviceManager;
 
 		/// <summary>
 		/// ReceivingListener for accepting SendingClients
 		/// </summary>
-		private ReceivingListener<T> receivingListener;
+		private ReceivingListener receivingListener;
 
 		/// <summary>
 		/// Constructor, injects logger and remote device connections
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public VideoListenerService(ILogger<VideoListenerService<T, U>> logger, IServiceProvider services) {
+		public VideoListenerService(ILogger<VideoListenerService> logger, IServiceProvider services) {
 			this.logger = logger;
 			//Get Remote devices from services
-			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceManager<U>));
+			remoteDeviceManager = (RemoteDeviceManager)services.GetService(typeof(IRemoteDeviceManager));
 			//Init ReceivingListener
 			//TODO: Add config for ip of endpoint
-			receivingListener = new ReceivingListener<T>(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6980));
+			receivingListener = new ReceivingListener(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6980));
 		}
 
 		/// <summary>
@@ -67,7 +65,7 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 			while (!stoppingToken.IsCancellationRequested) {
 				if (receivingListener.getIncomingConnection(out ConnectionBase output)) {
 					//Cast to correct connection
-					ReceivingConnection<T> receivingConnection = (ReceivingConnection<T>)output;
+					ReceivingConnection receivingConnection = (ReceivingConnection)output;
 					//Add to list of remote devices
 					remoteDeviceManager.addConnectionToRemoteDevices(receivingConnection);
 				}

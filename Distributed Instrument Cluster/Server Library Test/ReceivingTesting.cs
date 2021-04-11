@@ -9,6 +9,7 @@ using Server_Library.Socket_Clients;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,7 +21,7 @@ namespace Server_Library_Test {
 		[TestMethod]
 		public void testReceivingListener() {
 			IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4090);
-			ReceivingListener<TestJsonObject> receivingListener = new ReceivingListener<TestJsonObject>(ipEndPoint);
+			ReceivingListener receivingListener = new ReceivingListener(ipEndPoint);
 
 			Task.Run(() => {
 				receivingListener.start();
@@ -29,15 +30,15 @@ namespace Server_Library_Test {
 			//CancellationTokenSource
 			CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-			SendingClient<TestJsonObject> sendingClient1 = new SendingClient<TestJsonObject>("127.0.0.1", 4090,
+			SendingClient sendingClient1 = new SendingClient("127.0.0.1", 4090,
 				new ClientInformation("sendingClient1", "location 1", "type 1","subType"), new AccessToken("access"),
 				cancellationTokenSource.Token);
 
-			SendingClient<TestJsonObject> sendingClient2 = new SendingClient<TestJsonObject>("127.0.0.1", 4090,
+			SendingClient sendingClient2 = new SendingClient("127.0.0.1", 4090,
 				new ClientInformation("sendingClient2", "location 2", "type 2","subType"), new AccessToken("access"),
 				cancellationTokenSource.Token);
 
-			SendingClient<TestJsonObject> sendingClient3 = new SendingClient<TestJsonObject>("127.0.0.1", 4090,
+			SendingClient sendingClient3 = new SendingClient("127.0.0.1", 4090,
 				new ClientInformation("sendingClient3", "location 3", "type 3","subType"), new AccessToken("access"),
 				cancellationTokenSource.Token);
 
@@ -70,21 +71,24 @@ namespace Server_Library_Test {
 			listFor3.Add(new TestJsonObject("Gologogogogo", 2332, "maximus retardicus"));
 
 			foreach (var obj in listFor1) {
-				sendingClient1.queueObjectForSending(obj);
+				byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(obj);
+				sendingClient1.queueBytesForSending(jsonBytes);
 			}
 
 			foreach (var obj in listFor2) {
-				sendingClient2.queueObjectForSending(obj);
+				byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(obj);
+				sendingClient2.queueBytesForSending(jsonBytes);
 			}
 
 			foreach (var obj in listFor3) {
-				sendingClient3.queueObjectForSending(obj);
+				byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(obj);
+				sendingClient3.queueBytesForSending(jsonBytes);
 			}
 
 			Thread.Sleep(5000);
-			List<ReceivingConnection<TestJsonObject>> listOfReceivingConnections = receivingListener.getListOfReceivingConnections();
+			List<ReceivingConnection> listOfReceivingConnections = receivingListener.getListOfReceivingConnections();
 
-			ReceivingConnection<TestJsonObject> receivingConnection1 = null;
+			ReceivingConnection receivingConnection1 = null;
 
 			bool found1 = false;
 			while (!found1) {
@@ -100,7 +104,7 @@ namespace Server_Library_Test {
 				}
 			}
 
-			ReceivingConnection<TestJsonObject> receivingConnection2 = null;
+			ReceivingConnection receivingConnection2 = null;
 
 			bool found2 = false;
 			while (!found2) {
@@ -116,7 +120,7 @@ namespace Server_Library_Test {
 				}
 			}
 
-			ReceivingConnection<TestJsonObject> receivingConnection3 = null;
+			ReceivingConnection receivingConnection3 = null;
 
 			bool found3 = false;
 			while (!found3) {
@@ -133,38 +137,38 @@ namespace Server_Library_Test {
 			}
 
 			foreach (var obj in listFor1) {
-				TestJsonObject currenTestJsonObject;
+				TestJsonObject currentTestJsonObject;
 				bool foundObject = false;
 				do {
-					foundObject = receivingConnection1.getObjectFromConnection(out TestJsonObject output);
-					currenTestJsonObject = output;
+					foundObject = receivingConnection1.getDataFromConnection(out byte[] output);
+					currentTestJsonObject = JsonSerializer.Deserialize<TestJsonObject>(output);
 				} while (!foundObject);
 
-				Assert.AreEqual(obj.name, currenTestJsonObject.name);
-				Assert.AreEqual(obj.age, currenTestJsonObject.age);
-				Assert.AreEqual(obj.address, currenTestJsonObject.address);
+				Assert.AreEqual(obj.name, currentTestJsonObject.name);
+				Assert.AreEqual(obj.age, currentTestJsonObject.age);
+				Assert.AreEqual(obj.address, currentTestJsonObject.address);
 			}
 
 
 			foreach (var obj in listFor2) {
-				TestJsonObject currenTestJsonObject;
+				TestJsonObject currentTestJsonObject;
 				bool foundObject = false;
 				do {
-					foundObject = receivingConnection2.getObjectFromConnection(out TestJsonObject output);
-					currenTestJsonObject = output;
+					foundObject = receivingConnection2.getDataFromConnection(out byte[] output);
+					currentTestJsonObject = JsonSerializer.Deserialize<TestJsonObject>(output);
 				} while (!foundObject);
 
-				Assert.AreEqual(obj.name, currenTestJsonObject.name);
-				Assert.AreEqual(obj.age, currenTestJsonObject.age);
-				Assert.AreEqual(obj.address, currenTestJsonObject.address);
+				Assert.AreEqual(obj.name, currentTestJsonObject.name);
+				Assert.AreEqual(obj.age, currentTestJsonObject.age);
+				Assert.AreEqual(obj.address, currentTestJsonObject.address);
 			}
 
 			foreach (var obj in listFor3) {
 				TestJsonObject currenTestJsonObject;
 				bool foundObject = false;
 				do {
-					foundObject = receivingConnection3.getObjectFromConnection(out TestJsonObject output);
-					currenTestJsonObject = output;
+					foundObject = receivingConnection3.getDataFromConnection(out byte[] output);
+					currenTestJsonObject = JsonSerializer.Deserialize<TestJsonObject>(output);
 				} while (!foundObject);
 
 				Assert.AreEqual(obj.name, currenTestJsonObject.name);
@@ -187,7 +191,7 @@ namespace Server_Library_Test {
 			ClientInformation clientInformation = new ClientInformation("Random Name", "testing location", "testing type", "testing sub");
 
 			//Create client
-			SendingClient<TestJsonObject> sendingClient = new SendingClient<TestJsonObject>("127.0.0.1", 4091,
+			SendingClient sendingClient = new SendingClient("127.0.0.1", 4091,
 				clientInformation, new AccessToken("access"), new CancellationToken(false));
 
 			//Start client
@@ -207,7 +211,7 @@ namespace Server_Library_Test {
 			//Get Client information
 			ClientInformation info = NetworkingOperations.receiveJsonObjectWithSocket<ClientInformation>(socket);
 
-			ReceivingConnection<TestJsonObject> receivingConnection = new ReceivingConnection<TestJsonObject>(
+			ReceivingConnection receivingConnection = new ReceivingConnection(
 				socket, accessToken, info, new CancellationToken(false)) {
 				isSetupCompleted = true, isAuthorized = true
 			};
@@ -220,7 +224,8 @@ namespace Server_Library_Test {
 
 			//Queue objects for sending
 			foreach (var obj in listOfObjects) {
-				sendingClient.queueObjectForSending(obj);
+				byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(obj);
+				sendingClient.queueBytesForSending(jsonBytes);
 			}
 			Thread.Sleep(1000);
 			//Receive and check
@@ -228,10 +233,11 @@ namespace Server_Library_Test {
 				while (!receivingConnection.receive()) {
 				}
 
-				receivingConnection.getObjectFromConnection(out TestJsonObject output);
-				Assert.AreEqual(obj.name, output.name);
-				Assert.AreEqual(obj.age, output.age);
-				Assert.AreEqual(obj.address, output.address);
+				receivingConnection.getDataFromConnection(out byte[] output);
+				TestJsonObject outputObj = JsonSerializer.Deserialize<TestJsonObject>(output);
+				Assert.AreEqual(obj.name, outputObj.name);
+				Assert.AreEqual(obj.age, outputObj.age);
+				Assert.AreEqual(obj.address, outputObj.address);
 			}
 		}
 	}

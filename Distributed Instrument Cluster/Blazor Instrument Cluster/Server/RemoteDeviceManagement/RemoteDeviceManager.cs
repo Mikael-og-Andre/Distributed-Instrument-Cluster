@@ -1,21 +1,20 @@
-﻿using Blazor_Instrument_Cluster.Server.Events;
+﻿using System;
+using System.Collections.Generic;
+using Blazor_Instrument_Cluster.Server.Events;
+using Blazor_Instrument_Cluster.Server.Stream;
 using Microsoft.Extensions.Logging;
 using Server_Library;
 using Server_Library.Connection_Classes;
 using Server_Library.Connection_Types;
-using System;
-using System.Collections.Generic;
-using Blazor_Instrument_Cluster.Server.Stream;
-using PackageClasses;
 using Video_Library;
 
-namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
+namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 
 	/// <summary>
 	/// Class for storing connection lists
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class RemoteDeviceManager<U> : IRemoteDeviceManager<U> {
+	public class RemoteDeviceManager : IRemoteDeviceManager {
 
 		/// <summary>
 		/// Services
@@ -25,7 +24,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<RemoteDeviceManager<U>> logger;
+		private ILogger<RemoteDeviceManager> logger;
 
 		/// <summary>
 		/// Frame Providers
@@ -35,7 +34,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// <summary>
 		/// List of remote devices
 		/// </summary>
-		private List<RemoteDevice<U>> listRemoteDevices;
+		private List<RemoteDeviceManagement.RemoteDevice> listRemoteDevices;
 
 		private MJPEGStreamManager streamManager;
 
@@ -44,10 +43,10 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public RemoteDeviceManager(ILogger<RemoteDeviceManager<U>> logger, IServiceProvider services) {
+		public RemoteDeviceManager(ILogger<RemoteDeviceManager> logger, IServiceProvider services) {
 			this.services = services;
 			this.logger = logger;
-			listRemoteDevices = new List<RemoteDevice<U>>();
+			listRemoteDevices = new List<RemoteDeviceManagement.RemoteDevice>();
 			listFrameProviders = new List<VideoObjectProvider>();
 			streamManager = (MJPEGStreamManager) services.GetService(typeof(MJPEGStreamManager));
 		}
@@ -73,9 +72,9 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 						deviceAlreadyExisted = true;
 
 						//If found add to the remote device in the correct category, and if it is a receiver create a provider
-						var receivingInstance = typeof(ReceivingConnection<Jpeg>);
+						var receivingInstance = typeof(ReceivingConnection);
 						if (receivingInstance.IsInstanceOfType(connection)) {
-							ReceivingConnection<Jpeg> receivingConnection = (ReceivingConnection<Jpeg>)connection;
+							ReceivingConnection receivingConnection = (ReceivingConnection)connection;
 
 							//Create a new stream
 							MJPEG_Streamer streamer = new MJPEG_Streamer(30,8080);
@@ -85,7 +84,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 						}
 						//If it was not receiving it is sending
 						else {
-							SendingConnection<U> sendingConnection = (SendingConnection<U>)connection;
+							SendingConnection sendingConnection = (SendingConnection)connection;
 							device.addSendingConnection(sendingConnection);
 						}
 						//Stop looking
@@ -95,13 +94,13 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 
 				//If device did not exist create a new one
 				if (!deviceAlreadyExisted) {
-					RemoteDevice<U> newDevice =
-						new RemoteDevice<U>(newInformation.Name, newInformation.Location, newInformation.Type);
+					RemoteDeviceManagement.RemoteDevice newDevice =
+						new RemoteDeviceManagement.RemoteDevice(newInformation.Name, newInformation.Location, newInformation.Type);
 
-					var receivingInstance = typeof(ReceivingConnection<Jpeg>);
+					var receivingInstance = typeof(ReceivingConnection);
 					bool isReceivingConnection = receivingInstance.IsInstanceOfType(connection);
 					if (isReceivingConnection) {
-						ReceivingConnection<Jpeg> receivingConnection = (ReceivingConnection<Jpeg>)connection;
+						ReceivingConnection receivingConnection = (ReceivingConnection)connection;
 
 						//Create a new video stream
 						MJPEG_Streamer streamer = new MJPEG_Streamer(30,8080);
@@ -111,7 +110,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 					}
 					//If it was not receiving it is sending
 					else {
-						SendingConnection<U> sendingConnection = (SendingConnection<U>)connection;
+						SendingConnection sendingConnection = (SendingConnection)connection;
 						newDevice.addSendingConnection(sendingConnection);
 					}
 					//Add to list of remote devices
@@ -128,7 +127,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// <param name="type"></param>
 		/// <param name="outputDevice"></param>
 		/// <returns>If it was found or not</returns>
-		public bool getRemoteDeviceWithNameLocationAndType(string name, string location, string type, out RemoteDevice<U> outputDevice) {
+		public bool getRemoteDeviceWithNameLocationAndType(string name, string location, string type, out RemoteDeviceManagement.RemoteDevice outputDevice) {
 			lock (listRemoteDevices) {
 				foreach (var device in listRemoteDevices) {
 					//Check if device info is the same
@@ -147,7 +146,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 		/// Get List Of RemoteDevices
 		/// </summary>
 		/// <returns>List with type RemoteDevice</returns>
-		public List<RemoteDevice<U>> getListOfRemoteDevices() {
+		public List<RemoteDeviceManagement.RemoteDevice> getListOfRemoteDevices() {
 			lock (listRemoteDevices) {
 				return listRemoteDevices;
 			}

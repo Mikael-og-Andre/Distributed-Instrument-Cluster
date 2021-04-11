@@ -29,6 +29,11 @@ namespace Server_Library.Socket_Clients {
 		protected Socket connectionSocket;
 
 		/// <summary>
+		/// Network stream for the connection
+		/// </summary>
+		protected NetworkStream connectionNetworkStream { get; set; }
+
+		/// <summary>
 		/// Information about hardware
 		/// </summary>
 		protected readonly ClientInformation information;
@@ -70,6 +75,8 @@ namespace Server_Library.Socket_Clients {
 			connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			//Connect
 			connectToServer(connectionSocket);
+			//Create stream
+			connectionNetworkStream = new NetworkStream(connectionSocket, true);
 			//Setup
 			setupConnection(connectionSocket);
 			//HandleConnection

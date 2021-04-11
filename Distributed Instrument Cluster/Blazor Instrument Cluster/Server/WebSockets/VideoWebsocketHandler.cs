@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Server.ProviderAndConsumer;
-using Blazor_Instrument_Cluster.Server.RemoteDevice;
+using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
 using Blazor_Instrument_Cluster.Server.Worker;
 using Microsoft.Extensions.Logging;
 using PackageClasses;
@@ -18,25 +18,23 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 	/// Class that handles incoming video websocket connections
 	/// <author> Mikael Nilssen</author>
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <typeparam name="U"></typeparam>
-	public class VideoWebsocketHandler<U> : IVideoSocketHandler {
+	public class VideoWebsocketHandler : IVideoSocketHandler {
 		/// <summary>
 		/// remote Device connections
 		/// </summary>
-		private readonly RemoteDeviceManager<U> remoteDeviceManager;
+		private readonly RemoteDeviceManager remoteDeviceManager;
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private readonly ILogger<VideoWebsocketHandler<U>> logger;
+		private readonly ILogger<VideoWebsocketHandler> logger;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public VideoWebsocketHandler(ILogger<VideoWebsocketHandler<U>> logger, IServiceProvider services) {
-			remoteDeviceManager = (RemoteDeviceManager<U>)services.GetService(typeof(IRemoteDeviceManager<U>));
+		public VideoWebsocketHandler(ILogger<VideoWebsocketHandler> logger, IServiceProvider services) {
+			remoteDeviceManager = (RemoteDeviceManager)services.GetService(typeof(IRemoteDeviceManager));
 			this.logger = logger;
 		}
 
@@ -83,9 +81,9 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 				//Check if device exists
 				bool found = false;
-				RemoteDevice<U> foundDevice = null;
+				RemoteDevice foundDevice = null;
 
-				if (remoteDeviceManager.getRemoteDeviceWithNameLocationAndType(name,location,type, out RemoteDevice<U> outputDevice)) {
+				if (remoteDeviceManager.getRemoteDeviceWithNameLocationAndType(name,location,type, out RemoteDevice outputDevice)) {
 					foundDevice = outputDevice;
 
 					List<SubDevice> listOfSubNames = foundDevice.getSubDeviceList();

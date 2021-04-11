@@ -10,12 +10,12 @@ namespace Server_Library.Socket_Clients {
 	/// Client for sending objects to Receive Listener
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class SendingClient<T> : ClientBase {
+	public class SendingClient : ClientBase {
 
 		/// <summary>
 		/// queue for objects to send
 		/// </summary>
-		private ConcurrentQueue<T> sendingObjectsConcurrentQueue;
+		private ConcurrentQueue<byte[]> sendingByteArrayConcurrentQueue;
 
 		/// <summary>
 		/// Constructor
@@ -29,7 +29,7 @@ namespace Server_Library.Socket_Clients {
 			CancellationToken isRunningCancellationToken) : base(ip, port, informationAboutClient, accessToken,
 			isRunningCancellationToken) {
 			//init queue
-			sendingObjectsConcurrentQueue = new ConcurrentQueue<T>();
+			sendingByteArrayConcurrentQueue = new ConcurrentQueue<byte[]>();
 		}
 
 		/// <summary>
@@ -49,24 +49,24 @@ namespace Server_Library.Socket_Clients {
 		/// Put object into queue for sending
 		/// </summary>
 		/// <param name="obj"></param>
-		public void queueObjectForSending(T obj) {
-			enqueueObject(obj);
+		public void queueBytesForSending(byte[] obj) {
+			enqueueBytes(obj);
 		}
 
 		/// <summary>
 		/// Overwrite the old queue with an empty new one
 		/// </summary>
 		public void resetQueue() {
-			sendingObjectsConcurrentQueue = new ConcurrentQueue<T>();
+			sendingByteArrayConcurrentQueue = new ConcurrentQueue<byte[]>();
 		}
 
 		/// <summary>
 		/// Send an object from the queue
 		/// </summary>
 		private void send() {
-			if (getObjectFromQueue(out T output)) {
+			if (getObjectFromQueue(out byte[] output)) {
 				//Send object
-				NetworkingOperations.sendJsonObjectWithSocket(output,connectionSocket);
+				NetworkingOperations.sendBytes(connectionNetworkStream,output);
 			}
 		}
 
@@ -75,8 +75,8 @@ namespace Server_Library.Socket_Clients {
 		/// </summary>
 		/// <param name="output"></param>
 		/// <returns>True if object was found</returns>
-		private bool getObjectFromQueue(out T output) {
-			if (sendingObjectsConcurrentQueue.TryDequeue(out T result)) {
+		private bool getObjectFromQueue(out byte[] output) {
+			if (sendingByteArrayConcurrentQueue.TryDequeue(out byte[] result)) {
 				output = result;
 				return true;
 			}
@@ -89,8 +89,8 @@ namespace Server_Library.Socket_Clients {
 		/// Add objects to queue for sending
 		/// </summary>
 		/// <param name="obj"></param>
-		private void enqueueObject(T obj) {
-			sendingObjectsConcurrentQueue.Enqueue(obj);
+		private void enqueueBytes(byte[] obj) {
+			sendingByteArrayConcurrentQueue.Enqueue(obj);
 		}
 
 		/// <summary>
@@ -98,7 +98,7 @@ namespace Server_Library.Socket_Clients {
 		/// </summary>
 		/// <returns>Number of items in queue</returns>
 		private int queueCount() {
-			return sendingObjectsConcurrentQueue.Count;
+			return sendingByteArrayConcurrentQueue.Count;
 		}
 	}
 }

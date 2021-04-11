@@ -26,7 +26,7 @@ namespace MAIN_Program {
 		private readonly List<VideoConnection> videoConnections = new();
 		private CommandParser commandParser;
 		//private ReceivingClient<ExampleVideoObject> videoClient;
-		private ReceivingClient<ExampleCrestronMsgObject> crestronClient;
+		private ReceivingClient crestronClient;
 
 		private static string configFile = "config.json";
 		private static void Main(string[] args) {
@@ -44,9 +44,9 @@ namespace MAIN_Program {
 			var json = parsConfigFile(configFile);
 
 
-			while (!setupSerialCable(json.serialCable)) {
-				Console.WriteLine("Retrying...");
-			}
+			//while (!setupSerialCable(json.serialCable)) {
+			//	Console.WriteLine("Retrying...");
+			//}
 
 			foreach (var device in json.videoDevices) {
 				setupVideoDevice(device);
@@ -55,9 +55,9 @@ namespace MAIN_Program {
 
 
 
-			//Start crestron command relay thread. (this should be event based as an optimal solution).
-			var relayThread = new Thread(this.relayThread) {IsBackground = true};
-			relayThread.Start();
+			////Start crestron command relay thread. (this should be event based as an optimal solution).
+			//var relayThread = new Thread(this.relayThread) {IsBackground = true};
+			//relayThread.Start();
 
 
 			//Start video relay threads. 
@@ -152,7 +152,7 @@ namespace MAIN_Program {
 
 			//Try to set up communication socket.
 			var communicator = device.communicator;
-			SendingClient<Jpeg> connection;
+			SendingClient connection;
 			try {
 				connection = setupVideoCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.subName ,communicator.accessHash);
 			}
@@ -182,14 +182,14 @@ namespace MAIN_Program {
 			return true;
 		}
 
-		public SendingClient<Jpeg> setupVideoCommunicator(string ip, int port, string name, string location, string type,string subName, string accessHash) {
+		public SendingClient setupVideoCommunicator(string ip, int port, string name, string location, string type,string subName, string accessHash) {
 			string videoIP = ip;
 			int videoPort = port;
 			ClientInformation info = new ClientInformation(name, location, type, subName);
 			AccessToken accessToken = new AccessToken(accessHash);
 			CancellationToken videoCancellationToken = new CancellationToken(false);
 
-			var videoClient = new SendingClient<Jpeg>(ip, port, info, accessToken, videoCancellationToken);
+			var videoClient = new SendingClient(ip, port, info, accessToken, videoCancellationToken);
 			videoClient.run();
 			return videoClient;
 		}
@@ -201,7 +201,7 @@ namespace MAIN_Program {
 			AccessToken accessToken = new AccessToken(accessHash);
 			CancellationToken crestronCancellationToken = new CancellationToken(false);
 
-			crestronClient = new ReceivingClient<ExampleCrestronMsgObject>(ip, port, info, accessToken, crestronCancellationToken);
+			crestronClient = new ReceivingClient(ip, port, info, accessToken, crestronCancellationToken);
 			crestronClient.run();
 		}
 
@@ -213,11 +213,13 @@ namespace MAIN_Program {
 		private void relayThread() {
 			while (true) {
 				try {
-					if (crestronClient.getObjectFromClient(out var messageObject)) {
-						var temp = messageObject.msg;
+					if (crestronClient.getBytesFromClient(out var messageObject)) {
+						ExampleCrestronMsgObject temp =
+							JsonSerializer.Deserialize<ExampleCrestronMsgObject>(
+								Encoding.UTF32.GetString(messageObject));
 						
 						Console.WriteLine(temp);
-						commandParser.pars(temp);
+						if (temp != null) commandParser.pars(temp.msg);
 					}
 				}
 				catch (Exception e) {
@@ -239,7 +241,7 @@ namespace MAIN_Program {
 						byteList.Add(b);
 					}
 
-					connection.queueObjectForSending(new Jpeg(byteList));
+					connection.queueBytesForSending(byteList.ToArray());
 				}
 				catch (Exception e) {
 					Console.WriteLine(e);
