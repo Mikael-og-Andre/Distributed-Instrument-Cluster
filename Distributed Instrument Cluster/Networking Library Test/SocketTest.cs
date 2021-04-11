@@ -25,6 +25,7 @@ namespace Networking_Library_Test {
 			listOfObjects.Add(new TestJsonObject("heheiheihe", -0, "ogandistan street 45"));
 			listOfObjects.Add(new TestJsonObject("benjamin", 1, "Streetname"));
 			listOfObjects.Add(new TestJsonObject("gundert", -19239829, "ogandistan 45"));
+			listOfObjects.Add(new TestJsonObject("gun///////////////1241251245125::::dert", -19239829, "ogandistan 45"));
 
 			Task.Run(() => {
 				Socket sock = listenerSocket.Accept();
