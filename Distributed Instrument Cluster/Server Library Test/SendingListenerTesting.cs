@@ -49,7 +49,7 @@ namespace Server_Library_Test {
 				receivingClient3.run();
 			});
 
-			Thread.Sleep(5000);
+			Thread.Sleep(1000);
 			//List
 			List<TestJsonObject> listFor1 = new List<TestJsonObject>();
 			listFor1.Add(new TestJsonObject("herilolol", 1010, "oggigigigig"));
@@ -129,7 +129,7 @@ namespace Server_Library_Test {
 				sendingConnection3.queueObjectForSending(obj);
 			}
 
-			Thread.Sleep(5000);
+			Thread.Sleep(1000);
 
 			foreach (var obj in listFor1) {
 				TestJsonObject currentTestJsonObject;

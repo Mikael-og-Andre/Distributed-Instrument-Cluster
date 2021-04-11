@@ -51,6 +51,7 @@ namespace Blazor_Instrument_Cluster.Server {
 			//Start Connection listeners as background services
 			services.AddHostedService<VideoListenerService<Jpeg,ExampleCrestronMsgObject>>();
 			services.AddHostedService<CrestronListenerService<Jpeg,ExampleCrestronMsgObject>>();
+
 			//Add singletons for web socket handling
 			services.AddSingleton<IVideoSocketHandler, VideoWebsocketHandler<ExampleCrestronMsgObject>>();
 			services.AddSingleton<ICrestronSocketHandler, CrestronWebsocketHandler<ExampleCrestronMsgObject>>();
