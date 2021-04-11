@@ -27,8 +27,6 @@ namespace Networking_Library {
 			connectionSocket.Receive(incomingObjectBuffer, 0, sizeOfIncoming, SocketFlags.None);
 			//get string from object
 			string receivedObj = Encoding.UTF32.GetString(incomingObjectBuffer);
-			//Trim null bytes
-			receivedObj = receivedObj.TrimEnd('\0');
 			return receivedObj;
 		}
 
@@ -76,51 +74,41 @@ namespace Networking_Library {
 
 		#endregion Json
 
-		#region Serialize Objects to binary
+
+#region Byte array
 
 		/// <summary>
-		/// Send an object with the socket
+		/// Send a byte array with a stream
 		/// </summary>
-		/// <param name="input">Object inheriting ISerializableObject</param>
-		/// <param name="connectionSocket"></param>
-		public static void sendObjectWithSocket<TU>(TU input, Socket connectionSocket) where TU : ISerializeObject {
-			byte[] bytes = input.getBytes();
-			NetworkStream networkStream = new NetworkStream(connectionSocket);
-			networkStream.Write(bytes);
-			networkStream.Flush();
+		/// <param name="stream"></param>
+		/// <param name="bytesToSend"></param>
+		public static void sendBytes(NetworkStream stream, byte[] bytesToSend) {
+			//First send size of incoming objects
+			byte[] size = BitConverter.GetBytes(bytesToSend.Length);
+			stream.Write(size,0,sizeof(int));
+			//Write the data
+			stream.Write(bytesToSend,0,bytesToSend.Length);
+			//Flush stream
+			stream.Flush();
 		}
 
 		/// <summary>
-		/// Receive an object with socket
+		/// Receive a byte array from the stream
 		/// </summary>
-		/// <param name="connectionSocket">Socket used for receiving</param>
-		/// <param name="receiveBufferSize">Size wanted for the buffer to receive the object</param>
-		/// <returns>byte array representation of object</returns>
-		public static byte[] receiveByteArrayWithSocket(Socket connectionSocket, int receiveBufferSize) {
-			//Create stream
-			NetworkStream networkStream = new NetworkStream(connectionSocket);
-			networkStream.Flush();
-			//read bytes to buffer
-			byte[] bufferBytes = new byte[receiveBufferSize];
-			networkStream.Read(bufferBytes);
-			networkStream.Flush();
-			int endInt = 0;
-			//Check where the nullbytes are
-			for (int i = bufferBytes.Length; i > 0; i--) {
-				byte currentByte = bufferBytes[i - 1];
-				if (currentByte != byte.MinValue) {
-					endInt = i;
-					break;
-				}
-			}
-
-			//Copy non null bytes to array
-			byte[] bytes = new byte[endInt];
-			Buffer.BlockCopy(bufferBytes, 0, bytes, 0, endInt);
-			//return arrray
-			return bytes;
+		/// <param name="stream"></param>
+		/// <returns></returns>
+		public static byte[] receiveBytes(NetworkStream stream) {
+			//Get size of incoming bytes
+			byte[] sizeBytes = new byte[sizeof(int)];
+			stream.Read(sizeBytes,0,sizeof(int));
+			int size = BitConverter.ToInt32(sizeBytes);
+			//Receive byte array
+			byte[] incomingBytes = new byte[size];
+			stream.Read(incomingBytes, 0, incomingBytes.Length);
+			
+			return incomingBytes;
 		}
 
-		#endregion Serialize Objects to binary
+#endregion
 	}
 }

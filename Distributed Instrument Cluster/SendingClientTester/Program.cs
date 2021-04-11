@@ -23,7 +23,7 @@ namespace SendingClientTester {
 
 	        while (true) {
 		        Thread.Sleep(10000);
-		        Jpeg obj =new Jpeg(new byte[0]);
+		        Jpeg obj =new Jpeg();
 				sendingClient.queueObjectForSending(obj);
 	        }
         }

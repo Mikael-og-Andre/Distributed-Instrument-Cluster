@@ -1,3 +1,4 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Networking_Library;
 using System.Collections.Generic;
@@ -82,5 +83,88 @@ namespace Networking_Library_Test {
 				Assert.AreEqual(obj, str);
 			}
 		}
+
+		[TestMethod]
+		public void testSendAndReceiveBytes() {
+			//Data samples
+			Random randNum = new Random(DateTime.Now.Millisecond);
+
+			byte[] arrayOne = new byte[2000000];
+			byte[] arrayTwo = new byte[100000000];
+			byte[] arrayThree = new byte[randNum.Next(int.MaxValue/30000)];
+			byte[] arrayFour = new byte[randNum.Next(int.MaxValue/1000)];
+
+			for (int i = 0; i < arrayOne.Length; i++) {
+				arrayOne[i] = (byte) randNum.Next();
+			}
+			for (int i = 0; i < arrayTwo.Length; i++) {
+				arrayTwo[i] = (byte) randNum.Next();
+			}
+			for (int i = 0; i < arrayThree.Length; i++) {
+				arrayThree[i] = (byte) randNum.Next();
+			}
+			for (int i = 0; i < arrayFour.Length; i++) {
+				arrayFour[i] = (byte) randNum.Next();
+			}
+
+			//Setup connections
+			Socket listeningSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+			EndPoint ep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6789);
+			listeningSocket.Bind(ep);
+			listeningSocket.Listen(200);
+
+			Socket senderSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+			senderSocket.Connect("127.0.0.1",6789);
+
+			Socket receivingSocket = listeningSocket.Accept();
+
+			//Streams
+			NetworkStream receivingStream = new NetworkStream(receivingSocket, true);
+
+			NetworkStream senderStream = new NetworkStream(senderSocket, true);
+
+			//Send first array
+			NetworkingOperations.sendBytes(senderStream,arrayOne);
+			//Check results
+			byte[] receivedArrayOne = NetworkingOperations.receiveBytes(receivingStream);
+			for (int i = 0; i < receivedArrayOne.Length; i++) {
+				Assert.AreEqual((byte)receivedArrayOne[i],(byte)arrayOne[i]);
+			}
+
+			//Send second array
+			NetworkingOperations.sendBytes(senderStream,arrayTwo);
+			//Check results
+			byte[] receivedArrayTwo = NetworkingOperations.receiveBytes(receivingStream);
+			for (int i = 0; i < receivedArrayTwo.Length; i++) {
+				Assert.AreEqual((byte)receivedArrayTwo[i],(byte)arrayTwo[i]);
+			}
+
+			//Send third array
+			NetworkingOperations.sendBytes(senderStream,arrayThree);
+			//Check results
+			byte[] receivedArrayThree = NetworkingOperations.receiveBytes(receivingStream);
+			for (int i = 0; i < receivedArrayThree.Length; i++) {
+				Assert.AreEqual((byte)receivedArrayThree[i],(byte)arrayThree[i]);
+			}
+
+			//Send fourth array
+			NetworkingOperations.sendBytes(senderStream,arrayFour);
+			//Check results
+			byte[] receivedArrayFour = NetworkingOperations.receiveBytes(receivingStream);
+			for (int i = 0; i < receivedArrayFour.Length; i++) {
+				Assert.AreEqual((byte)receivedArrayFour[i],(byte)arrayFour[i]);
+			}
+
+			//Test sending other way
+			//Send first array
+			NetworkingOperations.sendBytes(receivingStream,arrayFour);
+			//Check results
+			byte[] receivedReverse = NetworkingOperations.receiveBytes(senderStream);
+			for (int i = 0; i < receivedArrayFour.Length; i++) {
+				Assert.AreEqual((byte)receivedReverse[i],(byte)arrayFour[i]);
+			}
+
+		}
+
 	}
 }

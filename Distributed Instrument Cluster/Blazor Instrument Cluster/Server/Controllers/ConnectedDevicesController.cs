@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Blazor_Instrument_Cluster.Server.RemoteDevice;
 using PackageClasses;
-using Server_Library.Connection_Types.deprecated;
 
 namespace Blazor_Instrument_Cluster.Server.Controllers {
 
