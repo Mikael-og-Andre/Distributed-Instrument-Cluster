@@ -17,10 +17,9 @@ namespace Video_Demo {
 			var videoDevice = new VideoDeviceInterface(deviceIndex);
 
 			while (true) {
-				if (videoDevice.tryReadFrameBuffer(out var frame)) {
-					Cv2.ImShow("Video Device Interface Demo", frame);
-					Cv2.WaitKey(1);
-				}
+				var frame = videoDevice.readFrame();
+				Cv2.ImShow("Video Device Interface Demo", frame);
+				Cv2.WaitKey(1);
 			}
 		}
 	}
