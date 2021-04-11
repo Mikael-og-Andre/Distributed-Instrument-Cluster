@@ -107,8 +107,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 							//Receive a command from the socket
 							ArraySegment<byte> receivedArraySegment = new ArraySegment<byte>(new byte[2048]);
 							await websocket.ReceiveAsync(receivedArraySegment, token);
-							string receivedJson = Encoding.UTF32.GetString(receivedArraySegment).TrimEnd('\0');
-							 outputConnection.queueByteArrayForSending(Encoding.UTF32.GetBytes(receivedJson));
+							outputConnection.queueByteArrayForSending(receivedArraySegment.ToArray());
 						}
 					}
 					else {

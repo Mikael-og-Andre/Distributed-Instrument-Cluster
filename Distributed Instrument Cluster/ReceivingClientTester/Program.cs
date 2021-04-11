@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Server_Library;
@@ -22,7 +24,8 @@ namespace ReceivingClientTester {
 
 	        while (true) {
 		        if (receivingClient.getBytesFromClient(out byte[] output)) {
-					Console.WriteLine("Received object text: {0}",output);
+			        ExampleCrestronMsgObject obj = JsonSerializer.Deserialize<ExampleCrestronMsgObject>(Encoding.UTF32.GetString(output).TrimStart('\0').TrimEnd('\0'));
+					Console.WriteLine("Received object text: {0}",obj.msg);
 		        }
 	        }
 
