@@ -4,6 +4,7 @@ using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -232,7 +233,11 @@ namespace MAIN_Program {
 			while (true) {
 				try {
 					if (device.tryReadJpg(out var jpg)) {
-						connection.queueObjectForSending(new Jpeg(jpg));
+						var byteList = new List<byte>();
+						foreach (var b in jpg) {
+							byteList.Add(b);
+						}
+						connection.queueObjectForSending(new Jpeg(byteList));
 					}
 				}catch (Exception e) {
 					Console.WriteLine(e);

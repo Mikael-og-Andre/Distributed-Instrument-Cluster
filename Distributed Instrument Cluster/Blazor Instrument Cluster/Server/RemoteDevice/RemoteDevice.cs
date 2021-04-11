@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Server.Events;
 using Blazor_Instrument_Cluster.Server.ProviderAndConsumer;
 using Blazor_Instrument_Cluster.Shared;
+using OpenCvSharp;
 using PackageClasses;
 using Server_Library;
 using Server_Library.Connection_Types;
@@ -144,7 +146,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDevice {
 					try { 
 						//Try to get an object and broadcast it to subscribers
 						if (receivingConnection.getObjectFromConnection(out Jpeg output)) {
-							stream.image = output.Get();
+							stream.image = output.jpeg.ToArray();
 						}
 						else {
 							Thread.Sleep(5);
