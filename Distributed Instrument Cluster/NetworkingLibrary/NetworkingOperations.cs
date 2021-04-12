@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 
 namespace Networking_Library {
 
@@ -77,15 +78,15 @@ namespace Networking_Library {
 		/// <param name="stream"></param>
 		/// <param name="bytesToSend"></param>
 		public static void sendBytes(NetworkStream stream, byte[] bytesToSend) {
-			stream.Flush();
-			//First send size of incoming objects
-			byte[] size = BitConverter.GetBytes(bytesToSend.Length);
-			stream.Write(size, 0, sizeof(int));
-			stream.Flush();
-			//Write the data
-			stream.Write(bytesToSend, 0, bytesToSend.Length);
-			//Flush stream
-			stream.Flush();
+			lock (stream) {
+				//First send size of incoming objects
+				byte[] size = BitConverter.GetBytes(bytesToSend.Length);
+				stream.Write(size, 0, sizeof(int));
+				//Write the data
+				stream.Write(bytesToSend, 0, bytesToSend.Length);
+				//Flush stream
+				stream.Flush();
+			}
 		}
 
 		/// <summary>
@@ -94,16 +95,21 @@ namespace Networking_Library {
 		/// <param name="stream"></param>
 		/// <returns></returns>
 		public static byte[] receiveBytes(NetworkStream stream) {
-			stream.Flush();
-			//Get size of incoming bytes
-			byte[] sizeBytes = new byte[sizeof(int)];
-			stream.Read(sizeBytes, 0, sizeBytes.Length);
-			int size = BitConverter.ToInt32(sizeBytes);
-			//Receive byte array
-			byte[] incomingBytes = new byte[size];
-			stream.Read(incomingBytes, 0, incomingBytes.Length);
-			stream.Flush();
-			return incomingBytes;
+			lock (stream) {
+				stream.Flush();
+				//Get size of incoming bytes
+				byte[] sizeBytes = new byte[sizeof(int)];
+				stream.Read(sizeBytes, 0, sizeBytes.Length);
+				int size = BitConverter.ToInt32(sizeBytes);
+				//Thread sleep to fix insane bug.
+				Thread.Sleep(1);
+				//Receive byte array
+				byte[] incomingBytes = new byte[size];
+				stream.Read(incomingBytes, 0, incomingBytes.Length);
+				stream.Flush();
+
+				return incomingBytes;
+			}
 		}
 
 		#endregion Byte array
