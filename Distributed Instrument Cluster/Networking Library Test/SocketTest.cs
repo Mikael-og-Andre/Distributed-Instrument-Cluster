@@ -126,7 +126,7 @@ namespace Networking_Library_Test {
 			//Send first array
 			NetworkingOperations.sendBytes(senderStream,arrayOne);
 			//Check results
-			byte[] receivedArrayOne = NetworkingOperations.receiveBytes(receivingStream,arrayOne.Length);
+			byte[] receivedArrayOne = NetworkingOperations.receiveBytes(receivingStream);
 			for (int i = 0; i < receivedArrayOne.Length; i++) {
 				Assert.AreEqual((byte)receivedArrayOne[i],(byte)arrayOne[i]);
 			}
@@ -134,7 +134,7 @@ namespace Networking_Library_Test {
 			//Send second array
 			NetworkingOperations.sendBytes(senderStream,arrayTwo);
 			//Check results
-			byte[] receivedArrayTwo = NetworkingOperations.receiveBytes(receivingStream,arrayTwo.Length);
+			byte[] receivedArrayTwo = NetworkingOperations.receiveBytes(receivingStream);
 			for (int i = 0; i < receivedArrayTwo.Length; i++) {
 				Assert.AreEqual((byte)receivedArrayTwo[i],(byte)arrayTwo[i]);
 			}
@@ -142,7 +142,7 @@ namespace Networking_Library_Test {
 			//Send third array
 			NetworkingOperations.sendBytes(senderStream,arrayThree);
 			//Check results
-			byte[] receivedArrayThree = NetworkingOperations.receiveBytes(receivingStream,arrayThree.Length);
+			byte[] receivedArrayThree = NetworkingOperations.receiveBytes(receivingStream);
 			for (int i = 0; i < receivedArrayThree.Length; i++) {
 				Assert.AreEqual((byte)receivedArrayThree[i],(byte)arrayThree[i]);
 			}
@@ -150,7 +150,7 @@ namespace Networking_Library_Test {
 			//Send fourth array
 			NetworkingOperations.sendBytes(senderStream,arrayFour);
 			//Check results
-			byte[] receivedArrayFour = NetworkingOperations.receiveBytes(receivingStream, arrayFour.Length);
+			byte[] receivedArrayFour = NetworkingOperations.receiveBytes(receivingStream);
 			for (int i = 0; i < receivedArrayFour.Length; i++) {
 				Assert.AreEqual((byte)receivedArrayFour[i],(byte)arrayFour[i]);
 			}
@@ -159,7 +159,7 @@ namespace Networking_Library_Test {
 			//Send first array
 			NetworkingOperations.sendBytes(receivingStream,arrayFour);
 			//Check results
-			byte[] receivedReverse = NetworkingOperations.receiveBytes(senderStream, arrayFour.Length);
+			byte[] receivedReverse = NetworkingOperations.receiveBytes(senderStream);
 			for (int i = 0; i < receivedArrayFour.Length; i++) {
 				Assert.AreEqual((byte)receivedReverse[i],(byte)arrayFour[i]);
 			}

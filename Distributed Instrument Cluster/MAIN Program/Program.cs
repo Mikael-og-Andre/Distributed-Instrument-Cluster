@@ -44,9 +44,9 @@ namespace MAIN_Program {
 			var json = parsConfigFile(configFile);
 
 
-			//while (!setupSerialCable(json.serialCable)) {
-			//	Console.WriteLine("Retrying...");
-			//}
+			while (!setupSerialCable(json.serialCable)) {
+				Console.WriteLine("Retrying...");
+			}
 
 			foreach (var device in json.videoDevices) {
 				setupVideoDevice(device);
@@ -55,9 +55,9 @@ namespace MAIN_Program {
 
 
 
-			////Start crestron command relay thread. (this should be event based as an optimal solution).
-			//var relayThread = new Thread(this.relayThread) { IsBackground = true };
-			//relayThread.Start();
+			//Start crestron command relay thread. (this should be event based as an optimal solution).
+			var relayThread = new Thread(this.relayThread) { IsBackground = true };
+			relayThread.Start();
 
 
 			//Start video relay threads. 
