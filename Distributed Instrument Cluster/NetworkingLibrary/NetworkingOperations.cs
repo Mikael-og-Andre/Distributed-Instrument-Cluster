@@ -62,7 +62,7 @@ namespace Networking_Library {
 		/// <param name="socket"></param>
 		/// <returns></returns>
 		public static T receiveJsonObjectWithSocket<T>(Socket socket) {
-			string json = receiveStringWithSocket(socket);
+			string json = receiveStringWithSocket(socket).TrimEnd('\0').TrimStart('\0');
 			T receivedObj = JsonSerializer.Deserialize<T>(json);
 			return receivedObj;
 		}
@@ -77,9 +77,11 @@ namespace Networking_Library {
 		/// <param name="stream"></param>
 		/// <param name="bytesToSend"></param>
 		public static void sendBytes(NetworkStream stream, byte[] bytesToSend) {
+			stream.Flush();
 			//First send size of incoming objects
 			byte[] size = BitConverter.GetBytes(bytesToSend.Length);
 			stream.Write(size, 0, sizeof(int));
+			stream.Flush();
 			//Write the data
 			stream.Write(bytesToSend, 0, bytesToSend.Length);
 			//Flush stream
@@ -92,14 +94,15 @@ namespace Networking_Library {
 		/// <param name="stream"></param>
 		/// <returns></returns>
 		public static byte[] receiveBytes(NetworkStream stream) {
+			stream.Flush();
 			//Get size of incoming bytes
 			byte[] sizeBytes = new byte[sizeof(int)];
-			stream.Read(sizeBytes, 0, sizeof(int));
+			stream.Read(sizeBytes, 0, sizeBytes.Length);
 			int size = BitConverter.ToInt32(sizeBytes);
 			//Receive byte array
 			byte[] incomingBytes = new byte[size];
 			stream.Read(incomingBytes, 0, incomingBytes.Length);
-
+			stream.Flush();
 			return incomingBytes;
 		}
 
