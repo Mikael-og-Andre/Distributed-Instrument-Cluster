@@ -21,7 +21,7 @@ namespace Networking_Library {
 		public static string receiveStringWithSocket(Socket connectionSocket) {
 			NetworkStream networkStream = new NetworkStream(connectionSocket, true);
 			//receive bytes with socket stream
-			byte[] incomingBytes = receiveBytes(networkStream);
+			byte[] incomingBytes = receiveBytes(networkStream,9000000);
 			//get string from bytes
 			string receivedString = Encoding.UTF32.GetString(incomingBytes);
 			return receivedString;
@@ -77,11 +77,6 @@ namespace Networking_Library {
 		/// <param name="stream"></param>
 		/// <param name="bytesToSend"></param>
 		public static void sendBytes(NetworkStream stream, byte[] bytesToSend) {
-			stream.Flush();
-			//First send size of incoming objects
-			byte[] size = BitConverter.GetBytes(bytesToSend.Length);
-			stream.Write(size, 0, sizeof(int));
-			stream.Flush();
 			//Write the data
 			stream.Write(bytesToSend, 0, bytesToSend.Length);
 			//Flush stream
@@ -92,15 +87,11 @@ namespace Networking_Library {
 		/// Receive a byte array from the stream
 		/// </summary>
 		/// <param name="stream"></param>
+		/// <param name="bufferSize"></param>
 		/// <returns></returns>
-		public static byte[] receiveBytes(NetworkStream stream) {
-			stream.Flush();
-			//Get size of incoming bytes
-			byte[] sizeBytes = new byte[sizeof(int)];
-			stream.Read(sizeBytes, 0, sizeBytes.Length);
-			int size = BitConverter.ToInt32(sizeBytes);
+		public static byte[] receiveBytes(NetworkStream stream, int bufferSize) {
 			//Receive byte array
-			byte[] incomingBytes = new byte[size];
+			byte[] incomingBytes = new byte[bufferSize];
 			stream.Read(incomingBytes, 0, incomingBytes.Length);
 			stream.Flush();
 			return incomingBytes;

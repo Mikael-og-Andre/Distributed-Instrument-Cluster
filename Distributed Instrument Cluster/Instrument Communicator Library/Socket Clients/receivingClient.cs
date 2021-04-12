@@ -75,7 +75,7 @@ namespace Server_Library.Socket_Clients {
 		private void receive() {
 			if (isDataAvailable()) {
 
-				byte[] incomingByteArray = NetworkingOperations.receiveBytes(connectionNetworkStream);
+				byte[] incomingByteArray = NetworkingOperations.receiveBytes(connectionNetworkStream,9000000);
 
 				//Put object in queue
 				enqueueBytes(incomingByteArray);

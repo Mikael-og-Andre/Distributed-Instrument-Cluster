@@ -60,7 +60,7 @@ namespace Server_Library.Connection_Types {
 		public bool receive() {
 			if (isDataAvailable()) {
 				//Get data from stream
-				byte[] incomingBytes=NetworkingOperations.receiveBytes(connectionNetworkStream);
+				byte[] incomingBytes=NetworkingOperations.receiveBytes(connectionNetworkStream,9000000);
 				//Put object in queue
 				enqueueBytes(incomingBytes);
 				return true;
