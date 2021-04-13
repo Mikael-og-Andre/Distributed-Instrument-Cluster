@@ -1,6 +1,6 @@
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Networking_Library;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -90,22 +90,16 @@ namespace Networking_Library_Test {
 			Random randNum = new Random(DateTime.Now.Millisecond);
 
 			byte[] arrayOne = new byte[2000000];
-			byte[] arrayTwo = new byte[100000000];
-			byte[] arrayThree = new byte[randNum.Next(int.MaxValue/30000)];
-			byte[] arrayFour = new byte[randNum.Next(int.MaxValue/1000)];
+			byte[] arrayTwo = new byte[1000000];
+			byte[] arrayThree = new byte[2000000];
+			byte[] arrayFour = new byte[2000000];
 
 			for (int i = 0; i < arrayOne.Length; i++) {
-				arrayOne[i] = (byte) randNum.Next();
+				arrayOne[i] = (byte)(i);
 			}
-			for (int i = 0; i < arrayTwo.Length; i++) {
-				arrayTwo[i] = (byte) randNum.Next();
-			}
-			for (int i = 0; i < arrayThree.Length; i++) {
-				arrayThree[i] = (byte) randNum.Next();
-			}
-			for (int i = 0; i < arrayFour.Length; i++) {
-				arrayFour[i] = (byte) randNum.Next();
-			}
+			randNum.NextBytes(arrayTwo);
+			randNum.NextBytes(arrayThree);
+			randNum.NextBytes(arrayFour);
 
 			//Setup connections
 			Socket listeningSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -114,7 +108,7 @@ namespace Networking_Library_Test {
 			listeningSocket.Listen(200);
 
 			Socket senderSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-			senderSocket.Connect("127.0.0.1",6789);
+			senderSocket.Connect("127.0.0.1", 6789);
 
 			Socket receivingSocket = listeningSocket.Accept();
 
@@ -124,47 +118,50 @@ namespace Networking_Library_Test {
 			NetworkStream senderStream = new NetworkStream(senderSocket, true);
 
 			//Send first array
-			NetworkingOperations.sendBytes(senderStream,arrayOne);
+			NetworkingOperations.sendBytes(senderStream, arrayOne);
 			//Check results
 			byte[] receivedArrayOne = NetworkingOperations.receiveBytes(receivingStream);
 			for (int i = 0; i < receivedArrayOne.Length; i++) {
-				Assert.AreEqual((byte)receivedArrayOne[i],(byte)arrayOne[i]);
+				Assert.AreEqual((byte)receivedArrayOne[i], (byte)arrayOne[i]);
 			}
 
 			//Send second array
-			NetworkingOperations.sendBytes(senderStream,arrayTwo);
+			NetworkingOperations.sendBytes(senderStream, arrayTwo);
 			//Check results
 			byte[] receivedArrayTwo = NetworkingOperations.receiveBytes(receivingStream);
 			for (int i = 0; i < receivedArrayTwo.Length; i++) {
-				Assert.AreEqual((byte)receivedArrayTwo[i],(byte)arrayTwo[i]);
+				Assert.AreEqual((byte)receivedArrayTwo[i], (byte)arrayTwo[i]);
 			}
 
 			//Send third array
-			NetworkingOperations.sendBytes(senderStream,arrayThree);
+			NetworkingOperations.sendBytes(senderStream, arrayThree);
 			//Check results
 			byte[] receivedArrayThree = NetworkingOperations.receiveBytes(receivingStream);
 			for (int i = 0; i < receivedArrayThree.Length; i++) {
-				Assert.AreEqual((byte)receivedArrayThree[i],(byte)arrayThree[i]);
+				Assert.AreEqual((byte)receivedArrayThree[i], (byte)arrayThree[i]);
 			}
 
 			//Send fourth array
-			NetworkingOperations.sendBytes(senderStream,arrayFour);
+			NetworkingOperations.sendBytes(senderStream, arrayFour);
 			//Check results
 			byte[] receivedArrayFour = NetworkingOperations.receiveBytes(receivingStream);
 			for (int i = 0; i < receivedArrayFour.Length; i++) {
-				Assert.AreEqual((byte)receivedArrayFour[i],(byte)arrayFour[i]);
+				Assert.AreEqual((byte)receivedArrayFour[i], (byte)arrayFour[i]);
 			}
 
 			//Test sending other way
 			//Send first array
-			NetworkingOperations.sendBytes(receivingStream,arrayFour);
+			NetworkingOperations.sendBytes(receivingStream, arrayFour);
 			//Check results
 			byte[] receivedReverse = NetworkingOperations.receiveBytes(senderStream);
 			for (int i = 0; i < receivedArrayFour.Length; i++) {
-				Assert.AreEqual((byte)receivedReverse[i],(byte)arrayFour[i]);
+				Assert.AreEqual((byte)receivedReverse[i], (byte)arrayFour[i]);
 			}
 
+			//Streams
+			listeningSocket.Close();
+			receivingSocket.Dispose();
+			senderSocket.Dispose();
 		}
-
 	}
 }
