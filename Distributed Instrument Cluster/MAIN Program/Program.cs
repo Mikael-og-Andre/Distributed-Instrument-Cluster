@@ -34,26 +34,18 @@ namespace MAIN_Program {
 			_ = new Program(configFile);
 		}
 
-		private static void parsArgs(string[] args) {
-			if (args.Length > 0) {
-				configFile = args[0].ToString();
-			}
-		}
-
 		private Program(string configFile) {
 			var json = parsConfigFile(configFile);
 
 
 			while (!setupSerialCable(json.serialCable)) {
+				Thread.Sleep(3000);
 				Console.WriteLine("Retrying...");
 			}
 
 			foreach (var device in json.videoDevices) {
 				setupVideoDevice(device);
 			}
-
-
-
 
 			//Start crestron command relay thread. (this should be event based as an optimal solution).
 			var relayThread = new Thread(this.relayThread) { IsBackground = true };
@@ -66,16 +58,17 @@ namespace MAIN_Program {
 				videoThread.Start(i);
 			}
 
-
-
+			//Start CLI loop.
 			while (true) {
+				parsCLI(Console.ReadLine());
+			}
+		}
 
-				//TODO: make cmd interface read.
-				////if (videoDevices[0].readFrame(out Mat ooga)) {
-				//if (videoDevices[0].readJpg(out byte[] ooga, 70)) {
-				//	Thread.Sleep(100);
-				//	videoClient.getInputQueue().Enqueue(new VideoFrame(ooga));
-				//}
+		#region parsers
+
+		private static void parsArgs(string[] args) {
+			if (args.Length > 0) {
+				configFile = args[0].ToString();
 			}
 		}
 
@@ -88,6 +81,24 @@ namespace MAIN_Program {
 			return json;
 		}
 
+		private void parsCLI(string s) {
+			s = s.ToLower();
+			switch (s) {
+				case "help":
+					Console.WriteLine("CLI not implemented");
+					break;
+				case "q":
+				case "quit":
+					Console.WriteLine("Program shutdown");
+					Environment.Exit(0);
+					break;
+				default:
+					Console.WriteLine($"\"{s}\" not recognized as a command, try \"help\" to see available commands.");
+					break;
+			}
+		}
+
+		#endregion
 
 		#region setup methods
 
@@ -111,11 +122,19 @@ namespace MAIN_Program {
 			try {
 				var serialPort = new SerialPortInterface(serialCable.portName);
 				commandParser = new CommandParser(serialPort, serialCable.largeMagnitude, serialCable.smallMagnitude, serialCable.maxDelta);
-				writeSuccess("Successfully connected to port: " + serialCable.portName);
 
-				//NumLock check may be unnecessary. 
-				if (numLockCheck(serialPort))
-					writeWarning("NumLock check failed, com port may not be a crestron cable.");
+				//NumLock check may be unnecessary.
+				var task = Task.Run(() => numLockCheck(serialPort));
+				if (task.Wait(TimeSpan.FromSeconds(3))) {
+					if (task.Result)
+						writeWarning("NumLock check failed, com port may not be a crestron cable.");
+				} else {
+					writeWarning("Com port timed out");
+					//Ignore issue for now (dispose not functioning properly).
+					//task.Dispose();
+					//serialPort.Dispose();
+					//return false;
+				}
 
 				//Release all keys.
 				serialPort.SendBytes(0x38);
@@ -125,6 +144,7 @@ namespace MAIN_Program {
 				return false;
 			}
 
+			writeSuccess("Successfully connected to port: " + serialCable.portName);
 			return true;
 		}
 
@@ -207,6 +227,8 @@ namespace MAIN_Program {
 
 		#endregion setup methods
 
+		#region Threads
+
 		/// <summary>
 		/// Thread for relaying commands coming from internet socket to command parser.
 		/// </summary>
@@ -248,6 +270,8 @@ namespace MAIN_Program {
 				}
 			}
 		}
+
+		#endregion
 
 		//TODO: make watchDog, checking if all components of the system is functioning as they should and reset components/classes not working.
 		private void watchDog() {
