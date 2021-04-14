@@ -64,8 +64,8 @@ namespace Server_Library.Socket_Clients {
 		/// Send an object from the queue
 		/// </summary>
 		private void send() {
+			//If there is an object in the queue send it
 			if (getObjectFromQueue(out byte[] output)) {
-				//Send object
 				NetworkingOperations.sendBytes(connectionNetworkStream,output);
 			}
 		}
