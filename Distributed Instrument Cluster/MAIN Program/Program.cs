@@ -3,8 +3,9 @@ using Server_Library;
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices.ComTypes;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -196,7 +197,7 @@ namespace MAIN_Program {
 
 				return false;
 			}
-			videoConnections.Add(new VideoConnection(videoDevice, connection));
+			videoConnections.Add(new VideoConnection(videoDevice, connection, device.quality, device.fps));
 
 			writeSuccess("Detecting frames from video device");
 			return true;
@@ -239,8 +240,6 @@ namespace MAIN_Program {
 						ExampleCrestronMsgObject temp =
 							JsonSerializer.Deserialize<ExampleCrestronMsgObject>(
 								Encoding.UTF32.GetString(messageObject).Replace("\0",string.Empty));
-						
-						Console.WriteLine(temp);
 						if (temp != null) commandParser.pars(temp.msg);
 					}
 				}
@@ -250,28 +249,47 @@ namespace MAIN_Program {
 			}
 		}
 
+		/// <summary>
+		/// Thread for sending frames to server at a constant or dynamic* fps.
+		/// *TODO: make dynamic fps option when fps=0.
+		/// </summary>
+		/// <param name="index">Video device index</param>
 		private void videoThread(object index) {
-			var device = videoConnections[(int) index].device;
-			var connection = videoConnections[(int) index].connection;
-			var quality = 50; //TODO add quality to videoConnections. Also fps mby?
-
+			var i = (int) index;
+			var device = videoConnections[i].device;
+			var connection = videoConnections[i].connection;
+			var quality = videoConnections[i].quality;
+			var fps = videoConnections[i].fps;
+			
+			var timer = Stopwatch.GetTimestamp();
 			while (true) {
 				try {
-					var jpg = device.readJpg(50);
-					var byteList = new List<byte>();
-					foreach (var b in jpg) {
-						byteList.Add(b);
-					}
-
-					connection.queueBytesForSending(byteList.ToArray());
-				}
-				catch (Exception e) {
+					var jpg = device.readJpg(quality);
+					connection.queueBytesForSending(jpg.ToArray());
+				} catch (Exception e) {
 					Console.WriteLine(e);
 				}
+				timer = fpsLimiter(timer, fps);
 			}
 		}
 
 		#endregion
+
+		/// <summary>
+		/// Calculates delta from previous call and current and sleeps thread
+		/// the necessary amount of time to achieve the desired fps.
+		/// </summary>
+		/// <param name="T">Time returned from previous method call</param>
+		/// <param name="fps">Desired frame rate.</param>
+		/// <returns>Time with delay for use in next call of this method.</returns>
+		private static long fpsLimiter(long T, int fps) {
+			var delta = T - Stopwatch.GetTimestamp();
+			var sleepTime = (int) (delta / 10000);
+			if(sleepTime>0)
+				Thread.Sleep(sleepTime);
+			return Stopwatch.GetTimestamp() + (10000000) / fps;
+		}
+
 
 		//TODO: make watchDog, checking if all components of the system is functioning as they should and reset components/classes not working.
 		private void watchDog() {

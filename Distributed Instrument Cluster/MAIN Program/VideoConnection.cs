@@ -10,10 +10,14 @@ namespace MAIN_Program {
 	internal class VideoConnection {
 		public VideoDeviceInterface device { get;}
 		public SendingClient connection { get;}
+		public int quality { get; }
+		public int fps { get; }
 
-		public VideoConnection(VideoDeviceInterface device, SendingClient connection) {
+		public VideoConnection(VideoDeviceInterface device, SendingClient connection, int quality=50, int fps=30) {
 			this.device = device;
 			this.connection = connection;
+			this.quality = quality;
+			this.fps = fps;
 		}
 	}
 }

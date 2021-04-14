@@ -19,6 +19,8 @@ namespace MAIN_Program {
 			public int apiIndex { get; set; }
 			public int width { get; set; }
 			public int height { get; set; }
+			public int quality { get; set; }
+			public int fps { get; set; }
 			public Communicator communicator { get; set; }
 
 		}
