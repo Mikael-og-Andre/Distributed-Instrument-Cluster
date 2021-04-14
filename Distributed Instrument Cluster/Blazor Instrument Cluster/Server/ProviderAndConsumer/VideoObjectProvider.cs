@@ -91,7 +91,7 @@ namespace Blazor_Instrument_Cluster.Server.Events {
 			//videoStreamer.image = JsonConvert.DeserializeObject<T>(frameResult);
 			Console.WriteLine(videoStreamer.portNumber);
 
-			videoStreamer.image = frameResult.jpeg.ToArray();
+			videoStreamer.Image = frameResult.jpeg.ToArray();
 
 			lock (observers) {
 				foreach (var observer in observers) {

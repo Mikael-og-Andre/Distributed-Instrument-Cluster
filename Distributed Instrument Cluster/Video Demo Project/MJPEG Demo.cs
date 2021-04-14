@@ -9,7 +9,7 @@ namespace Video_Demo {
 			var streamer = new MJPEG_Streamer(30, 8080);
 
 			while (true) {
-				streamer.image = device.readJpg(40);
+				streamer.Image = device.readJpg(40);
 			}
 		}
 	}

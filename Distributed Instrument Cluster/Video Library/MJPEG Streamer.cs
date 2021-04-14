@@ -1,21 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Video_Library {
+
+	/// <summary>
+	/// MJPEG server manages connecting clients and responding to http requests.
+	/// Set "image" to send a image to all connected clients.
+	/// </summary>
+	/// <author>Andre Helland</author>
 	public class MJPEG_Streamer {
 
-		public byte[] image { get; set; }
+		private byte[] image;
+		public byte[] Image {
+			set {
+				image = value;
+				foreach (var client in clients) {
+					client.frameSent = false;
+				}
+			}
+
+		}
 		public int fps { get; set; }
 		public int portNumber {private set; get; }
 		public bool isPortSet { get; set; } = false;
 
-		private readonly List<Socket> clients;
+		private readonly List<Client> clients;
 		private Thread thread;
 		private CancellationTokenSource disposalTokenSource;
 
@@ -33,7 +46,7 @@ namespace Video_Library {
 			disposalTokenSource = new CancellationTokenSource();
 
 			this.fps = fps;
-			clients = new List<Socket>();
+			clients = new List<Client>();
 			thread = null;
 			header = getBytes("HTTP/1.1 200 OK\r\n" + "Content-Type: multipart/x-mixed-replace; boundary=" + Boundary + "\r\n");
 			Start(port);
@@ -68,8 +81,8 @@ namespace Video_Library {
 
 				Console.WriteLine($"MJPEG Server started on port {state}.");
 
-				foreach (Socket client in Server.IncommingConnectoins())
-					ThreadPool.QueueUserWorkItem(ClientThread, client);
+				foreach (Socket socket in Server.IncommingConnectoins())
+					ThreadPool.QueueUserWorkItem(ClientThread, new Client(socket));
 			}
 			catch (Exception e) {
 				Console.WriteLine(e);
@@ -80,25 +93,26 @@ namespace Video_Library {
 		/// Thread for providing a connected client with http response and mjpeg data.
 		/// </summary>
 		/// <param name="client"></param>
-		private void ClientThread(object client) {
-
-			Socket socket = (Socket)client;
+		private void ClientThread(object Client) {
+			var client = (Client) Client;
+			var socket = client.socket;
 
 			Console.WriteLine($"New client from {socket.RemoteEndPoint}");
 
 			lock (clients)
-				clients.Add(socket);
+				clients.Add(client);
 
 			try {
 				using var ns = new NetworkStream(socket, true);
 				ns.Write(header);
 				ns.Flush();
 
-				//TODO: only send new frames.
 				while (true) {
 					if (image == null) continue;
-					Thread.Sleep(1000/fps);
-					writeImage(ns, image);
+					if (!client.frameSent) {
+						writeImage(ns, image);
+						client.frameSent = true;
+					}
 				}
 			}
 			catch {
@@ -106,7 +120,7 @@ namespace Video_Library {
 			}
 			finally {
 				lock (clients)
-					clients.Remove(socket);
+					clients.Remove(client);
 			}
 		}
 
@@ -154,11 +168,20 @@ namespace Video_Library {
 		}
 	}
 
+	public class Client {
+		public Socket socket { get; }
+		public bool frameSent { get; set; }
+
+		public Client(Socket socket) {
+			this.socket = socket;
+			frameSent = false;
+		}
+	}
+
 	internal static class SocketExtensions {
 		public static IEnumerable<Socket> IncommingConnectoins(this Socket server) {
 			while (true)
 				yield return server.Accept();
 		}
 	}
-
 }

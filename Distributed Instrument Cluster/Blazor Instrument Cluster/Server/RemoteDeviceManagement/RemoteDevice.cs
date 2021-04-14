@@ -140,7 +140,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 					try { 
 						//Try to get an object and broadcast it to subscribers
 						if (receivingConnection.getDataFromConnection(out byte[] output)) {
-							stream.image = output;
+							stream.Image = output;
 						}
 						else {
 							Thread.Sleep(5);
