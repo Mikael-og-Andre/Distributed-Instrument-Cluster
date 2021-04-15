@@ -20,12 +20,13 @@
 
 <div id="ListConnected" class="" style="list-style: none">
     <ul>
-        @if (devices != null)
-        {
-            @foreach (DeviceModel device in devices)
-            {
+        @if (devices != null) {
+            @foreach (DeviceModel device in devices) {
                 <DeviceComponent deviceInfo="device"></DeviceComponent>
             }
+        }
+        else {
+            <p class="list-group-item container">No device connected</p>
         }
     </ul>
 </div>

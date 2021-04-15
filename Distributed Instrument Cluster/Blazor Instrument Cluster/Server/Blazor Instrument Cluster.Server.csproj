@@ -27,4 +27,10 @@
     <ProjectReference Include="..\Client\Blazor Instrument Cluster.Client.csproj" />
     <ProjectReference Include="..\Shared\Blazor Instrument Cluster.Shared.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

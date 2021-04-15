@@ -4,7 +4,9 @@ using Server_Library.Connection_Classes;
 using Server_Library.Connection_Types;
 using Server_Library.Server_Listeners;
 using System;
+using System.IO;
 using System.Net;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
@@ -47,8 +49,12 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 			//Get Remote devices from services
 			remoteDeviceManager = (RemoteDeviceManager)services.GetService(typeof(IRemoteDeviceManager));
 			//Init Listener
-			//TODO: Add config ip setup
-			sendingListener = new SendingListener(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6981));
+			var jsonString = File.ReadAllText(@"config.json");
+			var json = JsonSerializer.Deserialize<Json>(jsonString);
+			var ip = json.serverIP;
+			var port = json.crestronPort;
+
+			sendingListener = new SendingListener(new IPEndPoint(IPAddress.Parse(ip), port));
 		}
 
 		/// <summary>
@@ -74,6 +80,13 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 				}
 			}
 			
+		}
+
+		private Json parsConfigFile(string file) {
+			Console.WriteLine("Parsing config file...");
+			var jsonString = File.ReadAllText(file);
+			var json = JsonSerializer.Deserialize<Json>(jsonString);
+			return json;
 		}
 	}
 }

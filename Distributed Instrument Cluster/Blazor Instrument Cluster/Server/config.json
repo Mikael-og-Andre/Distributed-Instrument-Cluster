@@ -1,0 +1,5 @@
+﻿{
+  "serverIP": "192.168.1.164",
+  "videoPort" :  6980, 
+  "crestronPort" :  6981 
+}

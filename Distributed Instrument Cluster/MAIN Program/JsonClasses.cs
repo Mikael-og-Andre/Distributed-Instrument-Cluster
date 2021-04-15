@@ -1,7 +1,12 @@
 ﻿using System.Collections.Generic;
 
 namespace MAIN_Program {
-	public class JsonClasses {
+	/// <summary>
+	/// Json for storing launch config info for program on remote device:
+	/// Video setting, crestron cable settings, server ip and port settings and device info.
+	/// </summary>
+	/// <author>Andre Helland</author>
+	internal class JsonClasses {
 
 		public SerialCable serialCable { get; set; }
 		public List<VideoDevice> videoDevices { get; set; }

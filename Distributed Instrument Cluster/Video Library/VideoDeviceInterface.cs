@@ -2,7 +2,6 @@
 using System;
 
 //TODO: Handle Unplugging w/out crashing.
-//TODO: Make device health method (method for checking if device is working properly/producing frames).
 namespace Video_Library {
 
 	/// <summary>

@@ -168,7 +168,7 @@ namespace Video_Library {
 		}
 	}
 
-	public class Client {
+	internal class Client {
 		public Socket socket { get; }
 		public bool frameSent { get; set; }
 
