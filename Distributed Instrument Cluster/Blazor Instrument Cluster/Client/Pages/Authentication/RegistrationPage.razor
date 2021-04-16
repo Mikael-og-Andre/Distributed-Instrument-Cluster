@@ -1,0 +1,39 @@
+﻿@page "/Register"
+@using Blazor_Instrument_Cluster.Shared.AuthenticationModels
+
+<div class="container">
+    <EditForm Model="@registrationAttempt" OnValidSubmit="() => { Task.FromResult(SubmitRegistrationAttempt());}">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <ValidationSummary></ValidationSummary>
+
+        <p>
+            <label for="username">Username:</label>
+            <InputText id="username" placeholder="username" @bind-Value="registrationAttempt.username"></InputText>
+        </p>
+        <p>
+            <label for="email">Email:</label>
+            <InputText id="email" placeholder="Email@whatever.com" @bind-Value="registrationAttempt.email"></InputText>
+        </p>
+        <p>
+            <label for="password">Password:</label>
+            <InputText id="password" type="password" placeholder="Password" @bind-Value="registrationAttempt.password"></InputText>
+        </p>
+        <p>
+            <label for="retype">Confirm Password:</label>
+            <InputText id="retype" type="password" placeholder="Password" @bind-Value="registrationAttempt.ConfirmPassword"></InputText>
+        </p>
+
+        <button class="btn btn-success" type="submit">Submit</button>
+    </EditForm>
+</div>
+
+@code {
+
+    private RegistrationModel registrationAttempt = new RegistrationModel();
+
+    private async Task SubmitRegistrationAttempt() {
+
+    }
+
+
+}

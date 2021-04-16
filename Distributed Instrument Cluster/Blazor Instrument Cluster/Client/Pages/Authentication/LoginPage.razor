@@ -1,0 +1,35 @@
+﻿@page "/Login"
+@using Blazor_Instrument_Cluster.Shared.AuthenticationModels
+
+<div class="container">
+    
+    <EditForm Model="@loginAttempt" OnValidSubmit="() => { Task.FromResult(SubmitLogin()); }">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <ValidationSummary></ValidationSummary>
+
+        <p>
+            <label for="username">Username:</label>
+            <InputText id="username" placeholder="username" @bind-Value="loginAttempt.username"></InputText>
+        </p>
+        <p>
+            <label for="password">Password:</label>
+            <InputText id="password" type="password" placeholder="Password" @bind-Value="loginAttempt.password"></InputText>
+        </p>
+        
+        <button class="btn btn-success" type="submit">Submit</button>
+    </EditForm>
+
+</div>
+
+@code {
+
+    private LoginModel loginAttempt = new LoginModel();
+
+
+    private async Task SubmitLogin() {
+
+
+
+    }
+
+}
