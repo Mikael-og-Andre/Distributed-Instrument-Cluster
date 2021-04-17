@@ -1,34 +1,54 @@
 ﻿@page "/Login"
+@layout TopBarLayout
 @using Blazor_Instrument_Cluster.Shared.AuthenticationModels
 
 <div class="container">
-    
-    <EditForm Model="@loginAttempt" OnValidSubmit="() => { Task.FromResult(SubmitLogin()); }">
-        <DataAnnotationsValidator></DataAnnotationsValidator>
-        <ValidationSummary></ValidationSummary>
 
-        <p>
-            <label for="username">Username:</label>
-            <InputText id="username" placeholder="username" @bind-Value="loginAttempt.username"></InputText>
-        </p>
-        <p>
-            <label for="password">Password:</label>
-            <InputText id="password" type="password" placeholder="Password" @bind-Value="loginAttempt.password"></InputText>
-        </p>
-        
-        <button class="btn btn-success" type="submit">Submit</button>
-    </EditForm>
+    <div class="row">
+        <div class="col">
+            <h1 class="alert">Login</h1>
+        </div>
+    </div>
 
+    <div class="row">
+        <div class="col">
+            <EditForm Model="@loginAttempt" OnValidSubmit="() => { Task.FromResult(SubmitLoginAttempt(loginAttempt)); }">
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+                <ValidationSummary></ValidationSummary>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-4">
+                            <label for="username">Username:</label>
+                        </div>
+                        <div class="col-8">
+                            <InputText id="username" placeholder="username" @bind-Value="loginAttempt.username"></InputText>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+                            <label for="password">Password:</label>
+                        </div>
+                        <div class="col-8">
+                            <InputText id="password" type="password" placeholder="Password" @bind-Value="loginAttempt.password"></InputText>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <button class="btn btn-success" type="submit">Submit</button>
+                            <button type="reset" class="btn btn-dark">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
 </div>
 
 @code {
 
     private LoginModel loginAttempt = new LoginModel();
 
-
-    private async Task SubmitLogin() {
-
-
+    private async Task SubmitLoginAttempt(LoginModel loginAttempt) {
 
     }
 

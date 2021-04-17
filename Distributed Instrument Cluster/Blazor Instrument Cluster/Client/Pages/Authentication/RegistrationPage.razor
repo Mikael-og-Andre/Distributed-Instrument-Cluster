@@ -1,39 +1,78 @@
 ﻿@page "/Register"
+@layout TopBarLayout
 @using Blazor_Instrument_Cluster.Shared.AuthenticationModels
 
 <div class="container">
-    <EditForm Model="@registrationAttempt" OnValidSubmit="() => { Task.FromResult(SubmitRegistrationAttempt());}">
-        <DataAnnotationsValidator></DataAnnotationsValidator>
-        <ValidationSummary></ValidationSummary>
 
-        <p>
-            <label for="username">Username:</label>
-            <InputText id="username" placeholder="username" @bind-Value="registrationAttempt.username"></InputText>
-        </p>
-        <p>
-            <label for="email">Email:</label>
-            <InputText id="email" placeholder="Email@whatever.com" @bind-Value="registrationAttempt.email"></InputText>
-        </p>
-        <p>
-            <label for="password">Password:</label>
-            <InputText id="password" type="password" placeholder="Password" @bind-Value="registrationAttempt.password"></InputText>
-        </p>
-        <p>
-            <label for="retype">Confirm Password:</label>
-            <InputText id="retype" type="password" placeholder="Password" @bind-Value="registrationAttempt.ConfirmPassword"></InputText>
-        </p>
+    <div class="row">
+        <div class="col">
+            <h1 class="alert">Register</h1>
+        </div>
+    </div>
 
-        <button class="btn btn-success" type="submit">Submit</button>
-    </EditForm>
+    <div class="row">
+        <div class="col">
+            <EditForm Model="@registrationAttempt" OnValidSubmit="() => { Task.FromResult(SubmitRegistrationAttempt(registrationAttempt)); }">
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+                <ValidationSummary></ValidationSummary>
+                
+                <div class="container">
+                    <div class="row">
+                        <div class="col-4">
+                            <label for="username">Username:</label>
+                        </div>
+                        <div class="col-8">
+                            <InputText id="username" placeholder="username" @bind-Value="registrationAttempt.username"></InputText>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-4">
+                            <label for="email">Email:</label>
+                        </div>
+                        <div class="col-8">
+                            <InputText id="email" placeholder="Email@whatever.com" @bind-Value="registrationAttempt.email"></InputText>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-4">
+                            <label for="password">Password:</label>
+                        </div>
+                        <div class="col-8">
+                            <InputText id="password" type="password" placeholder="Password" @bind-Value="registrationAttempt.password"></InputText>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-4">
+                            <label for="retype">Confirm Password:</label>
+                        </div>
+                        <div class="col-8">
+                            <InputText id="retype" type="password" placeholder="Password" @bind-Value="registrationAttempt.ConfirmPassword"></InputText>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container">
+                    <div class="row">
+                        <div class="col">
+                            <button class="btn btn-success" type="submit">Submit</button>
+                            <button type="reset" class="btn btn-dark">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
 </div>
 
 @code {
 
     private RegistrationModel registrationAttempt = new RegistrationModel();
 
-    private async Task SubmitRegistrationAttempt() {
+    private async Task SubmitRegistrationAttempt(RegistrationModel registrationAttempt) {
 
     }
-
 
 }
