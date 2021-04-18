@@ -81,6 +81,7 @@ namespace Crestron_Library {
 		/// </summary>
 		public void Dispose() {
 			SendData = false;
+			serialPort.Close();
 			GC.SuppressFinalize(this);
 		}
 

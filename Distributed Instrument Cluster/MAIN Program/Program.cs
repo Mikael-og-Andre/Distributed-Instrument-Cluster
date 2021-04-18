@@ -3,12 +3,17 @@ using Server_Library;
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using Server_Library.Authorization;
 using Server_Library.Socket_Clients;
 using Video_Library;
+using PackageClasses;
 
 namespace MAIN_Program {
 
@@ -19,10 +24,10 @@ namespace MAIN_Program {
 	/// </summary>
 	/// <author>Andre Helland, Mikael Nilssen</author>
 	internal class Program {
-		private readonly List<VideoDeviceInterface> videoDevices = new List<VideoDeviceInterface>();
+		private readonly List<VideoConnection> videoConnections = new();
 		private CommandParser commandParser;
-		private VideoClient videoClient;
-		private CrestronClient crestronClient;
+		//private ReceivingClient<ExampleVideoObject> videoClient;
+		private ReceivingClient crestronClient;
 
 		private static string configFile = "config.json";
 		private static void Main(string[] args) {
@@ -30,44 +35,42 @@ namespace MAIN_Program {
 			_ = new Program(configFile);
 		}
 
-		private static void parsArgs(string[] args) {
-			if (args.Length > 0) {
-				configFile = args[0].ToString();
-			}
-		}
-
 		private Program(string configFile) {
+			Thread.Sleep(10000);
 			var json = parsConfigFile(configFile);
 
-			setupSerialCable(json.serialCable);
+
+			//while (!setupSerialCable(json.serialCable)) {
+			//	Thread.Sleep(3000);
+			//	Console.WriteLine("Retrying...");
+			//}
 
 			foreach (var device in json.videoDevices) {
 				setupVideoDevice(device);
 			}
-			//setupVideoDevice(1);
 
-			//try {
-			//	//Setup communicators
-			//	Thread.Sleep(1000);
-			//	setupVideoCommunicator("127.0.0.1", 5051, "Radar1", "device location", "device type", "access");
-			//	setupCrestronCommunicator("127.0.0.1", 5050, "Radar1", "device location", "device type", "access");
-			//}
-			//catch (Exception e) {
-			//	Console.WriteLine(e);
-			//	throw;
-			//}
-
-			var relayThread = new Thread(this.relayThread) {IsBackground = true};
-			relayThread.Start();
+			////Start crestron command relay thread. (this should be event based as an optimal solution).
+			//var relayThread = new Thread(this.relayThread) { IsBackground = true };
+			//relayThread.Start();
 
 
+			//Start video relay threads. 
+			for (int i = 0; i < videoConnections.Count; i++) {
+				var videoThread = new Thread(this.videoThread) {IsBackground = true};
+				videoThread.Start(i);
+			}
+
+			//Start CLI loop.
 			while (true) {
-				//TODO: RENAME/REDO
-				//if (videoDevices[0].tryReadFrameBuffer(out Mat ooga)) {
-				if (videoDevices[0].tryReadJpg(out byte[] ooga, 70)) {
-					Thread.Sleep(100);
-					videoClient.getInputQueue().Enqueue(new VideoFrame(ooga));
-				}
+				parsCLI(Console.ReadLine());
+			}
+		}
+
+		#region parsers
+
+		private static void parsArgs(string[] args) {
+			if (args.Length > 0) {
+				configFile = args[0].ToString();
 			}
 		}
 
@@ -80,6 +83,24 @@ namespace MAIN_Program {
 			return json;
 		}
 
+		private void parsCLI(string s) {
+			s = s.ToLower();
+			switch (s) {
+				case "help":
+					Console.WriteLine("CLI not implemented");
+					break;
+				case "q":
+				case "quit":
+					Console.WriteLine("Program shutdown");
+					Environment.Exit(0);
+					break;
+				default:
+					Console.WriteLine($"\"{s}\" not recognized as a command, try \"help\" to see available commands.");
+					break;
+			}
+		}
+
+		#endregion
 
 		#region setup methods
 
@@ -90,14 +111,32 @@ namespace MAIN_Program {
 		/// <returns>If setup was successful.</returns>
 		private bool setupSerialCable(JsonClasses.SerialCable serialCable) {
 			Console.WriteLine("Initializing serial cable...");
+
+			//Try to set up communication socket.
+			var communicator = serialCable.communicator;
+			try {
+				setupCrestronCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.subName ,communicator.accessHash);
+			} catch {
+				writeWarning("Failed to connect to server.");
+				return false;
+			}
+
 			try {
 				var serialPort = new SerialPortInterface(serialCable.portName);
 				commandParser = new CommandParser(serialPort, serialCable.largeMagnitude, serialCable.smallMagnitude, serialCable.maxDelta);
-				writeSuccess("Successfully connected to port: " + serialCable.portName);
 
-				//NumLock check may be unnecessary. 
-				if (numLockCheck(serialPort))
-					writeWarning("NumLock check failed, com port may not be a crestron cable.");
+				//NumLock check may be unnecessary.
+				var task = Task.Run(() => numLockCheck(serialPort));
+				if (task.Wait(TimeSpan.FromSeconds(3))) {
+					if (task.Result)
+						writeWarning("NumLock check failed, com port may not be a crestron cable.");
+				} else {
+					writeWarning("Com port timed out");
+					//Ignore issue for now (dispose not functioning properly).
+					//task.Dispose();
+					//serialPort.Dispose();
+					//return false;
+				}
 
 				//Release all keys.
 				serialPort.SendBytes(0x38);
@@ -107,16 +146,7 @@ namespace MAIN_Program {
 				return false;
 			}
 
-			//Try to set up communication socket.
-			var communicator = serialCable.communicator;
-			try {
-				setupCrestronCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.accessHash,"");
-			} catch (Exception e) {
-				writeWarning("Failed to connect to server.");
-				Console.WriteLine(e);
-				return false;
-			}
-
+			writeSuccess("Successfully connected to port: " + serialCable.portName);
 			return true;
 		}
 
@@ -141,93 +171,124 @@ namespace MAIN_Program {
 		/// <returns>If setup was successful.</returns>
 		private bool setupVideoDevice(JsonClasses.VideoDevice device) {
 			Console.WriteLine($"Initializing video device{device.deviceIndex}...");
-			videoDevices.Add(new VideoDeviceInterface(index: device.deviceIndex, API: (VideoCaptureAPIs) device.apiIndex, frameWidth: device.width, frameHeight: device.height));
+
+			//Try to set up communication socket.
+			var communicator = device.communicator;
+			SendingClient connection;
+			try {
+				connection = setupVideoCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.subName ,communicator.accessHash);
+			}
+			catch (Exception e) {
+				writeWarning("Failed to connect to server.");
+				Console.WriteLine(e);
+				return false;
+			}
+
+			var videoDevice = new VideoDeviceInterface(index: device.deviceIndex, API: (VideoCaptureAPIs) device.apiIndex, frameWidth: device.width, frameHeight: device.height);
 
 			//Wait for video device frames.
-			Mat temp;
-			while (!(videoDevices[^1].tryReadFrameBuffer(out temp))) ;
+			Mat temp = videoDevice.readFrame();
 
 			// Checking if frame has more than 1 color channel (hacky way to check if frames are being produced properly)
 			if (temp.Channels() < 2) {
 				writeWarning("No output from video device or no device found");
 
 				//Remove device to stop/prevent memory leak.
-				videoDevices[^1].Dispose();
-				videoDevices.Remove(videoDevices[^1]);
+				videoDevice.Dispose();
+
 				return false;
 			}
+			videoConnections.Add(new VideoConnection(videoDevice, connection, device.quality, device.fps));
 
 			writeSuccess("Detecting frames from video device");
-
-			var communicator = device.communicator;
-			try {
-				setupVideoCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.accessHash,"");
-			} catch (Exception e) {
-				writeWarning("Failed to connect to server.");
-				Console.WriteLine(e);
-				return false;
-			}
 			return true;
 		}
 
-		public void setupVideoCommunicator(string ip, int port, string name, string location, string type,string subName, string accessHash) {
-			//Video networking info
+		public SendingClient setupVideoCommunicator(string ip, int port, string name, string location, string type,string subName, string accessHash) {
 			string videoIP = ip;
 			int videoPort = port;
-			//Instrument Information
 			ClientInformation info = new ClientInformation(name, location, type, subName);
-			//AccessToken -
 			AccessToken accessToken = new AccessToken(accessHash);
-			//cancellation tokens
 			CancellationToken videoCancellationToken = new CancellationToken(false);
 
-			//Video Communicator
-			videoClient =
-				new VideoClient(videoIP, videoPort, info, accessToken, videoCancellationToken);
-
-			//TODO: refactor threading
-			Thread videoThread = new Thread(() => videoClient.run());
-			videoThread.Start();
+			var videoClient = new SendingClient(ip, port, info, accessToken, videoCancellationToken);
+			videoClient.run(0);
+			return videoClient;
 		}
 
 		public void setupCrestronCommunicator(string ip, int port, string name, string location, string type, string subName, string accessHash) {
-			//Video networking info
 			string crestronIP = ip;
 			int crestronPort = port;
-			//Instrument Information
 			ClientInformation info = new ClientInformation(name, location, type,subName);
-			//AccessToken -
 			AccessToken accessToken = new AccessToken(accessHash);
-			//Crestron Cancellation Token
 			CancellationToken crestronCancellationToken = new CancellationToken(false);
-			//Crestron Communicator
-			crestronClient = new CrestronClient(crestronIP, crestronPort, info, accessToken, crestronCancellationToken);
 
-
-
-			//TODO: refactor threading
-			Thread crestronThread = new Thread(() => crestronClient.run());
-			crestronThread.Start();
+			crestronClient = new ReceivingClient(ip, port, info, accessToken, crestronCancellationToken);
+			crestronClient.run(0);
 		}
 
 		#endregion setup methods
+
+		#region Threads
 
 		/// <summary>
 		/// Thread for relaying commands coming from internet socket to command parser.
 		/// </summary>
 		private void relayThread() {
-			var queue = crestronClient.getCommandOutputQueue();
 			while (true) {
 				try {
-					if (queue.TryDequeue(out string temp)) {
-						Console.WriteLine(temp);
-						commandParser.pars(temp);
+					if (crestronClient.getBytesFromClient(out var messageObject)) {
+						ExampleCrestronMsgObject temp =
+							JsonSerializer.Deserialize<ExampleCrestronMsgObject>(
+								Encoding.UTF32.GetString(messageObject).Replace("\0",string.Empty));
+						if (temp != null) commandParser.pars(temp.msg);
 					}
 				}
 				catch (Exception e) {
 					Console.WriteLine(e);
 				}
 			}
+		}
+
+		/// <summary>
+		/// Thread for sending frames to server at a constant or dynamic* fps.
+		/// *TODO: make dynamic fps option when fps=0.
+		/// </summary>
+		/// <param name="index">Video device index</param>
+		private void videoThread(object index) {
+			var i = (int) index;
+			var device = videoConnections[i].device;
+			var connection = videoConnections[i].connection;
+			var quality = videoConnections[i].quality;
+			var fps = videoConnections[i].fps;
+			
+			var timer = Stopwatch.GetTimestamp();
+			while (true) {
+				try {
+					var jpg = device.readJpg(quality);
+					connection.queueBytesForSending(jpg.ToArray());
+				} catch (Exception e) {
+					Console.WriteLine(e);
+				}
+				timer = fpsLimiter(timer, fps);
+			}
+		}
+
+		#endregion
+
+		/// <summary>
+		/// Calculates delta from previous call and current and sleeps thread
+		/// the necessary amount of time to achieve the desired fps.
+		/// </summary>
+		/// <param name="T">Time returned from previous method call</param>
+		/// <param name="fps">Desired frame rate.</param>
+		/// <returns>Time with delay for use in next call of this method.</returns>
+		private static long fpsLimiter(long T, int fps) {
+			var delta = T - Stopwatch.GetTimestamp();
+			var sleepTime = (int) (delta / 10000);
+			if(sleepTime>0)
+				Thread.Sleep(sleepTime);
+			return Stopwatch.GetTimestamp() + (10000000) / fps;
 		}
 
 

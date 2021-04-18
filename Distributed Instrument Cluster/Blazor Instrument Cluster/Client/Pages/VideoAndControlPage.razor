@@ -1,9 +1,9 @@
-﻿@page "/VideoAndControl/{name}/{location}/{type}/{subnameCrestron}/{subNameVideo}"
+﻿@page "/VideoAndControl/{name}/{location}/{type}/{urlSubnames}/{urlVideoPorts}"
 @layout TopBarLayout
 
 <div style="width: 1280px; height: 720px; position: relative" class="container">
-    <KeyboardMouse name="@name" location="@location" type="@type" subname="@subnameCrestron"></KeyboardMouse>
-    <Video name="@name" location="@location" type="@type" subname="@subnameVideo"></Video>
+    <KeyboardMouse name="@name" location="@location" type="@type" subname="@urlSubnames"></KeyboardMouse>
+    <VideoMJPEG urlPortObject="@urlVideoPorts"></VideoMJPEG>
 </div>
 
 @code {
@@ -14,8 +14,8 @@
     [Parameter]
     public string type { get; set; }
     [Parameter]
-    public string subnameCrestron { get; set; }
+    public string urlSubnames { get; set; }
     [Parameter]
-    public string subnameVideo { get; set; }
+    public string urlVideoPorts { get; set; }
 
 }

@@ -12,12 +12,12 @@ namespace Server_Library.Socket_Clients {
 	/// Client for Receiving objects from Sending Listener
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class ReceivingClient<T> : ClientBase {
+	public class ReceivingClient : ClientBase {
 
 		/// <summary>
 		/// Queue for received objects
 		/// </summary>
-		private ConcurrentQueue<T> receivedObjectsQueue;
+		private ConcurrentQueue<byte[]> receivedByteArraysQueue;
 
 		/// <summary>
 		/// Constructor
@@ -30,7 +30,7 @@ namespace Server_Library.Socket_Clients {
 		public ReceivingClient(string ip, int port, ClientInformation informationAboutClient, AccessToken accessToken, CancellationToken isRunningCancellationToken) : 
 			base(ip, port, informationAboutClient, accessToken, isRunningCancellationToken) {
 			//Init queue
-			receivedObjectsQueue = new ConcurrentQueue<T>();
+			receivedByteArraysQueue = new ConcurrentQueue<byte[]>();
 		}
 
 		/// <summary>
@@ -53,8 +53,8 @@ namespace Server_Library.Socket_Clients {
 		/// </summary>
 		/// <param name="output"></param>
 		/// <returns>True if object was found</returns>
-		public bool getObjectFromClient(out T output) {
-			if (receivedObjectsQueue.TryDequeue(out T result)) {
+		public bool getBytesFromClient(out byte[] output) {
+			if (receivedByteArraysQueue.TryDequeue(out byte[] result)) {
 				output = result;
 				return true;
 			}
@@ -67,7 +67,7 @@ namespace Server_Library.Socket_Clients {
 		/// Overwrites the old Queue with a new empty one
 		/// </summary>
 		public void resetQueue() {
-			receivedObjectsQueue = new ConcurrentQueue<T>();
+			receivedByteArraysQueue = new ConcurrentQueue<byte[]>();
 		}
 
 		/// <summary>
@@ -75,11 +75,10 @@ namespace Server_Library.Socket_Clients {
 		/// </summary>
 		private void receive() {
 			if (isDataAvailable()) {
-
-				T obj = NetworkingOperations.receiveJsonObjectWithSocket<T>(connectionSocket);
+				byte[] incomingByteArray = NetworkingOperations.receiveBytes(connectionNetworkStream);
 
 				//Put object in queue
-				enqueueObject(obj);
+				enqueueBytes(incomingByteArray);
 			}
 		}
 
@@ -87,8 +86,8 @@ namespace Server_Library.Socket_Clients {
 		/// Enqueue an object
 		/// </summary>
 		/// <param name="obj">Object to enqueue</param>
-		private void enqueueObject(T obj) {
-			receivedObjectsQueue.Enqueue(obj);
+		private void enqueueBytes(byte[] obj) {
+			receivedByteArraysQueue.Enqueue(obj);
 		}
 		
 	}

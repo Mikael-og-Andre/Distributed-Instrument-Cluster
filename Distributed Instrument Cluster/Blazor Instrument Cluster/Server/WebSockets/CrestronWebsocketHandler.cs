@@ -1,7 +1,4 @@
-﻿using Blazor_Instrument_Cluster.Server.Injection;
-using Blazor_Instrument_Cluster.Server.RemoteDevice;
-using Blazor_Instrument_Cluster.Server.SendingHandler;
-using Blazor_Instrument_Cluster.Shared;
+﻿using Blazor_Instrument_Cluster.Shared;
 using Microsoft.Extensions.Logging;
 using Server_Library;
 using System;
@@ -11,6 +8,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Blazor_Instrument_Cluster.Server.CrestronControl;
+using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
 
 namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
@@ -18,12 +17,12 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 	/// Websocket handler for crestron control connections
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class CrestronWebsocketHandler<T, U> : ICrestronSocketHandler {
+	public class CrestronWebsocketHandler : ICrestronSocketHandler {
 
 		/// <summary>
 		/// Logger
 		/// </summary>
-		private ILogger<CrestronWebsocketHandler<T, U>> logger;
+		private ILogger<CrestronWebsocketHandler> logger;
 
 		/// <summary>
 		///Services
@@ -33,16 +32,16 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// <summary>
 		/// Remote devices
 		/// </summary>
-		private RemoteDeviceConnections<T, U> remoteDeviceConnections;
+		private RemoteDeviceManager remoteDeviceManager;
 
 		/// <summary>
 		/// Constructor, Injects Logger and service provider and gets Remote device connection Singleton
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public CrestronWebsocketHandler(ILogger<CrestronWebsocketHandler<T, U>> logger, IServiceProvider services) {
+		public CrestronWebsocketHandler(ILogger<CrestronWebsocketHandler> logger, IServiceProvider services) {
 			this.logger = logger;
-			remoteDeviceConnections = (RemoteDeviceConnections<T, U>)services.GetService(typeof(IRemoteDeviceConnections<T, U>));
+			remoteDeviceManager = (RemoteDeviceManager)services.GetService(typeof(IRemoteDeviceManager));
 		}
 
 		/// <summary>
@@ -56,9 +55,9 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 			try {
 				//Exchange information about the wanted device
-				(bool found, ClientInformation info, RemoteDevice<T, U> device, ControlToken<U> controlToken) result = await setupDeviceAsync(websocket, cancellationToken);
+				(bool found, ClientInformation info, RemoteDevice device, ControlToken controlToken) result = await setupDeviceAsync(websocket, cancellationToken);
 				//Control token
-				ControlToken<U> controlToken = result.controlToken;
+				ControlToken controlToken = result.controlToken;
 
 				if (!result.found) {
 					await stopConnectionAsync("Device not found", socketFinishedTcs, cancellationToken, websocket,
@@ -94,7 +93,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// <param name="websocket"></param>
 		/// <param name="token"></param>
 		/// <returns></returns>
-		private async Task<(bool, ClientInformation, RemoteDevice<T, U>, ControlToken<U>)> setupDeviceAsync(WebSocket websocket, CancellationToken token) {
+		private async Task<(bool, ClientInformation, RemoteDevice, ControlToken)> setupDeviceAsync(WebSocket websocket, CancellationToken token) {
 			//Send start signal
 			byte[] startBytes = Encoding.UTF8.GetBytes("start");
 			ArraySegment<byte> startSegment = new ArraySegment<byte>(startBytes);
@@ -118,27 +117,27 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 			//Check if device exists
 			bool foundDevice = false;
-			RemoteDevice<T, U> remoteDevice = null;
+			RemoteDevice remoteDevice = null;
 			//Try to find the requested device
-			if (remoteDeviceConnections.getRemoteDeviceWithNameLocationAndType(deviceInfo.name, deviceInfo.location, deviceInfo.type, out RemoteDevice<T, U> outputDevice)) {
+			if (remoteDeviceManager.getRemoteDeviceWithNameLocationAndType(deviceInfo.name, deviceInfo.location, deviceInfo.type, out RemoteDevice outputDevice)) {
 				//Device was found, check if the sub name exists on the device
 				remoteDevice = outputDevice;
 
-				List<string> listOfSubNames = remoteDevice.getSubNamesList();
+				List<SubDevice> listOfSubNames = remoteDevice.getSubDeviceList();
 
 				foreach (var obj in listOfSubNames) {
-					if (obj.ToLower().Equals(deviceInfo.subname.ToLower())) {
+					if (obj.subname.ToLower().Equals(deviceInfo.subname.ToLower())) {
 						foundDevice = true;
 					}
 				}
 			}
 			//init control token
-			ControlToken<U> controlToken = null;
+			ControlToken controlToken = null;
 			bool foundController = false;
 
 			if (foundDevice) {
 				//get controller
-				if (remoteDevice.getControlTokenForDevice(deviceInfo.subname, out ControlToken<U> output)) {
+				if (remoteDevice.getControlTokenForDevice(deviceInfo.subname, out ControlToken output)) {
 					controlToken = output;
 					//Signal that the control token was found
 					await sendStringWithWebsocketAsync("Found Device".ToLower(), websocket, token);
@@ -154,7 +153,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				await sendStringWithWebsocketAsync("Device not found".ToLower(), websocket, token);
 			}
 
-			(bool, ClientInformation, RemoteDevice<T, U>, ControlToken<U>) result = 
+			(bool, ClientInformation, RemoteDevice, ControlToken) result = 
 				(foundDevice && foundController, new ClientInformation(deviceInfo.name, deviceInfo.location, deviceInfo.type, deviceInfo.subname), remoteDevice, controlToken);
 
 			return result;
@@ -164,7 +163,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 		#region In queue
 
-		private async Task<bool> handleQueueAsync(ControlToken<U> controlToken, WebSocket websocket, CancellationToken cancellationToken) {
+		private async Task<bool> handleQueueAsync(ControlToken controlToken, WebSocket websocket, CancellationToken cancellationToken) {
 			//Send entering queue
 			await sendStringWithWebsocketAsync("enter queue", websocket, cancellationToken);
 			while (!cancellationToken.IsCancellationRequested) {
@@ -202,18 +201,15 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// <param name="websocket"></param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
-		private async Task handleMessageReceivingAsync(ControlToken<U> controlToken, WebSocket websocket, CancellationToken cancellationToken) {
+		private async Task handleMessageReceivingAsync(ControlToken controlToken, WebSocket websocket, CancellationToken cancellationToken) {
 			while (controlToken.hasControl && (!cancellationToken.IsCancellationRequested)) {
 				//get json from websocket
 				byte[] receivedBytesBuffer = new byte[1024];
 				ArraySegment<byte> receivedBytesSegment = new ArraySegment<byte>(receivedBytesBuffer);
 				await websocket.ReceiveAsync(receivedBytesSegment, cancellationToken);
-				string jsonObj = Encoding.UTF8.GetString(receivedBytesSegment).TrimEnd('\0');
 
 				try {
-					//Send object to remote device
-					U obj = JsonSerializer.Deserialize<U>(jsonObj);
-					bool sent = controlToken.send(obj);
+					bool sent = controlToken.send(receivedBytesSegment.ToArray());
 				}
 				catch (Exception e) {
 					logger.LogWarning(e, "Exception when deserializing command");
@@ -233,11 +229,13 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// <param name="cancellationToken"></param>
 		/// <param name="webSocket"></param>
 		/// <param name="controlToken"></param>
-		private async Task stopConnectionAsync(string statusDescription, TaskCompletionSource<object> socketFinishedTcs, CancellationToken cancellationToken, WebSocket webSocket, ControlToken<U> controlToken = null) {
+		private async Task stopConnectionAsync(string statusDescription, TaskCompletionSource<object> socketFinishedTcs, CancellationToken cancellationToken, WebSocket webSocket, ControlToken controlToken = null) {
 			//If control token is passed, set as inactive to move the queue along
 			controlToken?.abandon();
-			//Close websocket
-			await webSocket.CloseAsync(WebSocketCloseStatus.ProtocolError, statusDescription, cancellationToken);
+			if (webSocket.State!=WebSocketState.Closed) {
+				//Close websocket
+				await webSocket.CloseAsync(WebSocketCloseStatus.ProtocolError, statusDescription, cancellationToken);
+			}
 			//signal connection is over
 			socketFinishedTcs.TrySetResult(new object());
 		}
@@ -251,7 +249,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// <returns></returns>
 		private async Task sendStringWithWebsocketAsync(string msg, WebSocket websocket, CancellationToken token) {
 			//Send
-			ArraySegment<byte> sendingBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(msg));
+			ArraySegment<byte> sendingBytes = new ArraySegment<byte>(Encoding.UTF32.GetBytes(msg));
 			await websocket.SendAsync(sendingBytes, WebSocketMessageType.Text, true, token);
 		}
 

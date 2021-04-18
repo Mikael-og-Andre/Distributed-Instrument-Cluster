@@ -1,5 +1,4 @@
-﻿using Blazor_Instrument_Cluster.Server.Injection;
-using Blazor_Instrument_Cluster.Shared;
+﻿using Blazor_Instrument_Cluster.Shared;
 using Server_Library;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -7,9 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Blazor_Instrument_Cluster.Server.RemoteDevice;
+using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
 using PackageClasses;
-using Server_Library.Connection_Types.deprecated;
 
 namespace Blazor_Instrument_Cluster.Server.Controllers {
 
@@ -24,14 +22,14 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		/// <summary>
 		/// Remote Device connections
 		/// </summary>
-		private RemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject> remoteDeviceConnections;
+		private RemoteDeviceManager remoteDeviceManager;
 
 		/// <summary>
 		/// Constructor, Injects Service provider and get remote device connection
 		/// </summary>
 		/// <param name="services"></param>
 		public ConnectedDevicesController(IServiceProvider services) {
-			this.remoteDeviceConnections = (RemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>)services.GetService<IRemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>>();
+			this.remoteDeviceManager = (RemoteDeviceManager)services.GetService<IRemoteDeviceManager>();
 		}
 
 		/// <summary>
@@ -43,7 +41,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		public IEnumerable<DeviceModel> getRemoteDevices() {
 			//Get list of video connections
-			List<RemoteDevice<ExampleVideoObject, ExampleCrestronMsgObject>> listOfRemoteDevices = remoteDeviceConnections.getListOfRemoteDevices();
+			List<RemoteDevice> listOfRemoteDevices = remoteDeviceManager.getListOfRemoteDevices();
 			if (listOfRemoteDevices.Any()) {
 				//Create an IEnumerable with device models
 				IEnumerable<DeviceModel> enumerableDeviceModels = Array.Empty<DeviceModel>();
@@ -56,10 +54,17 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 						string deviceType = device.type;
 						
 						//Get sub devices
-						List<string> subNames = device.getSubNamesList();
+                        List<SubDevice> subDeviceInfo = device.getSubDeviceList();
+
+						//Create a list of models
+                        List<SubDeviceModel> modelList = new List<SubDeviceModel>();
+						foreach(SubDevice subDevice in subDeviceInfo){
+							modelList.Add(new SubDeviceModel(subDevice.videoDevice,subDevice.subname,subDevice.port,subDevice.streamType));
+						}
+
 
 						enumerableDeviceModels =
-							enumerableDeviceModels.Append(new DeviceModel(deviceName,deviceLocation,deviceType,subNames));
+							enumerableDeviceModels.Append(new DeviceModel(deviceName,deviceLocation,deviceType,modelList));
 					}
 				}
 

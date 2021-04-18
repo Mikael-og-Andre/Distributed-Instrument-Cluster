@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using Server_Library.Server_Listeners.deprecated;
 using Server_Library.Authorization;
 using Server_Library.Connection_Types;
 
@@ -14,12 +13,12 @@ namespace Server_Library.Server_Listeners {
 	/// Server Listener for receiving objects from SendingClient connections
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class ReceivingListener<T> : ListenerBase {
+	public class ReceivingListener : ListenerBase {
 
 		/// <summary>
 		/// list of receiving connections
 		/// </summary>
-		private readonly List<ReceivingConnection<T>> listReceivingConnections;
+		private readonly List<ReceivingConnection> listReceivingConnections;
 
 		/// <summary>
 		/// Constructor
@@ -30,7 +29,7 @@ namespace Server_Library.Server_Listeners {
 		public ReceivingListener(IPEndPoint ipEndPoint, int maxConnections = 30, int maxPendingConnections = 30) : base(
 			ipEndPoint, maxConnections, maxPendingConnections) {
 			//Init List
-			listReceivingConnections = new List<ReceivingConnection<T>>();
+			listReceivingConnections = new List<ReceivingConnection>();
 		}
 
 		/// <summary>
@@ -39,7 +38,7 @@ namespace Server_Library.Server_Listeners {
 		/// <param name="obj"></param>
 		protected override void handleIncomingConnection(object obj) {
 			//Cast incoming connections
-			ReceivingConnection<T> connection = (ReceivingConnection<T>)obj;
+			ReceivingConnection connection = (ReceivingConnection)obj;
 
 			//Add Connection to list of connections
 			lock (listReceivingConnections) {
@@ -60,7 +59,7 @@ namespace Server_Library.Server_Listeners {
 					
 				}
 				else {
-					Thread.Sleep(50);
+					Thread.Sleep(5);
 				}
 			}
 
@@ -74,17 +73,18 @@ namespace Server_Library.Server_Listeners {
 		/// Creates the connection of the correct type
 		/// </summary>
 		/// <param name="socket">Socket</param>
-		/// <param name="thread">Thread</param>
+		/// <param name="accessToken"></param>
+		/// <param name="info"></param>
 		/// <returns></returns>
 		protected override object createConnectionType(Socket socket, AccessToken accessToken, ClientInformation info) {
-			return new ReceivingConnection<T>(socket, accessToken, info, cancellationTokenSource.Token);
+			return new ReceivingConnection(socket, accessToken, info, cancellationTokenSource.Token);
 		}
 
 		/// <summary>
 		/// Get the list containing connections
 		/// </summary>
 		/// <returns></returns>
-		public List<ReceivingConnection<T>> getListOfReceivingConnections() {
+		public List<ReceivingConnection> getListOfReceivingConnections() {
 			lock (listReceivingConnections) {
 				return listReceivingConnections;
 			}

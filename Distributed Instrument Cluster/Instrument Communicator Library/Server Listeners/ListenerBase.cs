@@ -58,7 +58,7 @@ namespace Server_Library.Server_Listeners {
 		/// <param name="ipEndPoint"></param>
 		/// <param name="maxConnections"></param>
 		/// <param name="maxPendingConnections"></param>
-		protected ListenerBase(IPEndPoint ipEndPoint, int maxConnections = 30, int maxPendingConnections = 30) {
+		protected ListenerBase(IPEndPoint ipEndPoint, int maxConnections = 100, int maxPendingConnections = 100) {
 			this.ipEndPoint = ipEndPoint;
 			this.maxConnections = maxConnections;
 			this.maxPendingConnections = maxPendingConnections;

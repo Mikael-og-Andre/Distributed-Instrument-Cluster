@@ -12,29 +12,31 @@ namespace Server_Library.Connection_Types {
 	/// Connection for sending objects
 	/// <author> Mikael Nilssen</author>
 	/// </summary>
-	/// <typeparam name="T">Object type you want to send</typeparam>
-	public class SendingConnection<T> : ConnectionBase {
+	public class SendingConnection : ConnectionBase {
 
 		/// <summary>
 		/// queue of objects to send
 		/// </summary>
-		private ConcurrentQueue<T> sendingObjectsConcurrentQueue;
+		private ConcurrentQueue<byte[]> sendingObjectsConcurrentQueue;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="socket"></param>
+		/// <param name="accessToken"></param>
+		/// <param name="info"></param>
+		/// <param name="token"></param>
 		public SendingConnection(Socket socket, AccessToken accessToken, ClientInformation info, CancellationToken token) : 
 			base(socket, accessToken, info, token) {
 			//init queue
-			sendingObjectsConcurrentQueue = new ConcurrentQueue<T>();
+			sendingObjectsConcurrentQueue = new ConcurrentQueue<byte[]>();
 		}
 
 
 		public bool send() {
-			if (getObjectFromQueue(out T output)) {
+			if (getByteArrayFromQueue(out byte[] output)) {
 				//send object
-				NetworkingOperations.sendJsonObjectWithSocket(output,socket);
+				NetworkingOperations.sendBytes(connectionNetworkStream,output);
 				return true;
 			}
 
@@ -46,9 +48,9 @@ namespace Server_Library.Connection_Types {
 		/// </summary>
 		/// <param name="output"></param>
 		/// <returns>True if and object was found</returns>
-		protected bool getObjectFromQueue(out T output) {
+		protected bool getByteArrayFromQueue(out byte[] output) {
 			//Try to dequeue
-			if (sendingObjectsConcurrentQueue.TryDequeue(out T obj)) {
+			if (sendingObjectsConcurrentQueue.TryDequeue(out byte[] obj)) {
 				//Return with true
 				output = obj;
 				return true;
@@ -62,7 +64,7 @@ namespace Server_Library.Connection_Types {
 		/// Puts and object into the queue of received objects
 		/// </summary>
 		/// <param name="obj">Object of type T</param>
-		public void queueObjectForSending(T obj) {
+		public void queueByteArrayForSending(byte[] obj) {
 			sendingObjectsConcurrentQueue.Enqueue(obj);
 		}
 
@@ -78,7 +80,7 @@ namespace Server_Library.Connection_Types {
 		/// Removes all objects from the queue and makes a new empty queue
 		/// </summary>
 		public void resetQueue() {
-			sendingObjectsConcurrentQueue = new ConcurrentQueue<T>();
+			sendingObjectsConcurrentQueue = new ConcurrentQueue<byte[]>();
 		}
 
 		/// <summary>

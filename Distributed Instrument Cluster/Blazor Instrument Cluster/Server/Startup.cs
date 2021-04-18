@@ -1,6 +1,7 @@
-using Blazor_Instrument_Cluster.Server.Injection;
+using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
+using Blazor_Instrument_Cluster.Server.Services;
+using Blazor_Instrument_Cluster.Server.Stream;
 using Blazor_Instrument_Cluster.Server.WebSockets;
-using Blazor_Instrument_Cluster.Server.Worker;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -11,10 +12,6 @@ using System;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
-using Blazor_Instrument_Cluster.Server.RemoteDevice;
-using Blazor_Instrument_Cluster.Server.Services;
-using PackageClasses;
-using Server_Library;
 
 namespace Blazor_Instrument_Cluster.Server {
 
@@ -22,35 +19,38 @@ namespace Blazor_Instrument_Cluster.Server {
 	/// Class that sets up the services and configurations of the web system
 	/// </summary>
 	public class Startup {
+
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <param name="configuration"></param>
 		public Startup(IConfiguration configuration) {
 			Configuration = configuration;
 		}
+
 		/// <summary>
 		/// Configuration
 		/// </summary>
 		public IConfiguration Configuration { get; }
 
-		
 		/// <summary>
 		/// This method gets called by the runtime. Use this method to add services to the container.
 		/// For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
 		/// </summary>
 		/// <param name="services"></param>
 		public void configureServices(IServiceCollection services) {
+			//MJPEG stream manager.
+			services.AddSingleton<MJPEGStreamManager>();
 
 			//Add Remote device connection tracker
-			services.AddSingleton<IRemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>, RemoteDeviceConnections<ExampleVideoObject,ExampleCrestronMsgObject>>();
+			services.AddSingleton<IRemoteDeviceManager, RemoteDeviceManager>();
 
 			//Start Connection listeners as background services
-			services.AddHostedService<VideoListenerService<ExampleVideoObject,ExampleCrestronMsgObject>>();
-			services.AddHostedService<CrestronListenerService<ExampleVideoObject,ExampleCrestronMsgObject>>();
-			//Add singletons for socket handling
-			services.AddSingleton<IVideoSocketHandler, VideoWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject>>();
-			services.AddSingleton<ICrestronSocketHandler, CrestronWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject>>();
+			services.AddHostedService<VideoListenerService>();
+			services.AddHostedService<CrestronListenerService>();
+
+			//Add singletons for web socket handling
+			services.AddSingleton<ICrestronSocketHandler, CrestronWebsocketHandler>();
 
 			//Use controller
 			services.AddControllers();
@@ -58,7 +58,6 @@ namespace Blazor_Instrument_Cluster.Server {
 				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
 					new[] { "application/octet-stream" });
 			});
-
 		}
 
 		/// <summary>
@@ -71,7 +70,8 @@ namespace Blazor_Instrument_Cluster.Server {
 			if (env.IsDevelopment()) {
 				app.UseDeveloperExceptionPage();
 				app.UseWebAssemblyDebugging();
-			} else {
+			}
+			else {
 				app.UseExceptionHandler("/Error");
 				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 				app.UseHsts();
@@ -85,34 +85,22 @@ namespace Blazor_Instrument_Cluster.Server {
 
 			//Do this when a web socket connects
 			app.Use(async (context, next) => {
-				if (context.Request.Path == "/videoStream") {
+				if (context.Request.Path == "/crestronControl") {
 					if (context.WebSockets.IsWebSocketRequest) {
 						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
 							var socketFinishedTcs = new TaskCompletionSource<object>();
 
-							VideoWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject> videoWebsocketHandler =
-								(VideoWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject>)app.ApplicationServices.GetService<IVideoSocketHandler>();
-							//Start if socketHandler is not null
-							videoWebsocketHandler?.StartWebSocketVideoProtocol(webSocket, socketFinishedTcs);
-							await socketFinishedTcs.Task;
-						}
-					} else {
-						context.Response.StatusCode = 400;
-					}
-				} else if (context.Request.Path == "/crestronControl") {
-					if (context.WebSockets.IsWebSocketRequest) {
-						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
-							var socketFinishedTcs = new TaskCompletionSource<object>();
-
-							var crestronWebsocketHandler = (CrestronWebsocketHandler<ExampleVideoObject,ExampleCrestronMsgObject>)app.ApplicationServices.GetService<ICrestronSocketHandler>();
+							var crestronWebsocketHandler = (CrestronWebsocketHandler)app.ApplicationServices.GetService<ICrestronSocketHandler>();
 							crestronWebsocketHandler.StartCrestronWebsocketProtocol(webSocket, socketFinishedTcs);
 
 							await socketFinishedTcs.Task;
 						}
-					} else {
+					}
+					else {
 						context.Response.StatusCode = 400;
 					}
-				} else {
+				}
+				else {
 					await next();
 				}
 			});

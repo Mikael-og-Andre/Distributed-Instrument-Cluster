@@ -9,11 +9,15 @@
   <ItemGroup>
     <ProjectReference Include="..\Crestron Library\Crestron Library.csproj" />
     <ProjectReference Include="..\Instrument Communicator Library\Server Library.csproj" />
+    <ProjectReference Include="..\PackageClasses\PackageClasses.csproj" />
     <ProjectReference Include="..\Video Library\Video Library.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="download.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

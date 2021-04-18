@@ -3,6 +3,7 @@ using Server_Library.Authorization;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Server_Library.Socket_Clients {
 
@@ -26,6 +27,11 @@ namespace Server_Library.Socket_Clients {
 		/// Connection to server
 		/// </summary>
 		protected Socket connectionSocket;
+
+		/// <summary>
+		/// Network stream for the connection
+		/// </summary>
+		protected NetworkStream connectionNetworkStream { get; set; }
 
 		/// <summary>
 		/// Information about hardware
@@ -69,11 +75,16 @@ namespace Server_Library.Socket_Clients {
 			connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			//Connect
 			connectToServer(connectionSocket);
+			//Create stream
+			connectionNetworkStream = new NetworkStream(connectionSocket, true);
 			//Setup
 			setupConnection(connectionSocket);
 			//HandleConnection
-			handleConnected(delay);
+
+			Task task = new Task(() => handleConnected(5));
+			task.Start();
 		}
+
 
 		/// <summary>
 		/// The main function of a communicator that gets called after you are connected and preforms actions with the socket

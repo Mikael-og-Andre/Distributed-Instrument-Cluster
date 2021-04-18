@@ -11,21 +11,22 @@ namespace Server_Library.Connection_Types {
 	/// Connection for receiving objects
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	/// <typeparam name="T">Object Type You want the connection to receive</typeparam>
-	public class ReceivingConnection<T> : ConnectionBase {
+	public class ReceivingConnection : ConnectionBase {
 
 		/// <summary>
 		/// Queue containing incoming objects
 		/// </summary>
-		private ConcurrentQueue<T> receivedObjectsConcurrentQueue;
+		private ConcurrentQueue<byte[]> receivedObjectsConcurrentQueue;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="homeThread"></param>
 		/// <param name="socket"></param>
+		/// <param name="accessToken"></param>
+		/// <param name="info"></param>
+		/// <param name="token"></param>
 		public ReceivingConnection(Socket socket, AccessToken accessToken, ClientInformation info, CancellationToken token) : base(socket, accessToken, info, token) {
-			receivedObjectsConcurrentQueue = new ConcurrentQueue<T>();
+			receivedObjectsConcurrentQueue = new ConcurrentQueue<byte[]>();
 		}
 
 		/// <summary>
@@ -33,9 +34,9 @@ namespace Server_Library.Connection_Types {
 		/// </summary>
 		/// <param name="output"></param>
 		/// <returns>True if and object was found</returns>
-		public bool getObjectFromConnection(out T output) {
+		public bool getDataFromConnection(out byte[] output) {
 			//Try to dequeue
-			if (receivedObjectsConcurrentQueue.TryDequeue(out T obj)) {
+			if (receivedObjectsConcurrentQueue.TryDequeue(out byte[] obj)) {
 				//Return with true
 				output = obj;
 				return true;
@@ -58,11 +59,10 @@ namespace Server_Library.Connection_Types {
 		/// </summary>
 		public bool receive() {
 			if (isDataAvailable()) {
-				//Receive and object
-				T obj = NetworkingOperations.receiveJsonObjectWithSocket<T>(socket);
-
+				//Get data from stream
+				byte[] incomingBytes=NetworkingOperations.receiveBytes(connectionNetworkStream);
 				//Put object in queue
-				enqueueObject(obj);
+				enqueueBytes(incomingBytes);
 				return true;
 			}
 
@@ -86,15 +86,14 @@ namespace Server_Library.Connection_Types {
 		/// Removes all objects from the queue and makes a new empty queue
 		/// </summary>
 		public void resetQueue() {
-			receivedObjectsConcurrentQueue = new ConcurrentQueue<T>();
+			receivedObjectsConcurrentQueue = new ConcurrentQueue<byte[]>();
 		}
 
 		/// <summary>
 		/// Puts and object into the queue of received objects
 		/// </summary>
-		/// <param name="obj">Object of type T</param>
-		private void enqueueObject(T obj) {
-			receivedObjectsConcurrentQueue.Enqueue(obj);
+		private void enqueueBytes(byte[] bytes) {
+			receivedObjectsConcurrentQueue.Enqueue(bytes);
 		}
 	}
 }
