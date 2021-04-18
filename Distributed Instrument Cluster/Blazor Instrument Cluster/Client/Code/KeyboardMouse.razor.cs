@@ -80,6 +80,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 				ControlSubdevices controlSubdevices = JsonSerializer.Deserialize<ControlSubdevices>(controlSubdevicesJson);
 				//Set list
 				listOfSubNames = controlSubdevices.subnameList;
+				currentSubname = listOfSubNames[0];
 			}
 			catch (Exception e) {
 				Console.WriteLine("Error in url decoding");
@@ -145,7 +146,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 				//Create json
 				string json = JsonSerializer.Serialize(sendingObject);
 				//Convert to bytes
-				ArraySegment<byte> bytesToSend = new ArraySegment<byte>(Encoding.UTF32.GetBytes(json));
+				ArraySegment<byte> bytesToSend = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
 
 				//Send data to socket.
 				await crestronWebSocket.SendAsync(bytesToSend, WebSocketMessageType.Text, true, disposalTokenSource.Token);
@@ -164,11 +165,6 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// </summary>
 		/// <returns></returns>
 		protected async Task connectToCrestronControl() {
-			//No control unit return
-			if (currentSubname == string.Empty) {
-				Console.WriteLine("Can not connect to subname nothing");
-				return;
-			}
 			//abort websocket one already exists and reset website states
 			crestronWebSocket?.Abort();
 			resetStates();
@@ -210,7 +206,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 				RequestConnectionModel requestModel = new RequestConnectionModel(name, location, type, currentSubname);
 
 				string json = JsonSerializer.Serialize(requestModel);
-				ArraySegment<byte> jsonArraySegment = new ArraySegment<byte>(Encoding.UTF32.GetBytes(json));
+				ArraySegment<byte> jsonArraySegment = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
 				//Send device data
 				await crestronWebSocket.SendAsync(jsonArraySegment, WebSocketMessageType.Text, true, disposalTokenSource.Token);
 
@@ -218,7 +214,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 				byte[] foundBuffer = new byte[1024];
 				ArraySegment<byte> foundBytes = new ArraySegment<byte>(foundBuffer);
 				await crestronWebSocket.ReceiveAsync(foundBytes, disposalTokenSource.Token);
-				string found = Encoding.UTF32.GetString(foundBytes).TrimEnd('\0');
+				string found = Encoding.UTF8.GetString(foundBytes).TrimEnd('\0');
 
 				//Device was found
 				return found.ToLower().Equals("Found Device".ToLower());
@@ -247,7 +243,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 						byte[] queueBytes = new byte[4098];
 						ArraySegment<byte> qSegment = new ArraySegment<byte>(queueBytes);
 						await crestronWebSocket.ReceiveAsync(qSegment, disposalTokenSource.Token);
-						string receivedJson = Encoding.UTF32.GetString(queueBytes).TrimEnd('\0');
+						string receivedJson = Encoding.UTF8.GetString(queueBytes).TrimEnd('\0');
 
 						queueStatus = JsonSerializer.Deserialize<QueueStatusModel>(receivedJson);
 

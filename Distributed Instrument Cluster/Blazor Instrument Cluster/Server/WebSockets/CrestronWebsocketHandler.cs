@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Server.CrestronControl;
 using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
+using Blazor_Instrument_Cluster.Server.Services;
+using PackageClasses;
 
 namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
@@ -207,9 +209,10 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				byte[] receivedBytesBuffer = new byte[1024];
 				ArraySegment<byte> receivedBytesSegment = new ArraySegment<byte>(receivedBytesBuffer);
 				await websocket.ReceiveAsync(receivedBytesSegment, cancellationToken);
+				string jsonInc = Encoding.UTF8.GetString(receivedBytesBuffer).TrimEnd('\0');
 
 				try {
-					bool sent = controlToken.send(receivedBytesSegment.ToArray());
+					bool sent = controlToken.send(Encoding.UTF8.GetBytes(jsonInc));
 				}
 				catch (Exception e) {
 					logger.LogWarning(e, "Exception when deserializing command");

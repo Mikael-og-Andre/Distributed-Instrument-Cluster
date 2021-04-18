@@ -24,7 +24,7 @@ namespace ReceivingClientTester {
 
 	        while (true) {
 		        if (receivingClient.getBytesFromClient(out byte[] output)) {
-			        ExampleCrestronMsgObject obj = JsonSerializer.Deserialize<ExampleCrestronMsgObject>(Encoding.UTF32.GetString(output).TrimStart('\0').TrimEnd('\0'));
+			        ExampleCrestronMsgObject obj = JsonSerializer.Deserialize<ExampleCrestronMsgObject>(Encoding.UTF8.GetString(output).TrimStart('\0').TrimEnd('\0'));
 					Console.WriteLine("Received object text: {0}",obj.msg);
 		        }
 				Thread.Sleep(10);
