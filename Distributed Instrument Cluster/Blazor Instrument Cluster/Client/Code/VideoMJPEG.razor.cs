@@ -1,17 +1,16 @@
-﻿using System;
+﻿using Blazor_Instrument_Cluster.Client.Code.UrlObjects;
+using Microsoft.AspNetCore.Components;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using Blazor_Instrument_Cluster.Client.Code.UrlObjects;
-using Microsoft.AspNetCore.Components;
 
 namespace Blazor_Instrument_Cluster.Client.Code {
-	public class VideoMJPEG : ComponentBase, IDisposable {
 
+	public class VideoMJPEG : ComponentBase, IDisposable {
 		private CancellationTokenSource disposalTokenSource = new CancellationTokenSource();
 
 		[Inject]
@@ -39,30 +38,25 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 			//Create http version of url
 			string httpBase = navigationManager.BaseUri.Replace("https://", "http://");
 			string[] httpSplit = httpBase.Split(":");
-			string httpReconstruction = httpSplit[0]+":"+ httpSplit[1];
+			string httpReconstruction = httpSplit[0] + ":" + httpSplit[1];
 			try {
 				//Convert incoming url Json to object
-				string portObjectJson = HttpUtility.UrlDecode(urlPortObject, Encoding.Unicode);
+				string portObjectJson = HttpUtility.UrlDecode(urlPortObject).TrimStart('\0').TrimEnd('\0');
 				PortsList deserializedPortsList = JsonSerializer.Deserialize<PortsList>(portObjectJson);
-				if (deserializedPortsList != null) {
-					//Deserialize
-					List<int> ports = deserializedPortsList.portsList;
-					listOfUrls = new LinkedList<string>();
-					foreach (var port in ports) {
-						listOfUrls.AddLast(new LinkedListNode<string>(httpReconstruction+":"+port));
-						Console.WriteLine(httpReconstruction+":"+port);
-					}
-					//Set first uri;
-					currentUriNode = listOfUrls.First;
-					uri = currentUriNode?.Value;
 
+				//Deserialize
+				List<int> ports = deserializedPortsList.portsList;
+				listOfUrls = new LinkedList<string>();
+				foreach (var port in ports) {
+					listOfUrls.AddLast(new LinkedListNode<string>(httpReconstruction + ":" + port));
+					Console.WriteLine(httpReconstruction + ":" + port);
 				}
-				else {
-					return;
-				}
+				//Set first uri;
+				currentUriNode = listOfUrls.First;
+				uri = currentUriNode.Value;
 			}
 			catch (Exception e) {
-				return;
+				throw;
 			}
 		}
 
@@ -103,6 +97,5 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		public void Dispose() {
 			disposalTokenSource.Cancel();
 		}
-
 	}
 }

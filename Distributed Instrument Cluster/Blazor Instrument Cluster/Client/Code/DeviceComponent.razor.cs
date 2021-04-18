@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
@@ -40,19 +41,16 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 			PortsList portsList = new PortsList();
 			portsList.portsList = portslist;
 			string portJson = JsonSerializer.Serialize(portsList);
-			string urlPortsListJson = HttpUtility.UrlEncodeUnicode(portJson);
 
 			//Json control devices
 			ControlSubdevices controlDevices = new ControlSubdevices();
 			controlDevices.subnameList = controlNames;
 			string subnamesJson = JsonSerializer.Serialize(controlDevices);
-			string urlSubnamesJson = HttpUtility.UrlEncodeUnicode(subnamesJson);
 
 
-			string fullPath = basePath + "/" + deviceInfo.name + "/" + deviceInfo.location + "/" + deviceInfo.type + "/" + urlSubnamesJson + "/" + urlPortsListJson;
+			string fullPath = basePath + "/" + HttpUtility.UrlEncode(deviceInfo.name) + "/" + HttpUtility.UrlEncode(deviceInfo.location) + "/" + HttpUtility.UrlEncode(deviceInfo.type) + "/" + HttpUtility.UrlEncode(subnamesJson) + "/" + HttpUtility.UrlEncode(portJson);
 
 			navigationManager.NavigateTo(fullPath);
 		}
-
 	}
 }

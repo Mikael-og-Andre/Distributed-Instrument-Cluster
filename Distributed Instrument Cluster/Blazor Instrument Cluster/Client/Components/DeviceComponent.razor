@@ -16,11 +16,10 @@
         </div>
     </div>
     <div class="row">
-        <div class="col">
-            @foreach (var subDev in deviceInfo.subDevice) {
-                <p>@subDev.subname</p>
-            }
-        </div>
-        
+        @foreach (var subDev in deviceInfo.subDevice) {
+            <div class="col">
+                @subDev.subname
+            </div>
+        }
     </div>
 </li>

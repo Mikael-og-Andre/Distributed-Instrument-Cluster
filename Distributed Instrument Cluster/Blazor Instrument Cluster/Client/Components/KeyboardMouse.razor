@@ -17,11 +17,13 @@
                 Lock Mouse
             </button>
         </div>
+
         <div class="col">
             <button @onclick="connectToCrestronControl" class="btn btn-dark" style="width: 100%;">
                 Connect
             </button>
         </div>
+
         <div class="col">
             @if (deviceAndControllerFound && (!controlling)) {
                 <p><b>Status:</b> Waiting for Control</p>
@@ -32,6 +34,17 @@
             else {
                 <p><b>Status:</b> Not Connected</p>
             }
+        </div>
+
+        <div class="col">
+            <select class="custom-select" @bind="@currentSubname">
+                <option value="@string.Empty">None</option>
+                @foreach (string subName in listOfSubNames) {
+                    <option value="@subName">
+                        @subName
+                    </option>
+                }
+            </select>
         </div>
     </div>
 </div>
