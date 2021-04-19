@@ -165,6 +165,11 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// </summary>
 		/// <returns></returns>
 		protected async Task connectToCrestronControl() {
+			//if name is not in the list of subnames, dont try to connect
+			if (!listOfSubNames.Contains(currentSubname)) {
+				Console.WriteLine("Can not connect to this subname");
+				return;
+			}
 			//abort websocket one already exists and reset website states
 			crestronWebSocket?.Abort();
 			resetStates();
