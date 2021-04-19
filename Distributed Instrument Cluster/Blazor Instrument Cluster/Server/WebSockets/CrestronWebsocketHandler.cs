@@ -235,10 +235,11 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		private async Task stopConnectionAsync(string statusDescription, TaskCompletionSource<object> socketFinishedTcs, CancellationToken cancellationToken, WebSocket webSocket, ControlToken controlToken = null) {
 			//If control token is passed, set as inactive to move the queue along
 			controlToken?.abandon();
-			if (webSocket.State!=WebSocketState.Closed) {
+			if ((webSocket.State==WebSocketState.Open)||(webSocket.State==WebSocketState.CloseSent)) {
 				//Close websocket
 				await webSocket.CloseAsync(WebSocketCloseStatus.ProtocolError, statusDescription, cancellationToken);
 			}
+			
 			//signal connection is over
 			socketFinishedTcs.TrySetResult(new object());
 		}
@@ -252,7 +253,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// <returns></returns>
 		private async Task sendStringWithWebsocketAsync(string msg, WebSocket websocket, CancellationToken token) {
 			//Send
-			ArraySegment<byte> sendingBytes = new ArraySegment<byte>(Encoding.UTF32.GetBytes(msg));
+			ArraySegment<byte> sendingBytes = new ArraySegment<byte>(Encoding.UTF8.GetBytes(msg));
 			await websocket.SendAsync(sendingBytes, WebSocketMessageType.Text, true, token);
 		}
 
