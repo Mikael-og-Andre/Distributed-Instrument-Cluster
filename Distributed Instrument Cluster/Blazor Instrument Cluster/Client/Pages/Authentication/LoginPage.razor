@@ -1,6 +1,8 @@
 ﻿@page "/Login"
 @layout TopBarLayout
 @using Blazor_Instrument_Cluster.Shared.AuthenticationModels
+@inject NavigationManager navigationManager
+
 
 <div class="container">
 
@@ -37,6 +39,9 @@
                             <button class="btn btn-success" type="submit">Submit</button>
                             <button type="reset" class="btn btn-dark">Reset</button>
                         </div>
+                        <div class="col">
+                            <button class="btn btn-info float-right" @onclick="navigateRegister">Register</button>
+                        </div>
                     </div>
                 </div>
             </EditForm>
@@ -50,6 +55,10 @@
 
     private async Task SubmitLoginAttempt(LoginModel loginAttempt) {
 
+    }
+
+    private void navigateRegister() {
+        navigationManager.NavigateTo("/Register");
     }
 
 }

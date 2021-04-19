@@ -1,6 +1,7 @@
 ﻿@page "/Register"
 @layout TopBarLayout
 @using Blazor_Instrument_Cluster.Shared.AuthenticationModels
+@inject NavigationManager navigationManager
 
 <div class="container">
 
@@ -15,7 +16,7 @@
             <EditForm Model="@registrationAttempt" OnValidSubmit="() => { Task.FromResult(SubmitRegistrationAttempt(registrationAttempt)); }">
                 <DataAnnotationsValidator></DataAnnotationsValidator>
                 <ValidationSummary></ValidationSummary>
-                
+
                 <div class="container">
                     <div class="row">
                         <div class="col-4">
@@ -60,6 +61,9 @@
                             <button class="btn btn-success" type="submit">Submit</button>
                             <button type="reset" class="btn btn-dark">Reset</button>
                         </div>
+                        <div class="col">
+                            <button class="btn btn-dark float-right" @onclick="navigateLogin">Back</button>
+                        </div>
                     </div>
                 </div>
             </EditForm>
@@ -73,6 +77,10 @@
 
     private async Task SubmitRegistrationAttempt(RegistrationModel registrationAttempt) {
 
+    }
+
+    private void navigateLogin() {
+        navigationManager.NavigateTo("/login");
     }
 
 }
