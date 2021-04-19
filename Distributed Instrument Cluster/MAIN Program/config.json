@@ -1,6 +1,6 @@
 {
   "serialCable": {
-    "portName": "com5",
+    "portName": "com4",
     "largeMagnitude": 20,
     "smallMagnitude": 1,
     "maxDelta": 1000, 
