@@ -1,4 +1,6 @@
-﻿using Blazor_Instrument_Cluster.Shared;
+﻿using Blazor_Instrument_Cluster.Server.CrestronControl;
+using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
+using Blazor_Instrument_Cluster.Shared;
 using Microsoft.Extensions.Logging;
 using Server_Library;
 using System;
@@ -8,10 +10,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Blazor_Instrument_Cluster.Server.CrestronControl;
-using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
-using Blazor_Instrument_Cluster.Server.Services;
-using PackageClasses;
 
 namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
@@ -127,11 +125,13 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 				List<SubDevice> listOfSubNames = remoteDevice.getSubDeviceList();
 
-				if (listOfSubNames.Count>0) {
-					foreach (var obj in listOfSubNames) {
-						if (obj.subname.ToLower().Equals(deviceInfo.subname.ToLower())) {
-							foundDevice = true;
-						}
+				foreach (var obj in listOfSubNames) {
+					//Check for bad data from the connector
+					if (obj.subname is null) {
+						continue;
+					}
+					else if (obj.subname.ToLower().Equals(deviceInfo.subname.ToLower())) {
+						foundDevice = true;
 					}
 				}
 			}
@@ -157,7 +157,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				await sendStringWithWebsocketAsync("Device not found".ToLower(), websocket, token);
 			}
 
-			(bool, ClientInformation, RemoteDevice, ControlToken) result = 
+			(bool, ClientInformation, RemoteDevice, ControlToken) result =
 				(foundDevice && foundController, new ClientInformation(deviceInfo.name, deviceInfo.location, deviceInfo.type, deviceInfo.subname), remoteDevice, controlToken);
 
 			return result;
@@ -178,7 +178,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 					QueueStatusModel queueStatus = new QueueStatusModel(controlToken.hasControl);
 
 					string json = JsonSerializer.Serialize(queueStatus);
-					await sendStringWithWebsocketAsync(json, websocket,cancellationToken);
+					await sendStringWithWebsocketAsync(json, websocket, cancellationToken);
 					return true;
 				}
 				else {
@@ -186,7 +186,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 					QueueStatusModel queueStatus = new QueueStatusModel(controlToken.hasControl);
 
 					string json = JsonSerializer.Serialize(queueStatus);
-					await sendStringWithWebsocketAsync(json, websocket,cancellationToken);
+					await sendStringWithWebsocketAsync(json, websocket, cancellationToken);
 					await Task.Delay(5000, cancellationToken);
 				}
 			}
@@ -237,11 +237,11 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		private async Task stopConnectionAsync(string statusDescription, TaskCompletionSource<object> socketFinishedTcs, CancellationToken cancellationToken, WebSocket webSocket, ControlToken controlToken = null) {
 			//If control token is passed, set as inactive to move the queue along
 			controlToken?.abandon();
-			if ((webSocket.State==WebSocketState.Open)||(webSocket.State==WebSocketState.CloseSent)) {
+			if ((webSocket.State == WebSocketState.Open) || (webSocket.State == WebSocketState.CloseSent)) {
 				//Close websocket
 				await webSocket.CloseAsync(WebSocketCloseStatus.ProtocolError, statusDescription, cancellationToken);
 			}
-			
+
 			//signal connection is over
 			socketFinishedTcs.TrySetResult(new object());
 		}
