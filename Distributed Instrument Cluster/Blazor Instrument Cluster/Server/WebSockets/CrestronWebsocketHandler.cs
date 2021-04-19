@@ -127,9 +127,11 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 				List<SubDevice> listOfSubNames = remoteDevice.getSubDeviceList();
 
-				foreach (var obj in listOfSubNames) {
-					if (obj.subname.ToLower().Equals(deviceInfo.subname.ToLower())) {
-						foundDevice = true;
+				if (listOfSubNames.Count>0) {
+					foreach (var obj in listOfSubNames) {
+						if (obj.subname.ToLower().Equals(deviceInfo.subname.ToLower())) {
+							foundDevice = true;
+						}
 					}
 				}
 			}
