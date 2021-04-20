@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace PackageClasses {
-	public class ExampleCrestronMsgObject {
+	public class CrestronCommand {
 
 		public string msg { get; set; }
 
-		public ExampleCrestronMsgObject() {
+		public CrestronCommand() {
 			
 		}
 
-		public ExampleCrestronMsgObject(string msg) {
+		public CrestronCommand(string msg) {
 			this.msg = msg;
 		}
 

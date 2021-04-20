@@ -142,7 +142,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 			try {
 				//Create object
-				ExampleCrestronMsgObject sendingObject = new ExampleCrestronMsgObject(s);
+				CrestronCommand sendingObject = new CrestronCommand(s);
 				//Create json
 				string json = JsonSerializer.Serialize(sendingObject);
 				//Convert to bytes
