@@ -237,8 +237,8 @@ namespace MAIN_Program {
 			while (true) {
 				try {
 					if (crestronClient.receiveBytes(out var messageObject)) {
-						ExampleCrestronMsgObject temp =
-							JsonSerializer.Deserialize<ExampleCrestronMsgObject>(
+						CrestronCommand temp =
+							JsonSerializer.Deserialize<CrestronCommand>(
 								Encoding.UTF32.GetString(messageObject).Replace("\0",string.Empty));
 						if (temp != null) commandParser.pars(temp.msg);
 					}

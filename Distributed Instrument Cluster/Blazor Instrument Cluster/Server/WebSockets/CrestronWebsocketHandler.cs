@@ -50,6 +50,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		public async void StartCrestronWebsocketProtocol(WebSocket websocket, TaskCompletionSource<object> socketFinishedTcs) {
 			//Create cancellation token
 			CancellationToken token = new CancellationToken(false);
+			Console.WriteLine("web socket made yes?");
 
 			try {
 				//Send start signal
@@ -102,13 +103,18 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				if (found) {
 					//Get the device
 					if (foundDevice.getSendingConnectionWithSubname(subname, out SendingConnection outputConnection)) {
+						var i = 0;
 						while (!token.IsCancellationRequested) {
 
 							//Receive a command from the socket
 							ArraySegment<byte> receivedArraySegment = new ArraySegment<byte>(new byte[2048]);
 							await websocket.ReceiveAsync(receivedArraySegment, token);
 							outputConnection.queueByteArrayForSending(receivedArraySegment.ToArray());
+							Console.WriteLine($"loop{i}");
+							i++;
 						}
+
+						Console.WriteLine("canceled");
 					}
 					else {
 						//Send found
@@ -127,10 +133,13 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			}
 			catch (Exception ex) {
 				logger.LogWarning(ex, "Exception occurred in websocket");
+				Console.WriteLine("socket closed?");
 			}
 
+			Console.WriteLine("socket closed?");
 			//Complete
 			socketFinishedTcs.TrySetResult(new object());
+
 		}
 	}
 }
