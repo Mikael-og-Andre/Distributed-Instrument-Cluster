@@ -25,7 +25,7 @@ namespace SendingClientTester {
 	        while (true) {
 		        Thread.Sleep(10000);
 		        Jpeg obj =new Jpeg();
-				sendingClient.queueBytesForSending(JsonSerializer.SerializeToUtf8Bytes(obj));
+				sendingClient.sendBytes(JsonSerializer.SerializeToUtf8Bytes(obj));
 	        }
         }
 

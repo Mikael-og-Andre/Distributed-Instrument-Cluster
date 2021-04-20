@@ -236,7 +236,7 @@ namespace MAIN_Program {
 		private void relayThread() {
 			while (true) {
 				try {
-					if (crestronClient.getBytesFromClient(out var messageObject)) {
+					if (crestronClient.receiveBytes(out var messageObject)) {
 						ExampleCrestronMsgObject temp =
 							JsonSerializer.Deserialize<ExampleCrestronMsgObject>(
 								Encoding.UTF32.GetString(messageObject).Replace("\0",string.Empty));
@@ -265,7 +265,7 @@ namespace MAIN_Program {
 			while (true) {
 				try {
 					var jpg = device.readJpg(quality);
-					connection.queueBytesForSending(jpg.ToArray());
+					connection.sendBytes(jpg.ToArray());
 				} catch (Exception e) {
 					Console.WriteLine(e);
 				}

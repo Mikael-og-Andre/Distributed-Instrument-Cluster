@@ -79,17 +79,7 @@ namespace Server_Library.Socket_Clients {
 			connectionNetworkStream = new NetworkStream(connectionSocket, true);
 			//Setup
 			setupConnection(connectionSocket);
-			//HandleConnection
-
-			Task task = new Task(() => handleConnected());
-			task.Start();
 		}
-
-
-		/// <summary>
-		/// The main function of a communicator that gets called after you are connected and preforms actions with the socket
-		/// </summary>
-		protected abstract void handleConnected();
 
 		/// <summary>
 		/// Attempts to connect to the given host and ip

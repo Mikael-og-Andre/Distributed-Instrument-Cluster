@@ -9,6 +9,7 @@
     <projectFile>Video Demo Project/Video Demo Project.csproj</projectFile>
     <projectFile>SendingClientTester/SendingClientTester.csproj</projectFile>
     <projectFile>ReceivingClientTester/ReceivingClientTester.csproj</projectFile>
+    <projectFile>server connect test/server connect test.csproj</projectFile>
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b03c3d03-43ee-4caa-9ca4-5740bb09a540" name="Default Changelist" comment="" />
@@ -24,6 +25,7 @@
     <changedPaths>
       <option value="$PROJECT_DIR$/MAIN Program/config.json" />
       <option value="$PROJECT_DIR$/NetworkingLibrary/NetworkingOperations.cs" />
+      <option value="$PROJECT_DIR$/Blazor Instrument Cluster/Server/config.json" />
     </changedPaths>
   </component>
   <component name="ProjectId" id="1rANl3e1tDoI9PnuonP8pZ80VDr" />
@@ -42,7 +44,7 @@
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
-  <component name="RunManager" selected=".NET Project.MAIN Program">
+  <component name="RunManager" selected=".NET Launch Settings Profile.Blazor Instrument Cluster.Server">
     <configuration name="MAIN Program" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
       <option name="PROGRAM_PARAMETERS" value="" />
@@ -124,6 +126,24 @@
       <option name="USE_MONO" value="0" />
       <option name="RUNTIME_ARGUMENTS" value="" />
       <option name="PROJECT_PATH" value="$PROJECT_DIR$/Video Demo Project/Video Demo Project.csproj" />
+      <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
+      <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
+      <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
+      <option name="PROJECT_KIND" value="DotNetCore" />
+      <option name="PROJECT_TFM" value="" />
+      <method v="2">
+        <option name="Build" />
+      </method>
+    </configuration>
+    <configuration name="server connect test" type="DotNetProject" factoryName=".NET Project">
+      <option name="EXE_PATH" value="" />
+      <option name="PROGRAM_PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="PASS_PARENT_ENVS" value="1" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+      <option name="USE_MONO" value="0" />
+      <option name="RUNTIME_ARGUMENTS" value="" />
+      <option name="PROJECT_PATH" value="$PROJECT_DIR$/server connect test/server connect test.csproj" />
       <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
       <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
       <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
@@ -233,13 +253,14 @@
       <option name="presentableId" value="Default" />
       <updated>1618415083437</updated>
       <workItem from="1618415085960" duration="2259000" />
+      <workItem from="1618920211669" duration="781000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="UnityProjectConfiguration" hasMinimizedUI="null" />
+  <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="UnityUnitTestConfiguration" currentTestLauncher="NUnit" />
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />

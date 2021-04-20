@@ -42,7 +42,7 @@ namespace serverDemo {
 
 			foreach (var obj in objectsForSending) {
 				byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(obj);
-				sendingClient.queueBytesForSending(jsonBytes);
+				sendingClient.sendBytes(jsonBytes);
 			}
 
 			while (!cancellationTokenSource.Token.IsCancellationRequested) {
