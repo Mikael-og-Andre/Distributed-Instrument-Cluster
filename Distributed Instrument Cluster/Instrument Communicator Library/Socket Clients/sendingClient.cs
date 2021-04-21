@@ -13,11 +13,6 @@ namespace Server_Library.Socket_Clients {
 	public class SendingClient : ClientBase {
 
 		/// <summary>
-		/// queue for objects to send
-		/// </summary>
-		private ConcurrentQueue<byte[]> sendingByteArrayConcurrentQueue;
-
-		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="ip"></param>
@@ -27,79 +22,14 @@ namespace Server_Library.Socket_Clients {
 		/// <param name="isRunningCancellationToken"></param>
 		public SendingClient(string ip, int port, ClientInformation informationAboutClient, AccessToken accessToken,
 			CancellationToken isRunningCancellationToken) : base(ip, port, informationAboutClient, accessToken,
-			isRunningCancellationToken) {
-			//init queue
-			sendingByteArrayConcurrentQueue = new ConcurrentQueue<byte[]>();
-		}
+			isRunningCancellationToken) { }
 
 		/// <summary>
-		/// Send objects from the queue
+		/// Sends bytes to socket.
 		/// </summary>
-		protected override void handleConnected(int delay) {
-
-			isSetup = true;
-			isSocketConnected = true;
-
-			//Send objects
-			while (!isRunningCancellationToken.IsCancellationRequested) {
-				send();
-				Thread.Sleep(delay);
-			}
-		}
-		/// <summary>
-		/// Put object into queue for sending
-		/// </summary>
-		/// <param name="obj"></param>
-		public void queueBytesForSending(byte[] obj) {
-			enqueueBytes(obj);
-		}
-
-		/// <summary>
-		/// Overwrite the old queue with an empty new one
-		/// </summary>
-		public void resetQueue() {
-			sendingByteArrayConcurrentQueue = new ConcurrentQueue<byte[]>();
-		}
-
-		/// <summary>
-		/// Send an object from the queue
-		/// </summary>
-		private void send() {
-			//If there is an object in the queue send it
-			if (getObjectFromQueue(out byte[] output)) {
-				NetworkingOperations.sendBytes(connectionNetworkStream,output);
-			}
-		}
-
-		/// <summary>
-		/// Get and object from the queue
-		/// </summary>
-		/// <param name="output"></param>
-		/// <returns>True if object was found</returns>
-		private bool getObjectFromQueue(out byte[] output) {
-			if (sendingByteArrayConcurrentQueue.TryDequeue(out byte[] result)) {
-				output = result;
-				return true;
-			}
-
-			output = default;
-			return false;
-		}
-
-		/// <summary>
-		/// Add objects to queue for sending
-		/// </summary>
-		/// <param name="obj"></param>
-		private void enqueueBytes(byte[] obj) {
-			sendingByteArrayConcurrentQueue.Enqueue(obj);
-		}
-
-		/// <summary>
-		/// Get the amount of items in the queue
-		/// </summary>
-		/// <returns>Number of items in queue</returns>
-		private int queueCount() {
-			return sendingByteArrayConcurrentQueue.Count;
+		/// <param name="b">Bytes to send.</param>
+		public void sendBytes(byte[] b) {
+			NetworkingOperations.sendBytes(connectionNetworkStream, b);
 		}
 	}
 }

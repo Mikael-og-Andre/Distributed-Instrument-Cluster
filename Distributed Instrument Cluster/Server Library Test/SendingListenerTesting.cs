@@ -139,7 +139,7 @@ namespace Server_Library_Test {
 				TestJsonObject currentTestJsonObject;
 				bool foundObject = false;
 				do {
-					foundObject = receivingClient1.getBytesFromClient(out byte[] output);
+					foundObject = receivingClient1.receiveBytes(out byte[] output);
 					currentTestJsonObject = JsonSerializer.Deserialize<TestJsonObject>(output);
 				} while (!foundObject);
 
@@ -152,7 +152,7 @@ namespace Server_Library_Test {
 				TestJsonObject currentTestJsonObject;
 				bool foundObject = false;
 				do {
-					foundObject = receivingClient2.getBytesFromClient(out byte[] output);
+					foundObject = receivingClient2.receiveBytes(out byte[] output);
 					currentTestJsonObject = JsonSerializer.Deserialize<TestJsonObject>(output);
 				} while (!foundObject);
 
@@ -165,7 +165,7 @@ namespace Server_Library_Test {
 				TestJsonObject currentTestJsonObject;
 				bool foundObject = false;
 				do {
-					foundObject = receivingClient3.getBytesFromClient(out byte[] output);
+					foundObject = receivingClient3.receiveBytes(out byte[] output);
 					currentTestJsonObject = JsonSerializer.Deserialize<TestJsonObject>(output);
 				} while (!foundObject);
 

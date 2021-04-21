@@ -23,7 +23,7 @@ namespace ReceivingClientTester {
 	        });
 
 	        while (true) {
-		        if (receivingClient.getBytesFromClient(out byte[] output)) {
+		        if (receivingClient.receiveBytes(out byte[] output)) {
 			        CrestronCommand obj = JsonSerializer.Deserialize<CrestronCommand>(Encoding.UTF8.GetString(output).TrimStart('\0').TrimEnd('\0'));
 					Console.WriteLine("Received object text: {0}",obj.msg);
 		        }

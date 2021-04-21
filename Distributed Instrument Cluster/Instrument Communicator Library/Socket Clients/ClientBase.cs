@@ -70,7 +70,7 @@ namespace Server_Library.Socket_Clients {
 		/// <summary>
 		/// Starts the client and attempts to connect to the server
 		/// </summary>
-		public void run(int delay) {
+		public void run() {
 			// Create new socket
 			connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			//Connect
@@ -79,17 +79,7 @@ namespace Server_Library.Socket_Clients {
 			connectionNetworkStream = new NetworkStream(connectionSocket, true);
 			//Setup
 			setupConnection(connectionSocket);
-			//HandleConnection
-
-			Task task = new Task(() => handleConnected(5));
-			task.Start();
 		}
-
-
-		/// <summary>
-		/// The main function of a communicator that gets called after you are connected and preforms actions with the socket
-		/// </summary>
-		protected abstract void handleConnected(int delay);
 
 		/// <summary>
 		/// Attempts to connect to the given host and ip

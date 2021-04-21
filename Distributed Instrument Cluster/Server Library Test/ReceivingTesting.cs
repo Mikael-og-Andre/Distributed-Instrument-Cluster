@@ -72,17 +72,17 @@ namespace Server_Library_Test {
 
 			foreach (var obj in listFor1) {
 				byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(obj);
-				sendingClient1.queueBytesForSending(jsonBytes);
+				sendingClient1.sendBytes(jsonBytes);
 			}
 
 			foreach (var obj in listFor2) {
 				byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(obj);
-				sendingClient2.queueBytesForSending(jsonBytes);
+				sendingClient2.sendBytes(jsonBytes);
 			}
 
 			foreach (var obj in listFor3) {
 				byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(obj);
-				sendingClient3.queueBytesForSending(jsonBytes);
+				sendingClient3.sendBytes(jsonBytes);
 			}
 
 			Thread.Sleep(5000);
@@ -225,7 +225,7 @@ namespace Server_Library_Test {
 			//Queue objects for sending
 			foreach (var obj in listOfObjects) {
 				byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(obj);
-				sendingClient.queueBytesForSending(jsonBytes);
+				sendingClient.sendBytes(jsonBytes);
 			}
 			Thread.Sleep(1000);
 			//Receive and check

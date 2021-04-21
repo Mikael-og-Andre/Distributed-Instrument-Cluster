@@ -54,7 +54,7 @@ namespace serverDemo {
 			}
 
 			while (!cancellationTokenSource.Token.IsCancellationRequested) {
-				if (receivingClient.getBytesFromClient(out byte[] output)) {
+				if (receivingClient.receiveBytes(out byte[] output)) {
 					exampleObject obj = JsonSerializer.Deserialize<exampleObject>(output);
 					Console.WriteLine("Received Object: Name: {0} Age: {1}", obj.name, obj.age);
 				}

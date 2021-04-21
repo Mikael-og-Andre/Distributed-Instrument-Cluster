@@ -40,18 +40,18 @@ namespace MAIN_Program {
 			var json = parsConfigFile(configFile);
 
 
-			//while (!setupSerialCable(json.serialCable)) {
-			//	Thread.Sleep(3000);
-			//	Console.WriteLine("Retrying...");
-			//}
+			while (!setupSerialCable(json.serialCable)) {
+				Thread.Sleep(3000);
+				Console.WriteLine("Retrying...");
+			}
 
 			foreach (var device in json.videoDevices) {
 				setupVideoDevice(device);
 			}
 
-			////Start crestron command relay thread. (this should be event based as an optimal solution).
-			//var relayThread = new Thread(this.relayThread) { IsBackground = true };
-			//relayThread.Start();
+			//Start crestron command relay thread. (this should be event based as an optimal solution).
+			var relayThread = new Thread(this.relayThread) { IsBackground = true };
+			relayThread.Start();
 
 
 			//Start video relay threads. 
@@ -212,7 +212,7 @@ namespace MAIN_Program {
 			CancellationToken videoCancellationToken = new CancellationToken(false);
 
 			var videoClient = new SendingClient(ip, port, info, accessToken, videoCancellationToken);
-			videoClient.run(0);
+			videoClient.run();
 			return videoClient;
 		}
 
@@ -224,7 +224,7 @@ namespace MAIN_Program {
 			CancellationToken crestronCancellationToken = new CancellationToken(false);
 
 			crestronClient = new ReceivingClient(ip, port, info, accessToken, crestronCancellationToken);
-			crestronClient.run(0);
+			crestronClient.run();
 		}
 
 		#endregion setup methods
@@ -237,10 +237,10 @@ namespace MAIN_Program {
 		private void relayThread() {
 			while (true) {
 				try {
-					if (crestronClient.getBytesFromClient(out var messageObject)) {
+					if (crestronClient.receiveBytes(out var messageObject)) {
 						CrestronCommand temp =
 							JsonSerializer.Deserialize<CrestronCommand>(
-								Encoding.UTF32.GetString(messageObject).Replace("\0",string.Empty));
+								Encoding.UTF8.GetString(messageObject).Replace("\0",string.Empty));
 						if (temp != null) commandParser.pars(temp.msg);
 					}
 				}
@@ -266,7 +266,7 @@ namespace MAIN_Program {
 			while (true) {
 				try {
 					var jpg = device.readJpg(quality);
-					connection.queueBytesForSending(jpg.ToArray());
+					connection.sendBytes(jpg.ToArray());
 				} catch (Exception e) {
 					Console.WriteLine(e);
 				}
