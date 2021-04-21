@@ -110,7 +110,10 @@ namespace Server_Library.Socket_Clients {
 		/// </summary>
 		/// <returns></returns>
 		protected bool isDataAvailable() {
-			if (connectionSocket.Available > 0) {
+			if (connectionSocket is null) {
+				return false;
+			}
+			else if (connectionSocket.Available > 0) {
 				return true;
 			}
 			else {

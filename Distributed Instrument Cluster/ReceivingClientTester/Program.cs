@@ -19,7 +19,7 @@ namespace ReceivingClientTester {
 		        new ClientInformation("Radar1", "device location", "device type","crestronControl"), new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
-				receivingClient.run(0);
+				receivingClient.run();
 	        });
 
 	        while (true) {

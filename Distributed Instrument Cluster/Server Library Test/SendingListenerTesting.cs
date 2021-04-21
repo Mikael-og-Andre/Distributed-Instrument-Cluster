@@ -39,15 +39,15 @@ namespace Server_Library_Test {
 				new ClientInformation("receivingClient3", "location 3", "type 3","receiver3"), new AccessToken("access"), cancellationTokenSource.Token);
 
 			Task.Run(() => {
-				receivingClient1.run(0);
+				receivingClient1.run();
 			});
 
 			Task.Run(() => {
-				receivingClient2.run(0);
+				receivingClient2.run();
 			});
 
 			Task.Run(() => {
-				receivingClient3.run(0);
+				receivingClient3.run();
 			});
 
 			Thread.Sleep(1000);
