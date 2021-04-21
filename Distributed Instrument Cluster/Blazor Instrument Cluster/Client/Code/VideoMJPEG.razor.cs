@@ -37,8 +37,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		protected override async Task OnInitializedAsync() {
 			//Create http version of url
 			string httpBase = navigationManager.BaseUri.Replace("https://", "http://");
-			string[] httpSplit = httpBase.Split(":");
-			string httpReconstruction = httpSplit[0] + ":" + httpSplit[1];
+			Uri olduriHttp = new Uri(httpBase);
 			try {
 				//Convert incoming url Json to object
 				string portObjectJson = HttpUtility.UrlDecode(urlPortObject).TrimStart('\0').TrimEnd('\0');
@@ -48,8 +47,11 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 				List<int> ports = deserializedPortsList.portsList;
 				listOfUrls = new LinkedList<string>();
 				foreach (var port in ports) {
-					listOfUrls.AddLast(new LinkedListNode<string>(httpReconstruction + ":" + port));
-					Console.WriteLine(httpReconstruction + ":" + port);
+
+					UriBuilder newUri = new UriBuilder(olduriHttp.AbsoluteUri);
+					newUri.Port = port;
+					listOfUrls.AddLast(new LinkedListNode<string>(newUri.ToString()));
+					Console.WriteLine(newUri.ToString());
 				}
 				//Set first uri;
 				currentUriNode = listOfUrls.First;

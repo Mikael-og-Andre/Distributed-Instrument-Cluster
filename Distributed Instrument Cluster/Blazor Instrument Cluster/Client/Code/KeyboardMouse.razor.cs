@@ -80,7 +80,9 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 				ControlSubdevices controlSubdevices = JsonSerializer.Deserialize<ControlSubdevices>(controlSubdevicesJson);
 				//Set list
 				listOfSubNames = controlSubdevices.subnameList;
-				currentSubname = listOfSubNames[0];
+				if (listOfSubNames.Count>0) {
+					currentSubname = listOfSubNames[0];
+				}
 			}
 			catch (Exception e) {
 				Console.WriteLine("Error in url decoding");
