@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Networking_Library {
 
@@ -11,8 +12,7 @@ namespace Networking_Library {
 	/// </summary>
 	public static class NetworkingOperations {
 
-
-#region String
+		#region String
 
 		/// <summary>
 		/// Receive an string with the given socket
@@ -41,7 +41,7 @@ namespace Networking_Library {
 			sendBytes(networkStream, stringBuffer);
 		}
 
-#endregion
+		#endregion String
 
 		#region Json
 
@@ -113,5 +113,71 @@ namespace Networking_Library {
 		}
 
 		#endregion Byte array
+
+		#region Async opertaions
+
+		/// <summary>
+		/// Receive a byte array from the stream async
+		/// </summary>
+		/// <param name="stream">Network Stream</param>
+		/// <returns>Task Byte array</returns>
+		public static async Task<byte[]> receiveBytesAsync(NetworkStream stream) {
+			//Get size of incoming bytes
+			byte[] sizeBytes = new byte[sizeof(int)];
+			await stream.ReadAsync(sizeBytes, 0, sizeBytes.Length);
+			int size = BitConverter.ToInt32(sizeBytes);
+
+			//Receive byte array
+			byte[] incomingBytes = new byte[size];
+			int readBytes = await stream.ReadAsync(incomingBytes, 0, incomingBytes.Length);
+
+			return incomingBytes;
+		}
+
+		/// <summary>
+		/// Send a byte array with a stream
+		/// </summary>
+		/// <param name="stream"></param>
+		/// <param name="bytesToSend"></param>
+		public static async Task sendBytesAsync(NetworkStream stream, byte[] bytesToSend) {
+			//First send size of incoming objects
+			byte[] size = BitConverter.GetBytes(bytesToSend.Length);
+			await stream.WriteAsync(size, 0, sizeof(int));
+			//Write the data
+			await stream.WriteAsync(bytesToSend, 0, bytesToSend.Length);
+		}
+
+		/// <summary>
+		/// Send a string with socket async
+		/// Encoding utf32
+		/// </summary>
+		/// <param name="inputString">string you want sent</param>
+		/// <param name="connectionSocket">Connected socket</param>
+		public static async void sendStringAsync(string inputString, Socket connectionSocket) {
+			//Send name
+			byte[] stringBuffer = Encoding.UTF32.GetBytes(inputString);
+			//send data with stream
+			NetworkStream networkStream = new NetworkStream(connectionSocket, false);
+			await sendBytesAsync(networkStream, stringBuffer);
+		}
+
+		/// <summary>
+		/// Receive an string with socket async
+		/// UTF32
+		/// </summary>
+		/// <param name="connectionSocket">Connected socket</param>
+		/// <returns>string</returns>
+		public static async Task<string> receiveStringAsync(Socket connectionSocket) {
+			NetworkStream networkStream = new NetworkStream(connectionSocket, true);
+			//receive bytes with socket stream
+			byte[] incomingBytes = await receiveBytesAsync(networkStream);
+			//get string from bytes
+			string receivedString = Encoding.UTF32.GetString(incomingBytes);
+			return receivedString;
+		}
+
+		
+
+		#endregion Async opertaions
 	}
 }
