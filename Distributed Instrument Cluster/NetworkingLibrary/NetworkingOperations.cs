@@ -152,12 +152,11 @@ namespace Networking_Library {
 		/// Encoding utf32
 		/// </summary>
 		/// <param name="inputString">string you want sent</param>
-		/// <param name="connectionSocket">Connected socket</param>
-		public static async void sendStringAsync(string inputString, Socket connectionSocket) {
+		/// <param name="networkStream">Connected Network stream</param>
+		public static async Task sendStringAsync(string inputString, NetworkStream networkStream) {
 			//Send name
 			byte[] stringBuffer = Encoding.UTF32.GetBytes(inputString);
 			//send data with stream
-			NetworkStream networkStream = new NetworkStream(connectionSocket, false);
 			await sendBytesAsync(networkStream, stringBuffer);
 		}
 
@@ -165,10 +164,9 @@ namespace Networking_Library {
 		/// Receive an string with socket async
 		/// UTF32
 		/// </summary>
-		/// <param name="connectionSocket">Connected socket</param>
-		/// <returns>string</returns>
-		public static async Task<string> receiveStringAsync(Socket connectionSocket) {
-			NetworkStream networkStream = new NetworkStream(connectionSocket, true);
+		/// <param name="networkStream"></param>
+		/// <returns>task string</returns>
+		public static async Task<string> receiveStringAsync(NetworkStream networkStream) {
 			//receive bytes with socket stream
 			byte[] incomingBytes = await receiveBytesAsync(networkStream);
 			//get string from bytes
@@ -176,7 +174,33 @@ namespace Networking_Library {
 			return receivedString;
 		}
 
-		
+		/// <summary>
+		/// Send object of type T with NetworkStream
+		/// </summary>
+		/// <typeparam name="T">JsonSerializable Object</typeparam>
+		/// <param name="networkStream">Connected NetworkStream</param>
+		/// <param name="obj">object to send</param>
+		/// <returns>Task</returns>
+		public static async Task sendObjectAsJsonAsync<T>(NetworkStream networkStream,T obj) {
+			//deserialize
+			string json = JsonSerializer.Serialize(obj);
+			//Send string
+			await NetworkingOperations.sendStringAsync(json, networkStream);
+		}
+
+		/// <summary>
+		/// Receive object of type T with networks stream
+		/// </summary>
+		/// <typeparam name="T">JsonSerializable Object</typeparam>
+		/// <param name="networkStream">Connected NetworkStream</param>
+		/// <returns>Task Object of type T</returns>
+		public static async Task<T> receiveObjectAsJson<T>(NetworkStream networkStream) {
+			//Receive string
+			string json = await NetworkingOperations.receiveStringAsync(networkStream);
+			//deserialize
+			T obj = JsonSerializer.Deserialize<T>(json);
+			return obj;
+		}
 
 		#endregion Async opertaions
 	}
