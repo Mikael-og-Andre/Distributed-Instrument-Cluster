@@ -19,13 +19,13 @@ namespace SendingClientTester {
 		        new SendingClient("127.0.0.1", 6980,  new ClientInformation("clientTester", "location", "type","videoStream"),new AccessToken("access"),new CancellationToken(false));
 
 	        Task.Run(() => {
-				sendingClient.run(1);
+				sendingClient.run();
 	        });
 
 	        while (true) {
 		        Thread.Sleep(10000);
 		        Jpeg obj =new Jpeg();
-				sendingClient.queueBytesForSending(JsonSerializer.SerializeToUtf8Bytes(obj));
+				sendingClient.sendBytes(JsonSerializer.SerializeToUtf8Bytes(obj));
 	        }
         }
 
