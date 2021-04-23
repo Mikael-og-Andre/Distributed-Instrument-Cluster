@@ -26,7 +26,6 @@ namespace MAIN_Program {
 	internal class Program {
 		private readonly List<VideoConnection> videoConnections = new();
 		private CommandParser commandParser;
-		//private ReceivingClient<ExampleVideoObject> videoClient;
 		private ReceivingClient crestronClient;
 
 		private static string configFile = "config.json";
@@ -40,18 +39,18 @@ namespace MAIN_Program {
 			var json = parsConfigFile(configFile);
 
 
-			//while (!setupSerialCable(json.serialCable)) {
-			//	Thread.Sleep(3000);
-			//	Console.WriteLine("Retrying...");
-			//}
+			while (!setupSerialCable(json.serialCable)) {
+				Thread.Sleep(3000);
+				Console.WriteLine("Retrying...");
+			}
 
 			foreach (var device in json.videoDevices) {
 				setupVideoDevice(device);
 			}
 
-			////Start crestron command relay thread. (this should be event based as an optimal solution).
-			//var relayThread = new Thread(this.relayThread) { IsBackground = true };
-			//relayThread.Start();
+			//Start crestron command relay thread. (this should be event based as an optimal solution).
+			var relayThread = new Thread(this.relayThread) { IsBackground = true };
+			relayThread.Start();
 
 
 			//Start video relay threads. 
@@ -252,7 +251,6 @@ namespace MAIN_Program {
 
 		/// <summary>
 		/// Thread for sending frames to server at a constant or dynamic* fps.
-		/// *TODO: make dynamic fps option when fps=0.
 		/// </summary>
 		/// <param name="index">Video device index</param>
 		private void videoThread(object index) {

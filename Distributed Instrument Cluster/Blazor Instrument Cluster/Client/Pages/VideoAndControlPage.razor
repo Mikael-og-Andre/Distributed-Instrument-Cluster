@@ -1,9 +1,12 @@
 ﻿@page "/VideoAndControl/{urlName}/{urlLocation}/{urlType}/{urlSubnames}/{urlVideoPorts}"
 @layout TopBarLayout
 
-<div style="width: 1280px; height: 720px; position: relative" class="container">
+<div class="container">
     <KeyboardMouse urlName="@urlName" urlLocation="@urlLocation" urlType="@urlType" urlSubnames="@urlSubnames"></KeyboardMouse>
-    <VideoMJPEG urlPortObject="@urlVideoPorts"></VideoMJPEG>
+    <div style="width: 1280px; height: 720px; position: relative">
+        <VideoMJPEG urlPortObject="@urlVideoPorts"></VideoMJPEG>
+    </div>
+    
 </div>
 
 @code {

@@ -25,6 +25,7 @@
     <changedPaths>
       <option value="$PROJECT_DIR$/MAIN Program/config.json" />
       <option value="$PROJECT_DIR$/NetworkingLibrary/NetworkingOperations.cs" />
+      <option value="$PROJECT_DIR$/Blazor Instrument Cluster/Server/config.json" />
     </changedPaths>
   </component>
   <component name="ProjectId" id="1rANl3e1tDoI9PnuonP8pZ80VDr" />

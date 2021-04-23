@@ -3,7 +3,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:59200",
+      "applicationUrl": "http://0.0.0.0:59200",
       "sslPort": 44323
     }
   },
@@ -25,7 +25,7 @@
       "sqlDebugging": true,
       "dotnetRunMessages": "true",
       "nativeDebugging": true,
-      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      "applicationUrl": "https://0.0.0.0:5001;http://0.0.0.0:5000",
       "jsWebView2Debugging": false,
       "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}"
     },
