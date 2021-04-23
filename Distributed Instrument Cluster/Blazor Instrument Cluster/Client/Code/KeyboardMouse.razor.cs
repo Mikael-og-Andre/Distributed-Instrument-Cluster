@@ -66,7 +66,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// <returns></returns>
 		protected override async Task OnInitializedAsync() {
 			await decodeUrlText();
-			continuouslyCheckSocketStateAsync();
+			continuouslyCheckSocketStateAsync().Start();
 		}
 
 		private async Task decodeUrlText() {
