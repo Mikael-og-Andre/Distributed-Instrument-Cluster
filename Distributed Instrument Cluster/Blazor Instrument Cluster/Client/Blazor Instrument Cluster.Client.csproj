@@ -26,4 +26,15 @@
     <Folder Include="Shared\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Components\VirtualKeyboard\KeyboardKey.razor">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\Json\DefaultKeyboard.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties wwwroot_4json_4defaultkeyboard_1json__JsonSchema="https://json.schemastore.org/DefaultKeyboad.json" /></VisualStudio></ProjectExtensions>
+
 </Project>
