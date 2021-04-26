@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Crestron_Library;
 using System;
+using Crestron_Library;
 
 namespace Crestron_Test {
 	[TestClass]
@@ -11,7 +11,7 @@ namespace Crestron_Test {
 		public void getMakeByteTest() {
 			Assert.AreEqual(commands.getMakeByte("k"), 0x26);
 			Assert.AreEqual(commands.getMakeByte("K"), 0x26);
-			Assert.AreEqual(commands.getMakeByte("cAps"), 0x1e);
+			Assert.AreEqual(commands.getMakeByte("cApslock"), 0x1e);
 			Assert.AreEqual(commands.getMakeByte("["), 0x1b);
 			Assert.AreEqual(commands.getMakeByte("8 (num)"), 0x60);
 			Assert.AreNotEqual(commands.getMakeByte("["), 0xff);
@@ -27,7 +27,7 @@ namespace Crestron_Test {
 		public void getBreakByteTest() {
 			Assert.AreEqual(commands.getBreakByte("k"), 0xa6);
 			Assert.AreEqual(commands.getBreakByte("K"), 0xa6);
-			Assert.AreEqual(commands.getBreakByte("cAps"), 0x9e);
+			Assert.AreEqual(commands.getBreakByte("cApslock"), 0x9e);
 			Assert.AreEqual(commands.getBreakByte("["), 0x9b);
 			Assert.AreEqual(commands.getBreakByte("8 (num)"), 0xe0);
 			Assert.AreNotEqual(commands.getBreakByte("["), 0xff);

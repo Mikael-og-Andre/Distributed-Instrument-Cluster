@@ -1,0 +1,24 @@
+﻿@page "/VideoAndControl/{urlName}/{urlLocation}/{urlType}/{urlSubnames}/{urlVideoPorts}"
+@layout TopBarLayout
+
+<div class="container">
+    <KeyboardMouse urlName="@urlName" urlLocation="@urlLocation" urlType="@urlType" urlSubnames="@urlSubnames"></KeyboardMouse>
+    <div style="width: 1280px; height: 720px; position: relative">
+        <VideoMJPEG urlPortObject="@urlVideoPorts"></VideoMJPEG>
+    </div>
+    
+</div>
+
+@code {
+    [Parameter]
+    public string urlName { get; set; }                                        //Name of the wanted device
+    [Parameter]
+    public string urlLocation { get; set; }
+    [Parameter]
+    public string urlType { get; set; }
+    [Parameter]
+    public string urlSubnames { get; set; }
+    [Parameter]
+    public string urlVideoPorts { get; set; }
+
+}

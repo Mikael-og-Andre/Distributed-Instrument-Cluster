@@ -1,0 +1,14 @@
+﻿.top-bar {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #1b6ec2;
+    font-size: 200%;
+}
+
+.oi {
+    padding: 0.3em;
+    cursor: pointer;
+    color: azure;
+}

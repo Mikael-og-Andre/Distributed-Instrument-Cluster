@@ -1,10 +1,14 @@
-﻿using Instrument_Communicator_Library.Server_Listener;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
-using Instrument_Communicator_Library;
+using Server_Library;
+using Server_Library.Connection_Types;
+using Server_Library.Connection_Types.deprecated;
+using Server_Library.Enums;
+using Server_Library.Server_Listeners;
+using Server_Library.Server_Listeners.deprecated;
 
 namespace Testing_Server {
 
@@ -29,12 +33,12 @@ namespace Testing_Server {
 			}
 			Console.WriteLine("Found device");
 			//Get queue
-			ConcurrentQueue<Message> queue = connection.GetInputQueue();
+			ConcurrentQueue<Message> queue = connection.getSendingQueue();
 
 			//loop for input
 			while (true) {
 				string input = Console.ReadLine();
-				Message message = new Message(protocolOption.message,input);
+				Message message = new Message(ProtocolOption.message,input);
 				Console.WriteLine("Queueing message: "+input);
 				queue.Enqueue(message);
 			}

@@ -1,0 +1,36 @@
+﻿@using Blazor_Instrument_Cluster.Client.Code.UrlObjects
+@using System.IO
+@using System.Net
+@using System.Text.Json
+@inject HttpClient client
+
+
+<h3>VirtualKeyboard</h3>
+
+
+
+
+@foreach (var keyRow in keyList) {
+    <div style="margin-bottom: -0.5em">
+        @foreach (var key in keyRow) {
+            <KeyboardKey key="@key"></KeyboardKey>
+        }
+    </div>
+}
+
+
+
+
+
+
+@code {
+
+    List<List<KeyProperties>> keyList = new();
+
+
+    protected override async Task OnInitializedAsync() {
+        var file = await client.GetByteArrayAsync("Json/DefaultKeyboard.json");
+        var json = JsonSerializer.Deserialize<KeyboardJson>(file);
+        keyList = json.keyList;
+    }
+}

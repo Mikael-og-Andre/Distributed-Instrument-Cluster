@@ -1,0 +1,38 @@
+{
+  "serialCable": {
+    "portName": "com4",
+    "largeMagnitude": 20,
+    "smallMagnitude": 1,
+    "maxDelta": 1000, 
+
+    "communicator": {
+      "ip": "127.0.0.1",
+      "port": 6981,
+      "name": "Radar1",
+      "location": "device location",
+      "type": "device type",
+      "subName" :  "crestronControl",
+      "accessHash": "access" 
+    }
+  },
+  "videoDevices": [
+    {
+      "deviceIndex": 0,
+      "apiIndex": 700,
+      "width": 1920,
+      "height": 1080,
+      "quality" : 40, 
+      "fps": 30,
+
+      "communicator": {
+        "ip": "127.0.0.1",
+        "port": 6980,
+        "name": "Radar1",
+        "location": "device location",
+        "type": "device type",
+        "subName" : "videoStream",
+        "accessHash": "access"
+      }
+    }
+  ]
+}

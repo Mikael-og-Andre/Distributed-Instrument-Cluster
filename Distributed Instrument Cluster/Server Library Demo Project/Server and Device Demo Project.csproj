@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>HardwareServer_Demo_Project</RootNamespace>
+    <StartupObject>Server_And_Demo_Project.CrestronCommunicatorTestingClass</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Server Library\Server Library.csproj" />
+  </ItemGroup>
+
+</Project>
