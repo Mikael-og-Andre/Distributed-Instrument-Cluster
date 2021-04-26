@@ -28,13 +28,13 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 			//Loop devices
 			List<int> portslist = new List<int>();
-			List<string> controlNames = new List<string>();
+			List<Guid> controlerIds = new List<Guid>();
 			foreach (var subdevice in deviceInfo.subDevice) {
 				if (subdevice.isVideoDevice) {
 					portslist.Add(subdevice.port);
 				}
 				else {
-					controlNames.Add(subdevice.subname);
+					controlerIds.Add(subdevice.guid);
 				}
 			}
 			//json for portsList
@@ -43,12 +43,12 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 			string portJson = JsonSerializer.Serialize(portsList);
 
 			//Json control devices
-			ControlSubdevices controlDevices = new ControlSubdevices();
-			controlDevices.subnameList = controlNames;
-			string subnamesJson = JsonSerializer.Serialize(controlDevices);
+			ControlConnections controlDevices = new ControlConnections();
+			controlDevices.controllerIdList = controlerIds;
+			string idsJson = JsonSerializer.Serialize(controlDevices);
 
 
-			string fullPath = basePath + "/" + HttpUtility.UrlEncode(deviceInfo.name) + "/" + HttpUtility.UrlEncode(deviceInfo.location) + "/" + HttpUtility.UrlEncode(deviceInfo.type) + "/" + HttpUtility.UrlEncode(subnamesJson) + "/" + HttpUtility.UrlEncode(portJson);
+			string fullPath = basePath + "/" + HttpUtility.UrlEncode(deviceInfo.name) + "/" + HttpUtility.UrlEncode(deviceInfo.location) + "/" + HttpUtility.UrlEncode(deviceInfo.type) + "/" + HttpUtility.UrlEncode(idsJson) + "/" + HttpUtility.UrlEncode(portJson);
 
 			navigationManager.NavigateTo(fullPath);
 		}

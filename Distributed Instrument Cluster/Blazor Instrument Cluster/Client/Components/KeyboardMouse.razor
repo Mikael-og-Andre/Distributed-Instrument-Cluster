@@ -6,7 +6,7 @@
     <div class="row">
         <div class="col">
             <button class="btn btn-dark" style="width: 100%;">
-                <input id="canvas"
+                <input autocomplete="off" id="canvas"
                        style="width: 100%; height: 100%; border: 1px solid black; position: absolute; top: 0; left: 0; z-index: 100; opacity: 0; cursor: pointer"
                        @onclick="click"
                        @onmousemove="move"
@@ -35,16 +35,6 @@
                 <p><b>Status:</b> Not Connected</p>
             }
         </div>
-
-        <div class="col">
-            <select class="custom-select" @bind="@currentSubname">
-                <option value="@string.Empty">None</option>
-                @foreach (string subName in listOfSubNames) {
-                    <option value="@subName">
-                        @subName
-                    </option>
-                }
-            </select>
-        </div>
+        
     </div>
 </div>

@@ -76,7 +76,7 @@ namespace Server_Library.Server_Listeners.Async {
 				//Authorize and setup connection
 				ConnectionBaseAsync newClientConnection = await setupConnectionAsync(newSocket);
 
-				//Creates a new Thread to run a client communication on
+				//Creates a new Task to run a client communication on
 				Task connectionTask = handleIncomingConnectionAsync(newClientConnection);
 				
 				//add connection as incoming connection on the stack
@@ -86,9 +86,6 @@ namespace Server_Library.Server_Listeners.Async {
 				lock (connectionTasksList) {
 					connectionTasksList.Add(connectionTask);
 				}
-
-				//Start the task
-				connectionTask.Start();
 			}
 		}
 

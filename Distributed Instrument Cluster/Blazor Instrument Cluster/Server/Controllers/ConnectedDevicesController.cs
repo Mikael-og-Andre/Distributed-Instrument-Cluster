@@ -29,7 +29,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		/// </summary>
 		/// <param name="services"></param>
 		public ConnectedDevicesController(IServiceProvider services) {
-			this.remoteDeviceManager = (RemoteDeviceManager)services.GetService<IRemoteDeviceManager>();
+			this.remoteDeviceManager = (RemoteDeviceManager)services.GetService<RemoteDeviceManager>();
 		}
 
 		/// <summary>
@@ -54,12 +54,12 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 						string deviceType = device.type;
 						
 						//Get sub devices
-                        List<SubDevice> subDeviceInfo = device.getSubDeviceList();
+                        List<SubConnection> subDeviceInfo = device.getSubDeviceList();
 
 						//Create a list of models
                         List<SubDeviceModel> modelList = new List<SubDeviceModel>();
-						foreach(SubDevice subDevice in subDeviceInfo){
-							modelList.Add(new SubDeviceModel(subDevice.videoDevice,subDevice.subname,subDevice.port,subDevice.streamType));
+						foreach(SubConnection subDevice in subDeviceInfo){
+							modelList.Add(new SubDeviceModel(subDevice.id,subDevice.videoDevice,subDevice.port,subDevice.streamType));
 						}
 
 

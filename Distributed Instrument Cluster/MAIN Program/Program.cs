@@ -14,6 +14,7 @@ using Server_Library.Authorization;
 using Server_Library.Socket_Clients;
 using Video_Library;
 using PackageClasses;
+using Server_Library.Socket_Clients.Async;
 
 namespace MAIN_Program {
 
@@ -45,9 +46,13 @@ namespace MAIN_Program {
 			//	Console.WriteLine("Retrying...");
 			//}
 
+			List<Task> videoSetupTasks = new List<Task>();
 			foreach (var device in json.videoDevices) {
-				setupVideoDevice(device);
+				Task task = Task.Run(async () => await setupVideoDevice(device));
+				videoSetupTasks.Add(task);
 			}
+
+			Task.WhenAll(videoSetupTasks).Wait();
 
 			////Start crestron command relay thread. (this should be event based as an optimal solution).
 			//var relayThread = new Thread(this.relayThread) { IsBackground = true };
@@ -56,8 +61,7 @@ namespace MAIN_Program {
 
 			//Start video relay threads. 
 			for (int i = 0; i < videoConnections.Count; i++) {
-				var videoThread = new Thread(this.videoThread) {IsBackground = true};
-				videoThread.Start(i);
+				Task videoSendingTasks = videoThread(i);
 			}
 
 			//Start CLI loop.
@@ -167,16 +171,15 @@ namespace MAIN_Program {
 		/// <summary>
 		/// Method tries to connect to a video device and gives feedback on fail or success.
 		/// </summary>
-		/// <param name="index">Index of device from DSHOW API.</param>
 		/// <returns>If setup was successful.</returns>
-		private bool setupVideoDevice(JsonClasses.VideoDevice device) {
+		private async Task<bool> setupVideoDevice(JsonClasses.VideoDevice device) {
 			Console.WriteLine($"Initializing video device{device.deviceIndex}...");
 
 			//Try to set up communication socket.
 			var communicator = device.communicator;
-			SendingClient connection;
+			DuplexClientAsync connection;
 			try {
-				connection = setupVideoCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.subName ,communicator.accessHash);
+				connection = await setupVideoCommunicator(communicator.ip, communicator.port,communicator.accessHash);
 			}
 			catch (Exception e) {
 				writeWarning("Failed to connect to server.");
@@ -204,15 +207,10 @@ namespace MAIN_Program {
 			return true;
 		}
 
-		public SendingClient setupVideoCommunicator(string ip, int port, string name, string location, string type,string subName, string accessHash) {
-			string videoIP = ip;
-			int videoPort = port;
-			ClientInformation info = new ClientInformation(name, location, type, subName);
+		public async Task<DuplexClientAsync> setupVideoCommunicator(string ip, int port,string accessHash) {
 			AccessToken accessToken = new AccessToken(accessHash);
-			CancellationToken videoCancellationToken = new CancellationToken(false);
-
-			var videoClient = new SendingClient(ip, port, info, accessToken, videoCancellationToken);
-			videoClient.run();
+			var videoClient = new DuplexClientAsync(ip, port, accessToken);
+			await videoClient.setup();
 			return videoClient;
 		}
 
@@ -255,7 +253,7 @@ namespace MAIN_Program {
 		/// *TODO: make dynamic fps option when fps=0.
 		/// </summary>
 		/// <param name="index">Video device index</param>
-		private void videoThread(object index) {
+		private async Task videoThread(object index) {
 			var i = (int) index;
 			var device = videoConnections[i].device;
 			var connection = videoConnections[i].connection;
@@ -266,7 +264,7 @@ namespace MAIN_Program {
 			while (true) {
 				try {
 					var jpg = device.readJpg(quality);
-					connection.sendBytes(jpg.ToArray());
+					await connection.sendBytesAsync(jpg);
 				} catch (Exception e) {
 					Console.WriteLine(e);
 				}

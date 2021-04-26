@@ -8,11 +8,11 @@ namespace Blazor_Instrument_Cluster.Client.Code.UrlObjects {
 	/// Class for storing list of subnames
 	/// <Author>Mikael Nilssen</Author>
 	/// </summary>
-	public class ControlSubdevices {
+	public class ControlConnections {
 
-		public List<string> subnameList { get; set; }
+		public List<Guid> controllerIdList { get; set; }
 
-		public ControlSubdevices() {
+		public ControlConnections() {
 			
 		}
 	}

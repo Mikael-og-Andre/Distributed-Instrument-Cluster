@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Networking_Library;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -15,39 +16,39 @@ namespace Networking_Library_Test {
 			Random rnd = new Random(DateTime.UtcNow.Millisecond);
 
 			//random data
-			byte[] clientData = new byte[Int32.MaxValue / 100];
+			byte[] clientData = new byte[Int32.MaxValue / 1000];
 			rnd.NextBytes(clientData);
-			byte[] listenerData = new byte[Int32.MaxValue / 100];
+			byte[] listenerData = new byte[Int32.MaxValue / 1000];
 			rnd.NextBytes(listenerData);
 
 			Socket listenerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			listenerSocket.Bind(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9897));
 			listenerSocket.Listen(4);
-
-			Task serverTask = new Task(async () => {
+			
+			Task<byte[]> serverTask = Task.Run(async () => {
 				Socket connectedClient = await listenerSocket.AcceptAsync();
 				NetworkStream stream = new NetworkStream(connectedClient);
 				byte[] receivedData = await NetworkingOperations.receiveBytesAsync(stream);
-
-				CollectionAssert.AreEqual(receivedData, clientData);
-
+				
 				await NetworkingOperations.sendBytesAsync(stream, listenerData);
+				return receivedData;
 			});
 
-			Task clientTask = new Task(async () => {
+			Task<byte[]> clientTask = Task.Run(async () => {
 				Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 				await client.ConnectAsync(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9897));
 				NetworkStream clientStream = new NetworkStream(client);
 				await NetworkingOperations.sendBytesAsync(clientStream, clientData);
 
 				byte[] receivedListenerData = await NetworkingOperations.receiveBytesAsync(clientStream);
-				CollectionAssert.AreEqual(receivedListenerData, listenerData);
+				return receivedListenerData;
 			});
+			
+			byte[] serverRec = await serverTask;
+			byte[] clientRec = await clientTask;
 
-			serverTask.Start();
-			clientTask.Start();
-
-			await Task.WhenAll(serverTask, clientTask);
+			CollectionAssert.AreEqual(serverRec,clientData);
+			CollectionAssert.AreEqual(clientRec,listenerData);
 
 			clientTask.Dispose();
 			serverTask.Dispose();

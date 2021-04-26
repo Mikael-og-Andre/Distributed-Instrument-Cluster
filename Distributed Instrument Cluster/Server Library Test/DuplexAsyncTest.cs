@@ -4,6 +4,7 @@ using Server_Library.Connection_Types.Async;
 using Server_Library.Server_Listeners.Async;
 using Server_Library.Socket_Clients.Async;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -33,6 +34,7 @@ namespace Server_Library_Test {
 			Assert.AreEqual(aToken.getAccessString(), serverToken.getAccessString());
 
 			listener.stop();
+			server.Dispose();
 		}
 
 		[TestMethod]
@@ -56,32 +58,37 @@ namespace Server_Library_Test {
 			byte[] randomBytes = new byte[Int32.MaxValue / 1000];
 			byte[] randomBytes2 = new byte[100000];
 
+			List<byte[]> sentbyBig = new List<byte[]>();
+			List<byte[]> receivedBig = new List<byte[]>();
 			Task bigTask = Task.Run(async () => {
 				for (int i = 0; i < 10; i++) {
 					rnd.NextBytes(randomBytes);
 					//Send to client from server
+					sentbyBig.Add(randomBytes);
 					await connection.sendBytesAsync(randomBytes);
 					//Receive and check
 					byte[] receivedBytes = await client.receiveBytesAsync();
-					//Check
-					CollectionAssert.AreEqual(randomBytes, receivedBytes);
+					receivedBig.Add(receivedBytes);
 				}
 			});
-
+			List<byte[]> sentbySmall = new List<byte[]>();
+			List<byte[]> receivedSmall = new List<byte[]>();
 			Task smallTask = Task.Run(async () => {
 				for (int i = 0; i < 100; i++) {
 					rnd.NextBytes(randomBytes2);
 					//Send to server from client
+					sentbySmall.Add(randomBytes2);
 					await client.sendBytesAsync(randomBytes2);
 					//receive on server
 					byte[] receivedBytes = await connection.receiveBytesAsync();
-					//Check
-					CollectionAssert.AreEqual(randomBytes2, receivedBytes);
+					receivedSmall.Add(receivedBytes);
 				}
 			});
 
 			await Task.WhenAll(smallTask, bigTask);
 
+			CollectionAssert.AreEqual(sentbySmall,receivedSmall);
+			CollectionAssert.AreEqual(sentbyBig,receivedBig);
 		}
 	}
 }

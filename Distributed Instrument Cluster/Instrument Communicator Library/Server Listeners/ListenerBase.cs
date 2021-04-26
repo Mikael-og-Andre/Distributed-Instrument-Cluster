@@ -88,8 +88,6 @@ namespace Server_Library.Server_Listeners {
 				//Increment Current Connections
 				currentConnectionCount += 1;
 
-				
-
 				//Authorize and setup connection
 				object newClientConnection = setupConnection(newSocket);
 

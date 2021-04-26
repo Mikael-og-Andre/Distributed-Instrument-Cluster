@@ -46,8 +46,7 @@ namespace Networking_Library_Test {
 				Assert.AreEqual(obj.name, jsonObject.name);
 				Assert.AreEqual(obj.age, jsonObject.age);
 			}
-			connectingSocket.Dispose();
-			listenerSocket.Dispose();
+			
 		}
 
 		[TestMethod]
@@ -160,8 +159,6 @@ namespace Networking_Library_Test {
 
 			//Streams
 			listeningSocket.Close();
-			receivingSocket.Dispose();
-			senderSocket.Dispose();
 		}
 	}
 }

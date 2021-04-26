@@ -34,7 +34,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 		private LinkedListNode<string> currentUriNode = null;
 
-		protected override async Task OnInitializedAsync() {
+		protected override void OnInitialized() {
 			//Create http version of url
 			string httpBase = navigationManager.BaseUri.Replace("https://", "http://");
 			Uri olduriHttp = new Uri(httpBase);
@@ -53,9 +53,12 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 					listOfUrls.AddLast(new LinkedListNode<string>(newUri.ToString()));
 					Console.WriteLine(newUri.ToString());
 				}
-				//Set first uri;
-				currentUriNode = listOfUrls.First;
-				uri = currentUriNode.Value;
+
+				if (listOfUrls.Count>0) {
+					//Set first uri;
+					currentUriNode = listOfUrls.First;
+					uri = currentUriNode.Value;
+				}
 			}
 			catch (Exception e) {
 				throw;

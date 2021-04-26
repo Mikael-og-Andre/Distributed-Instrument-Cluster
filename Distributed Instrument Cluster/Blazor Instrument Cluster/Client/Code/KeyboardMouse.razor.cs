@@ -17,7 +17,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 	/// <summary>
 	/// Handles capturing pointer lock data, key events and sends it to a web socket.
-	/// <author>Andre Helland, Mikael Nilssen</author>
+	/// <author>Mikael Nilssen, Andre Helland</author>
 	/// </summary>
 	public class KeyboardMouse : ComponentBase {
 
@@ -26,7 +26,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		[Inject]
 		private NavigationManager navigationManager { get; set; }
 
-		private const string pathToCrestronWebsocket = "crestronControl";
+		private const string PathToCrestronWebsocket = "crestronControl";
 		private CancellationTokenSource disposalTokenSource = new CancellationTokenSource();    //Disposal token used in websocket communication
 		private ClientWebSocket crestronWebSocket = null;                                       //Websocket client
 
@@ -44,8 +44,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		public string location { get; set; }
 		public string type { get; set; }
 
-		protected List<string> listOfSubNames = default;
-		protected string currentSubname = default;
+		protected List<Guid> controllerDeviceIdList = default;
 
 		protected bool connected = false;
 		protected bool deviceAndControllerFound = false;                                               //Bool representing if the control of the device has been granted
@@ -66,7 +65,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// <returns></returns>
 		protected override async Task OnInitializedAsync() {
 			await decodeUrlText();
-			continuouslyCheckSocketStateAsync().Start();
+			//updateQueueState();
 		}
 
 		private async Task decodeUrlText() {
@@ -77,12 +76,10 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 				type = HttpUtility.UrlDecode(urlType);
 				//convert url object to object
 				string controlSubdevicesJson = HttpUtility.UrlDecode(urlSubnames).TrimStart('\0').TrimEnd('\0');
-				ControlSubdevices controlSubdevices = JsonSerializer.Deserialize<ControlSubdevices>(controlSubdevicesJson);
+				ControlConnections controlConnections = JsonSerializer.Deserialize<ControlConnections>(controlSubdevicesJson);
 				//Set list
-				listOfSubNames = controlSubdevices.subnameList;
-				if (listOfSubNames.Count>0) {
-					currentSubname = listOfSubNames[0];
-				}
+				controllerDeviceIdList = controlConnections.controllerIdList;
+				
 			}
 			catch (Exception e) {
 				Console.WriteLine("Error in url decoding");
@@ -97,22 +94,8 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// If anything happens to the socket like closing or receiving a close request update the bool values
 		/// </summary>
 		/// <returns></returns>
-		protected async Task continuouslyCheckSocketStateAsync() {
-			await Task.Run(() => {
-				while (!disposalTokenSource.IsCancellationRequested) {
-					if (
-						(crestronWebSocket.State == WebSocketState.CloseReceived) ||
-						(crestronWebSocket.State == WebSocketState.CloseSent) ||
-						(crestronWebSocket.State == WebSocketState.Closed) ||
-						(crestronWebSocket.State == WebSocketState.Aborted)
-					) {
-						//reset bools
-						resetStates();
-						StateHasChanged();
-					}
-					Task.Delay(5000);
-				}
-			});
+		protected async Task updateQueueState() {
+			
 		}
 
 		/// <summary>
@@ -167,35 +150,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// </summary>
 		/// <returns></returns>
 		protected async Task connectToCrestronControl() {
-			//if name is not in the list of subnames, dont try to connect
-			if (!listOfSubNames.Contains(currentSubname)) {
-				Console.WriteLine("Can not connect to this subname");
-				return;
-			}
-			//abort websocket one already exists and reset website states
-			crestronWebSocket?.Abort();
-			resetStates();
-			crestronWebSocket = new ClientWebSocket();
-
-			//Get base uri and connect to that
-			string basePath = navigationManager.BaseUri;
-			basePath = basePath.Replace("https://", "wss://");
-
-			await crestronWebSocket.ConnectAsync(new Uri(basePath + pathToCrestronWebsocket), disposalTokenSource.Token);
-			//Check if the device requested exists
-			try {
-				StateHasChanged();
-				deviceAndControllerFound = await setupSocket();
-				StateHasChanged();
-				//enter the queue
-				if (deviceAndControllerFound) {
-					controlling = await enterQueue();
-					StateHasChanged();
-				}
-			}
-			catch (Exception) {
-				Console.WriteLine("Connection failed");
-			}
+			
 		}
 
 		/// <summary>
@@ -203,33 +158,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// </summary>
 		/// <returns></returns>
 		private async Task<bool> setupSocket() {
-			try {
-				//Receive start signal
-				byte[] startBuffer = new byte[1024];
-				ArraySegment<byte> startSignalBuffer = new ArraySegment<byte>(startBuffer);
-				await crestronWebSocket.ReceiveAsync(startSignalBuffer, disposalTokenSource.Token);
-
-				//Get json data for a RequestConnectionModel
-				RequestConnectionModel requestModel = new RequestConnectionModel(name, location, type, currentSubname);
-
-				string json = JsonSerializer.Serialize(requestModel);
-				ArraySegment<byte> jsonArraySegment = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
-				//Send device data
-				await crestronWebSocket.SendAsync(jsonArraySegment, WebSocketMessageType.Text, true, disposalTokenSource.Token);
-
-				//Get found or not
-				byte[] foundBuffer = new byte[1024];
-				ArraySegment<byte> foundBytes = new ArraySegment<byte>(foundBuffer);
-				await crestronWebSocket.ReceiveAsync(foundBytes, disposalTokenSource.Token);
-				string found = Encoding.UTF8.GetString(foundBytes).TrimEnd('\0');
-
-				//Device was found
-				return found.ToLower().Equals("Found Device".ToLower());
-			}
-			catch (Exception) {
-				Console.WriteLine("Error when requesting a device");
-				return false;
-			}
+			throw new NotImplementedException();
 		}
 
 		/// <summary>
@@ -237,40 +166,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// </summary>
 		/// <returns></returns>
 		private async Task<bool> enterQueue() {
-			try {
-				//receive in queue
-				byte[] startQueueBytes = new byte[1024];
-				ArraySegment<byte> startQueueSegment = new ArraySegment<byte>(startQueueBytes);
-				await crestronWebSocket.ReceiveAsync(startQueueSegment, disposalTokenSource.Token);
-
-				while (!disposalTokenSource.IsCancellationRequested) {
-					QueueStatusModel queueStatus = null;
-					try {
-						//Receive a message
-						byte[] queueBytes = new byte[4098];
-						ArraySegment<byte> qSegment = new ArraySegment<byte>(queueBytes);
-						await crestronWebSocket.ReceiveAsync(qSegment, disposalTokenSource.Token);
-						string receivedJson = Encoding.UTF8.GetString(queueBytes).TrimEnd('\0');
-
-						queueStatus = JsonSerializer.Deserialize<QueueStatusModel>(receivedJson);
-
-						//If you have control return true
-						if (queueStatus != null && queueStatus.hasControl) {
-							Console.WriteLine("Received Control");
-							return true;
-						}
-					}
-					catch (Exception) {
-						Console.WriteLine("Failed deserialize in queue");
-						return false;
-					}
-				}
-				return false;
-			}
-			catch (Exception) {
-				Console.WriteLine("Error occurred while in queue");
-				return false;
-			}
+			throw new NotImplementedException();
 		}
 
 		#endregion socket

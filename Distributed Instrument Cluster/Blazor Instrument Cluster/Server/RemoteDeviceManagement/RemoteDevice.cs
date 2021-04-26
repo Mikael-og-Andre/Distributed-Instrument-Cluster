@@ -1,18 +1,22 @@
-﻿using System;
+﻿using Blazor_Instrument_Cluster.Server.CrestronControl;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
+using Server_Library.Authorization;
+using Server_Library.Connection_Types.Async;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Blazor_Instrument_Cluster.Server.CrestronControl;
-using Server_Library;
-using Server_Library.Connection_Types;
 using Video_Library;
 
 namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
+
 	/// <summary>
 	/// A remote device connected to the server
 	/// Stores data about connections belonging to each device, and the providers
 	/// </summary>
 	public class RemoteDevice {
+		[Inject] public ILogger<RemoteDevice> logger { get; set; }
 
 		/// <summary>
 		/// Top level name of the device
@@ -30,24 +34,34 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		public string type { get; set; }
 
 		/// <summary>
+		/// Access token received when establishing a connection
+		/// </summary>
+		public AccessToken accessToken { get; private set; }
+
+		/// <summary>
 		/// List of sending connections for the device
 		/// </summary>
-		private List<SendingConnection> listOfSendingConnections;
+		private List<DuplexConnectionAsync> listCrestronConnections;
+
+		/// <summary>
+		/// List of control handlers for the crestron connections
+		/// </summary>
+		private List<ControlHandler> listControlHandlers;
 
 		/// <summary>
 		/// List of Receiving connections for the device
 		/// </summary>
-		private List<ReceivingConnection> listOfReceivingConnections;
+		private List<DuplexConnectionAsync> listVideoConenctions;
 
 		/// <summary>
-		/// List of Sending connection handlers
+		/// Tasks that reads bytes from the socket and send them to the mjpeg stream
 		/// </summary>
-		private List<ControlHandler> listOfSendingControlHandlers;
+		private List<Task> listVideoTasks;
 
 		/// <summary>
 		/// List of sub devices
 		/// </summary>
-		private List<SubDevice> listOfSubDevices;
+		private List<SubConnection> listOfSubDevices;
 
 		/// <summary>
 		/// Constructor
@@ -55,162 +69,147 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <param name="name"></param>
 		/// <param name="location"></param>
 		/// <param name="type"></param>
-		public RemoteDevice(string name, string location, string type) {
+		public RemoteDevice(string name, string location, string type, AccessToken accessToken) {
 			this.name = name;
 			this.location = location;
 			this.type = type;
-			this.listOfSendingConnections = new List<SendingConnection>();
-			this.listOfSendingControlHandlers = new List<ControlHandler>();
-			this.listOfReceivingConnections = new List<ReceivingConnection>();
-			this.listOfSubDevices = new List<SubDevice>();
+			this.accessToken = accessToken;
+			this.listCrestronConnections = new List<DuplexConnectionAsync>();
+			this.listControlHandlers = new List<ControlHandler>();
+			this.listVideoConenctions = new List<DuplexConnectionAsync>();
+			this.listVideoTasks = new List<Task>();
+			this.listOfSubDevices = new List<SubConnection>();
 		}
 
 		/// <summary>
-		/// Adds a receiving connection to the list of receiving connections for this remote device and start its corresponding device
-		/// Starts a provider for the incoming connection
+		/// Adds a video connection to the list of video connections for this remote device and start its corresponding stream
 		/// </summary>
-		/// <param name="receivingConnection"></param>
+		/// <param name="connection"></param>
 		/// <param name="streamer"></param>
-		public void addReceivingConnection(ReceivingConnection receivingConnection, MJPEG_Streamer streamer) {
-			lock (listOfReceivingConnections) {
-				listOfReceivingConnections.Add(receivingConnection);
+		public async Task addVideoConnectionToDevice(DuplexConnectionAsync connection, MJPEG_Streamer streamer) {
+			lock (listVideoConenctions) {
+				listVideoConenctions.Add(connection);
 			}
-
 			//Add sub device
-			addVideoSubdevice(receivingConnection, streamer);
+			await addVideoConnectionAsync(connection, streamer);
+			////Start a provider to run asynchronously pushing frames to the stream
+			Task videoProviderTask = startVideoFrameProviderAsync(connection, streamer).ContinueWith(task => {
+				switch (task.Status) {
+					case TaskStatus.RanToCompletion:
+						logger.LogWarning("Video provider task Ended with state RanToCompletion");
+						break;
 
-			////Start a provider
-			startVideoFrameProvider(receivingConnection, streamer);
-		}
+					case TaskStatus.Canceled:
+						logger.LogWarning("Video provider task Ended with state cancel");
+						break;
 
-		/// <summary>
-		/// Add a Video Subdevice to the remote device
-		/// </summary>
-		/// <param name="receivingConnection"></param>
-		/// <param name="streamer"></param>
-		private void addVideoSubdevice(ReceivingConnection receivingConnection, MJPEG_Streamer streamer) {
+					case TaskStatus.Faulted:
+						logger.LogWarning("Video provider task Ended with state Faulted");
+						Exception exception = task.Exception?.Flatten();
+						if (exception != null) throw exception;
+						break;
 
-			string streamtype = "Mjpeg";
-			//Wait for a port to be assigned in the streamer
-			while (!streamer.isPortSet) {
-				Thread.Sleep(10);
-			}
+					default:
+						logger.LogWarning("Video provider task ended without the status canceled, faulted, or ran to completion");
+						break;
+				}
 
-			//Add a sub device
-			lock (listOfSubDevices) {
-				listOfSubDevices.Add(new SubDevice(true, receivingConnection.getClientInformation().SubName,
-					streamer.portNumber, streamtype));
-			}
-		}
-
-		/// <summary>
-		/// Add a Control Subdevice to the remote device
-		/// </summary>
-		/// <param name="sendingConnection"></param>
-		private void addControlDevice(SendingConnection sendingConnection) {
-			lock (listOfSubDevices) {
-				listOfSubDevices.Add(new SubDevice(false, sendingConnection.getClientInformation().SubName, 0, ""));
+				//Do something when ended
+			});
+			lock (listVideoTasks) {
+				listVideoTasks.Add(videoProviderTask);
 			}
 		}
 
 		/// <summary>
 		/// Adds a sending connection tot he list of sending connections for this remote device
 		/// </summary>
-		/// <param name="sendingConnection"></param>
-		public void addSendingConnection(SendingConnection sendingConnection,bool allowMultiUser, double allowedInactiveMinutes) {
-			lock (listOfSendingConnections) {
-				listOfSendingConnections.Add(sendingConnection);
+		public void addControlConnectionAsync(DuplexConnectionAsync connection) {
+			lock (listCrestronConnections) {
+				listCrestronConnections.Add(connection);
+			}
+			//Add connection to connection
+			SubConnection subConnection = addControlConnection(connection);
+			//create handler
+			createControlHandler(subConnection);
+		}
+
+		/// <summary>
+		/// Add a Video connection to the remote device
+		/// </summary>
+		/// <param name="connection"></param>
+		/// <param name="streamer"></param>
+		private async Task addVideoConnectionAsync(DuplexConnectionAsync connection, MJPEG_Streamer streamer) {
+			string streamtype = "Mjpeg";
+			//Wait for a port to be assigned in the streamer
+			while (!streamer.isPortSet) {
+				await Task.Delay(100);
 			}
 
-			//create handler
-			startControlHandler(allowedInactiveMinutes, sendingConnection, allowMultiUser);
-			//Add subdevice
-			addControlDevice(sendingConnection);
+			//Add a sub device
+			lock (listOfSubDevices) {
+				listOfSubDevices.Add(new SubConnection(connection, true,
+					streamer.portNumber, streamtype));
+			}
 		}
-		
+
+		/// <summary>
+		/// Add a Control connection to the remote device
+		/// </summary>
+		/// <param name="connection"></param>
+		private SubConnection addControlConnection(DuplexConnectionAsync connection) {
+			SubConnection subConnection = new SubConnection(connection);
+			lock (listOfSubDevices) {
+				listOfSubDevices.Add(subConnection);
+			}
+
+			return subConnection;
+		}
+
+		/// <summary>
+		/// Adds a control handler for a crestron connection
+		/// </summary>
+		/// <param name="subConnection"></param>
+		private void createControlHandler(SubConnection subConnection) {
+			lock (listControlHandlers) {
+				ControlHandler controlHandler = new ControlHandler(subConnection);
+				listControlHandlers.Add(controlHandler);
+			}
+		}
 
 		/// <summary>
 		/// start a task that Pushes objects from the receiving connection to the stream
 		/// </summary>
-		/// <param name="receivingConnection"></param>
+		/// <param name="connection"></param>
 		/// <param name="stream"></param>
-		private void startVideoFrameProvider(ReceivingConnection receivingConnection, MJPEG_Streamer stream) {
-			//Info about client
-			ClientInformation info = receivingConnection.getClientInformation();
-
+		private async Task startVideoFrameProviderAsync(DuplexConnectionAsync connection, MJPEG_Streamer stream) {
 			CancellationToken streamCancellationToken = stream.getCancellationToken();
-
 			//Run the provider
-			Task.Run(() => {
-				while (!streamCancellationToken.IsCancellationRequested) {
-					try {
-						//Try to get an object and broadcast it to subscribers
-						if (receivingConnection.getDataFromConnection(out byte[] output)) {
-							stream.Image = output;
-						}
-						else {
-							Thread.Sleep(5);
-						}
-					}
-					catch (Exception) {
-						//Stop provider
-						stream.Dispose();
-						throw;
-					}
+			while (!streamCancellationToken.IsCancellationRequested) {
+				try {
+					byte[] img = await connection.receiveBytesAsync();
+					stream.Image = img;
 				}
-			});
+				catch (Exception) {
+					//Stop provider
+					stream.Dispose();
+					throw;
+				}
+			}
 		}
 
 		/// <summary>
 		/// Get a list of sub device
 		/// </summary>
 		/// <returns></returns>
-		public List<SubDevice> getSubDeviceList() {
+		public List<SubConnection> getSubDeviceList() {
 			lock (listOfSubDevices) {
 				return listOfSubDevices;
 			}
 		}
 
-		/// <summary>
-		/// Adds a handler for a sending connection
-		/// </summary>
-		/// <param name="allowedInactiveMinutes"></param>
-		/// <param name="sendingConnection"></param>
-		/// <param name="allowMultiUser"></param>
-		private void startControlHandler(double allowedInactiveMinutes, SendingConnection sendingConnection,
-			bool allowMultiUser) {
-			//Create and add a handler
-			ControlHandler handler =
-				new ControlHandler(allowedInactiveMinutes, sendingConnection, allowMultiUser);
-			lock (listOfSendingControlHandlers) {
-				listOfSendingControlHandlers.Add(handler);
-			}
-
-		}
-
-		/// <summary>
-		/// Get a control token for a sendingConnection Controlhandler
-		/// </summary>
-		/// <param name="subname">Subname of the wanted device</param>
-		/// <param name="output">Output SendingControlHandler</param>
-		/// <returns>True if found, False if not</returns>
-		public bool getControlTokenForDevice(string subname, out ControlToken output) {
-			lock (listOfSendingControlHandlers) {
-				//Loop handlers and check
-				foreach (var handler in listOfSendingControlHandlers) {
-					ClientInformation info = handler.getClientInformation();
-
-					//If subnames match return it a token
-					if (info.SubName.ToLower().Equals(subname.ToLower())) {
-						ControlToken controlToken = handler.generateToken();
-						output = controlToken;
-						return true;
-					}
-				}
-			}
-			//Not found
-			output = default;
-			return false;
+		public bool getControlTokenForDevice(Guid guid) {
+			throw new NotImplementedException();
 		}
 	}
 }
