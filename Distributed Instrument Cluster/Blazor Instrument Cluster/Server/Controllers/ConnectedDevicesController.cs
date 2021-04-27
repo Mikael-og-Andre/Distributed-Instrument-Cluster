@@ -54,12 +54,12 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 						string deviceType = device.type;
 						
 						//Get sub devices
-                        List<SubConnection> subDeviceInfo = device.getSubDeviceList();
+                        List<SubConnection> subDeviceInfo = device.getListOfSubConnections();
 
 						//Create a list of models
-                        List<SubDeviceModel> modelList = new List<SubDeviceModel>();
+                        List<SubConnectionModel> modelList = new List<SubConnectionModel>();
 						foreach(SubConnection subDevice in subDeviceInfo){
-							modelList.Add(new SubDeviceModel(subDevice.id,subDevice.videoDevice,subDevice.port,subDevice.streamType));
+							modelList.Add(new SubConnectionModel(subDevice.id,subDevice.videoDevice,subDevice.port,subDevice.streamType));
 						}
 
 

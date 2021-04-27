@@ -61,7 +61,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <summary>
 		/// List of sub devices
 		/// </summary>
-		private List<SubConnection> listOfSubDevices;
+		private List<SubConnection> listOfSubconnections;
 
 		/// <summary>
 		/// Constructor
@@ -78,7 +78,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			this.listControlHandlers = new List<ControlHandler>();
 			this.listVideoConenctions = new List<DuplexConnectionAsync>();
 			this.listVideoTasks = new List<Task>();
-			this.listOfSubDevices = new List<SubConnection>();
+			this.listOfSubconnections = new List<SubConnection>();
 		}
 
 		/// <summary>
@@ -147,8 +147,8 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			}
 
 			//Add a sub device
-			lock (listOfSubDevices) {
-				listOfSubDevices.Add(new SubConnection(connection, true,
+			lock (listOfSubconnections) {
+				listOfSubconnections.Add(new SubConnection(connection, true,
 					streamer.portNumber, streamtype));
 			}
 		}
@@ -159,8 +159,8 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <param name="connection"></param>
 		private SubConnection addControlConnection(DuplexConnectionAsync connection) {
 			SubConnection subConnection = new SubConnection(connection);
-			lock (listOfSubDevices) {
-				listOfSubDevices.Add(subConnection);
+			lock (listOfSubconnections) {
+				listOfSubconnections.Add(subConnection);
 			}
 
 			return subConnection;
@@ -202,9 +202,9 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// Get a list of sub device
 		/// </summary>
 		/// <returns></returns>
-		public List<SubConnection> getSubDeviceList() {
-			lock (listOfSubDevices) {
-				return listOfSubDevices;
+		public List<SubConnection> getListOfSubConnections() {
+			lock (listOfSubconnections) {
+				return listOfSubconnections;
 			}
 		}
 

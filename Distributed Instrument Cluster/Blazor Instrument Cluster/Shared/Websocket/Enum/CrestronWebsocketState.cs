@@ -15,6 +15,6 @@ namespace Blazor_Instrument_Cluster.Shared.Websocket.Enum {
 		InControl,
 		TimeLimitExceeded,
 		WaitingForInput,
-		Disconnected
+		Disconnecting
 	}
 }

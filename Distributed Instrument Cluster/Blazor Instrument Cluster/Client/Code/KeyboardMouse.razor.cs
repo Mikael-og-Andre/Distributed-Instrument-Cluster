@@ -143,7 +143,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 		#endregion Sending commands
 
-		#region socket
+		#region Websokcet Communication
 
 		/// <summary>
 		/// Connect to the backend device
