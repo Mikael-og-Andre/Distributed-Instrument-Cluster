@@ -1,17 +1,8 @@
 ﻿@using Blazor_Instrument_Cluster.Client.Code.UrlObjects
-
 <div oncontextmenu="return false;" style="display: inline-block" @onmousedown="down" @onmouseup="up">
-    <p style="            
-              min-width: @key.width;
-              margin-left: @key.margin;
-              background-color: #4d4d4d;
-              padding: 0.4em;
-              border-radius: 0.4em;
-              color: white;
-              display: inline-block;
-              text-align: center;
-              cursor: pointer;">@key.displayString
-        </p>
+    <p style="@style">
+        @key.displayString
+    </p>
 </div>
 
 
@@ -20,13 +11,55 @@
     [Parameter]
     public KeyProperties key { get; set; }
 
-    private void down(MouseEventArgs e) {
-        Console.WriteLine(e.Button);
-        Console.WriteLine($"button {key.keyValue}");
+    [Parameter]
+    public EventCallback<string> keyEvent { get; set; }
+
+    /// <summary>
+    ///     CSS for when key is not pressed.
+    /// </summary>
+    private string upStyle;
+
+    /// <summary>
+    ///     CSS for when key is pressed.
+    /// </summary>
+    private string downStyle;
+
+    private string style;
+
+    private bool isPressed = false;
+
+    private async void down(MouseEventArgs e) {
+        if (isPressed) return;
+
+        style = downStyle;
+        await invokeKeyEvent($"down {key.keyValue}");
     }
 
-    private void up(MouseEventArgs e) {
-        Console.WriteLine(e.Button);
-        Console.WriteLine($"button {key.keyValue}");
+    private async void up(MouseEventArgs e) {
+        if (e.Button == 2) {
+            if (isPressed) {
+                style = upStyle;
+                isPressed = false;
+                await invokeKeyEvent($"up {key.keyValue}");
+            }
+            else {
+                isPressed = true;
+            }
+        } else {
+            style = upStyle;
+            isPressed = false;
+            await invokeKeyEvent($"up {key.keyValue}");
+        }
     }
+
+    private async Task invokeKeyEvent(string s) {
+        await keyEvent.InvokeAsync(s);
+    }
+
+    protected override void OnInitialized() {
+        upStyle = $"min-width: {key.width}; margin-left: {key.margin}; background-color: #4d4d4d;padding: 0.4em; border-radius: 0.4em; color: white; display: inline-block; text-align: center; cursor: pointer;";
+        downStyle = $"min-width: {key.width}; margin-left: {key.margin}; background-color: #262626;padding: 0.4em; border-radius: 0.4em; color: white; display: inline-block; text-align: center; cursor: pointer;";
+        style = upStyle;
+    }
+
 }

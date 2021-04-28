@@ -130,9 +130,8 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 		#region Sending commands
 
-		protected async void sendData(string s) {
+		private async void sendData(string s) {
 			StateHasChanged();
-			if (!(await JS.InvokeAsync<bool>("isLocked"))) return;
 			if (!deviceAndControllerFound) {
 				Console.WriteLine("Device not found");
 				return;
@@ -330,6 +329,21 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 					downedKeys.Remove(e.Code);
 					break;
 			}
+		}
+
+		/// <summary>
+		/// Temp method to take key events from virtual keyboard.
+		/// TODO: refactor.
+		/// </summary>
+		public void virtualKeyboardHandler(string s) {
+			if (s.StartsWith("up")) {
+				s = s[3..];
+				sendData("break " + s);
+			} else if(s.StartsWith("down")) {
+				s = s[5..];
+				sendData("make " + s);
+			}
+
 		}
 
 		//TODO: FIX Scroll

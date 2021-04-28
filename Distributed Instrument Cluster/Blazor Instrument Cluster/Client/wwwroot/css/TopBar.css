@@ -5,6 +5,7 @@
     left: 0;
     background-color: #1b6ec2;
     font-size: 200%;
+    z-index: 1000;
 }
 
 .oi {
