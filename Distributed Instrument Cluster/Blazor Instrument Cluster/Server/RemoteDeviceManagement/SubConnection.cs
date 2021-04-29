@@ -2,6 +2,10 @@
 using Server_Library.Connection_Types.Async;
 
 namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
+	/// <summary>
+	/// A connection from the remote device
+	/// <Author>Mikael Nilssen</Author>
+	/// </summary>
 	public class SubConnection {
 
 		public Guid id { get; set; }

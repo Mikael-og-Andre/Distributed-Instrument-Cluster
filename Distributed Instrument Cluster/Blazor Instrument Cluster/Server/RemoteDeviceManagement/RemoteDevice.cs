@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Blazor_Instrument_Cluster.Shared.Websocket;
 using Video_Library;
 
 namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
@@ -208,8 +209,45 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			}
 		}
 
-		public bool getControlTokenForDevice(Guid guid) {
-			throw new NotImplementedException();
+		/// <summary>
+		/// Create a controller instance for the subConnection
+		/// </summary>
+		/// <param name="subConnection"></param>
+		/// <param name="controllerInstance"></param>
+		/// <returns>True if found</returns>
+		public bool createControllerInstance(SubConnection subConnection, out ControllerInstance controllerInstance) {
+			lock (listControlHandlers) {
+				foreach (var handler in listControlHandlers) {
+					Guid handlerId = handler.id;
+					if (handlerId.Equals(subConnection.id)) {
+						ControllerInstance controller =handler.createControllerInstance();
+						controllerInstance = controller;
+						return true;
+					}
+				}
+			}
+
+			controllerInstance = default;
+			return false;
 		}
+
+
+		/// <summary>
+		/// Get an existing controller instance for the subConnection
+		/// </summary>
+		/// <param name="controllerInstance"></param>
+		/// <returns>True if found</returns>
+		public bool getControllerInstance(ControlToken controlToken, out ControllerInstance controllerInstance) {
+			lock (listControlHandlers) {
+				foreach (var handler in listControlHandlers) {
+					Guid handlerId = handler.id;
+					
+				}
+			}
+
+			controllerInstance = default;
+			return false;
+		}
+
 	}
 }
