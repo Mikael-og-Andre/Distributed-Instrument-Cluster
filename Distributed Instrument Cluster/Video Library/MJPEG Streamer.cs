@@ -109,10 +109,9 @@ namespace Video_Library {
 
 				while (true) {
 					if (image == null) continue;
-					if (!client.frameSent) {
-						writeImage(ns, image);
-						client.frameSent = true;
-					}
+					if (client.frameSent) continue;
+					writeImage(ns, image);
+					client.frameSent = true;
 				}
 			}
 			catch {

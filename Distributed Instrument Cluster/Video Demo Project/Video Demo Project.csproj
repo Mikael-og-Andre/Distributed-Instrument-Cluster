@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Video_Demo</RootNamespace>
-    <StartupObject>Video_Demo.MJPEG_Demo</StartupObject>
+    <StartupObject>Video_Demo.HTTPS_test</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

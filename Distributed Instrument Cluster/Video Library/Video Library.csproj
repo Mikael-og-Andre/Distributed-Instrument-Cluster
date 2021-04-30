@@ -13,4 +13,13 @@
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="ffmpeg-4.3.2-2021-02-27-essentials_build\ffmpeg-4.3.2-2021-02-27-essentials_build\bin\ffmpeg.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="ffmpeg-4.3.2\bin\ffmpeg.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
