@@ -12,10 +12,10 @@ namespace Blazor_Instrument_Cluster.Shared.Websocket {
 	/// </summary>
 	public class ControlToken {
 
-		public Guid tokenId { get; set; }
+		public Guid tokenId { get; private set; }
 
 		public ControlToken() {
-			this.tokenId = new Guid();
+			this.tokenId = Guid.NewGuid();
 		}
 	}
 }

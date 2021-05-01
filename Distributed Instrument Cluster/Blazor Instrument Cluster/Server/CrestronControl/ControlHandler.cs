@@ -62,11 +62,10 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 			lock (controllerInstances) {
 				for (int i = 0; i < controllerInstances.Count; i++) {
 					//Check if same
-					if (controllerInstance.controlToken.tokenId.Equals(controllerInstances[i].controlToken.tokenId)) {
+					if (controllerInstance.controlToken.tokenId.ToString().Equals(controllerInstances[i].controlToken.tokenId.ToString())) {
 						return i;
 					}
 				}
-
 				return -1;
 			}
 		}
@@ -79,7 +78,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		public bool checkIfControlling(ControllerInstance controllerInstance) {
 			try {
 				ControllerInstance first = controllerInstances.First();
-				if (first.controlToken.tokenId.Equals(controllerInstance.controlToken.tokenId)) {
+				if (first.controlToken.tokenId.ToString().Equals(controllerInstance.controlToken.tokenId.ToString())) {
 					return true;
 				}
 				return false;

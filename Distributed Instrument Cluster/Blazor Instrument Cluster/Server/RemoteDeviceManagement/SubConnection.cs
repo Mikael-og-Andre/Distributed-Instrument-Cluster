@@ -15,7 +15,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		public ConnectionBaseAsync connection { get; private set; }
 
 		public SubConnection(ConnectionBaseAsync connection,bool videoDevice = false, int port = 0, string streamType = "none") {
-			id = new Guid();
+			id = Guid.NewGuid();
 			this.connection = connection;
 			this.videoDevice = videoDevice;
 			this.port = port;

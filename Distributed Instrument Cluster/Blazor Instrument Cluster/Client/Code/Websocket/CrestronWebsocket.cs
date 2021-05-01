@@ -211,7 +211,8 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 				try {
 					QueueStatusModel queueStatus = JsonSerializer.Deserialize<QueueStatusModel>(queuePos);
 					queuePos = "Position in queue: " + queueStatus.position;
-					Console.WriteLine("Leaving queue");
+					Console.WriteLine("Updating Queue: "+queuePos);
+					await Task.Delay(250, cancellationTokenSource.Token);
 				}
 				catch (Exception) {
 					Console.WriteLine("HandleInQueue: Failed to deserialize");
