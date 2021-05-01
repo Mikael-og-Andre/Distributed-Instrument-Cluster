@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Blazor_Instrument_Cluster.Server.Stream;
-using Microsoft.AspNetCore.Identity;
+﻿using Blazor_Instrument_Cluster.Server.Stream;
 using Microsoft.Extensions.Logging;
-using Server_Library;
-using Server_Library.Authorization;
-using Server_Library.Connection_Classes;
-using Server_Library.Connection_Types;
 using Server_Library.Connection_Types.Async;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Video_Library;
 
 namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
@@ -29,7 +25,6 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// </summary>
 		private ILogger<RemoteDeviceManager> logger;
 
-
 		/// <summary>
 		/// List of remote devices
 		/// </summary>
@@ -43,9 +38,8 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <summary>
 		/// Object used to lock when checking if a device exists, so that no duplicates get created
 		/// </summary>
-		private object existsCheckLock { get; set; }
-	
-		
+		private Mutex existsCheckLock { get; set; }
+
 		/// <summary>
 		/// Constructor, Injects logger and service provider
 		/// </summary>
@@ -55,8 +49,8 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			this.services = services;
 			this.logger = logger;
 			listRemoteDevices = new List<RemoteDevice>();
-			streamManager = (MJPEGStreamManager) services.GetService(typeof(MJPEGStreamManager));
-			existsCheckLock = new object();
+			streamManager = (MJPEGStreamManager)services.GetService(typeof(MJPEGStreamManager));
+			existsCheckLock = new Mutex();
 		}
 
 		/// <summary>
@@ -71,31 +65,36 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <returns></returns>
 		public async Task addConnectionToRemoteDevices(ConnectionBaseAsync connection, bool isVideo, string name, string location, string type) {
 
+			//wait until safe
+			existsCheckLock.WaitOne();
+
 			//Check if a device with the same accessToken is already in the system
 			(bool found, RemoteDevice device) result;
 			//Only one device checks at a time
-			lock (existsCheckLock) {
-				result = checkIfDeviceExists(name,location,type);	
-			}
+
+			result = checkIfDeviceExists(name, location, type);
 
 			//if device was found add the new connection to it
-			if (result.found&&isVideo) {
+			if (result.found && isVideo) {
 				//Create stream
-				MJPEG_Streamer stream = new MJPEG_Streamer(30,8080);
+				MJPEG_Streamer stream = new MJPEG_Streamer(30, 8080);
 				lock (streamManager.streams) {
 					streamManager.streams.Add(stream);
 				}
 				//Add device as a video connection
-				await result.device.addVideoConnectionToDevice((DuplexConnectionAsync)connection,stream);
+				await result.device.addVideoConnectionToDevice((DuplexConnectionAsync)connection, stream);
 			}
-			else if(result.found) {
+			else if (result.found) {
 				//add device as a control device
-				result.device.addControlConnectionAsync((DuplexConnectionAsync) connection);
+				result.device.addControlConnectionAsync((DuplexConnectionAsync)connection);
 			}
 			//If the device was not found create a new one and add the connection to it
 			else {
-				await handleDeviceNotFound(connection,isVideo,name,location,type);
+				await handleDeviceNotFound(connection, isVideo, name, location, type);
 			}
+
+			//release mutex
+			existsCheckLock.ReleaseMutex();
 		}
 
 		/// <summary>
@@ -115,19 +114,19 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 
 			if (isVideo) {
 				//Create stream
-				MJPEG_Streamer stream = new MJPEG_Streamer(30,8080);
+				MJPEG_Streamer stream = new MJPEG_Streamer(30, 8080);
 				lock (streamManager.streams) {
 					streamManager.streams.Add(stream);
 				}
 				//add As a video connection
-				await newRemoteDevice.addVideoConnectionToDevice((DuplexConnectionAsync) connection,stream);
+				await newRemoteDevice.addVideoConnectionToDevice((DuplexConnectionAsync)connection, stream);
 			}
 			else {
 				//add as a control connection
-				newRemoteDevice.addControlConnectionAsync((DuplexConnectionAsync) connection);
+				newRemoteDevice.addControlConnectionAsync((DuplexConnectionAsync)connection);
 			}
 		}
-		
+
 		/// <summary>
 		/// Checks the list of RemoteDevices for a device with the matching name location and type
 		/// </summary>
@@ -135,16 +134,16 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// Bool representing if the device was found
 		/// if the device was found the device will also be returned
 		/// </returns>
-		private (bool found,RemoteDevice device) checkIfDeviceExists(string name, string location, string type) {
+		private (bool found, RemoteDevice device) checkIfDeviceExists(string name, string location, string type) {
 			//Lock list so devices are added in correct order and so on
 			lock (listRemoteDevices) {
 				foreach (var device in listRemoteDevices) {
 					//Check if the devices exists
-					if (device.name.Equals(name)&&device.location.Equals(location)&&device.type.Equals(type)) {
-						return (true,device);
+					if (device.name.Equals(name) && device.location.Equals(location) && device.type.Equals(type)) {
+						return (true, device);
 					}
 				}
-				return (false,default);
+				return (false, default);
 			}
 		}
 
