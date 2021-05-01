@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Blazor_Instrument_Cluster.Shared {
+namespace Blazor_Instrument_Cluster.Shared.Websocket {
 	/// <summary>
 	/// Class used for serializing and sending when requesting a connection from the server
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class RequestConnectionModel {
+	public class RequestingDeviceModel {
 		/// <summary>
 		/// Name value of the remote device
 		/// </summary>
@@ -23,14 +19,14 @@ namespace Blazor_Instrument_Cluster.Shared {
 		/// </summary>
 		public string type { get; set; }
 		/// <summary>
-		/// Subname of the specific connection
+		/// id of a specific connection
 		/// </summary>
-		public string subname { get; set; }
+		public Guid id { get; set; }
 
 		/// <summary>
 		/// Constructor for json
 		/// </summary>
-		public RequestConnectionModel() {
+		public RequestingDeviceModel() {
 			
 		}
 
@@ -41,11 +37,11 @@ namespace Blazor_Instrument_Cluster.Shared {
 		/// <param name="location"></param>
 		/// <param name="type"></param>
 		/// <param name="subname"></param>
-		public RequestConnectionModel(string name, string location, string type, string subname) {
+		public RequestingDeviceModel(string name, string location, string type, Guid id) {
 			this.name = name;
 			this.location = location;
 			this.type = type;
-			this.subname = subname;
+			this.id = id;
 		}
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Shared.Websocket;
@@ -48,7 +49,15 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// <param name="msg"></param>
 		/// <returns></returns>
 		public async Task<bool> send(string msg, CancellationToken ct) {
-			throw new NotImplementedException();
+			byte[] msgBytes = Encoding.UTF32.GetBytes(msg);
+			return await controlHandler.sendAsync(msgBytes,this);
+		}
+
+		/// <summary>
+		/// Remove this object from its controlHandlers list of controllers
+		/// </summary>
+		public void delete() {
+			controlHandler.deleteControllerInstance(this);
 		}
 	}
 }

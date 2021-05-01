@@ -1,14 +1,12 @@
-﻿using Blazor_Instrument_Cluster.Shared;
+﻿using Blazor_Instrument_Cluster.Shared.DeviceSelection;
 using Blazor_Instrument_Cluster.Shared.Websocket;
 using Blazor_Instrument_Cluster.Shared.Websocket.Enum;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
@@ -17,27 +15,22 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 	/// Class for managing the websocket connection ot the backend
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class CrestronWebsocket : IDisposable {
-
-		/// <summary>
-		/// Injected logger class
-		/// </summary>
-		[Inject] public ILogger<CrestronWebsocket> logger { get; set; }
+	public class CrestronWebsocket {
 
 		/// <summary>
 		/// The last state received from the backend
 		/// </summary>
-		public CrestronWebsocketState lastState { get; set; }
+		public CrestronWebsocketState state { get; set; }
 
 		/// <summary>
 		/// Websocket for the connection
 		/// </summary>
-		public ClientWebSocket webSocket { get; set; }
+		protected ClientWebSocket webSocket { get; set; }
 
 		/// <summary>
 		/// Uri the websocket will connect to
 		/// </summary>
-		private Uri connectionPath { get; set; }
+		private Uri connectionUri { get; set; }
 
 		/// <summary>
 		/// Token with id for controlling a crestron
@@ -50,86 +43,99 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		public string positionInQueue { get; set; }
 
 		/// <summary>
-		/// channel for sending messages
+		/// Queue for messages
 		/// </summary>
-		private Channel<string> commandChannel { get; set; }
+		private ConcurrentQueue<string> commandConcurrentQueue { get; set; }
 
+		/// <summary>
+		/// Time the backend will abandon the connection
+		/// </summary>
 		private DateTime disconnectTime { get; set; }
+
+		/// <summary>
+		/// Source for canceling token source
+		/// </summary>
+		private CancellationTokenSource cancellationTokenSource { get; set; }
+
+		private bool isClosing { get; set; }
 
 		/// <summary>
 		/// CrestronWebsocket
 		/// </summary>
-		/// <param name="connectionPath">Uri the websocket will connect to</param>
-		public CrestronWebsocket(Uri connectionPath) {
-			this.connectionPath = connectionPath;
-			webSocket = new ClientWebSocket();
+		/// <param name="connectionUri">Uri the websocket will connect to</param>
+		public CrestronWebsocket(Uri connectionUri) {
+			this.connectionUri = connectionUri;
 			this.controlToken = null;
-			this.positionInQueue = "Position:";
-			commandChannel = Channel.CreateUnbounded<string>();
+			this.positionInQueue = "waiting";
+			this.commandConcurrentQueue = new ConcurrentQueue<string>();
 			this.disconnectTime = DateTime.Now;
+			isClosing = false;
+		}
+
+		public void cancel() {
+			cancellationTokenSource.Cancel();
 		}
 
 		/// <summary>
-		/// Connect to the Uri
+		/// handle a connection to the Backend
 		/// </summary>
-		/// <returns>Task</returns>
-		public async Task connectAsync(CancellationToken ct) {
-			await webSocket.ConnectAsync(connectionPath, ct);
-		}
+		/// <param name="deviceModel"></param>
+		/// <param name="subConnection"></param>
+		/// <returns></returns>
+		public async Task startProtocol(DeviceModel deviceModel, SubConnectionModel subConnection) {
+			cancellationTokenSource?.Cancel();
+			cancellationTokenSource = new CancellationTokenSource();
+			CancellationToken ct = cancellationTokenSource.Token;
+			isClosing = false;
+			webSocket = new ClientWebSocket();
 
-		public async Task startAsync(DeviceModel deviceModel, SubConnectionModel subdeviceModel, CancellationToken ct) {
 			try {
-				bool closing = false;
+				//Connect
+				await webSocket.ConnectAsync(connectionUri, ct);
 
 				while (!ct.IsCancellationRequested) {
-					//Handle possible states
-					await handleWebsocketStatesAsync(webSocket, ct);
+					//Handle possible states, and check if websocket is viable
+					checkIfClosing(webSocket, ct);
+					
+
+					//Connection is closing
+					if (isClosing) {
+						Console.WriteLine("Closing Crestron Websocket");
+						await closeWebsocketAsync(webSocket,"Closing",ct);
+						cancellationTokenSource.Cancel();
+						break;
+					}
+
 					//receive a state from the backend
 					string receivedStateString = await receiveString(webSocket, ct);
 					CrestronWebsocketState currentState = Enum.Parse<CrestronWebsocketState>(receivedStateString);
-					lastState = currentState;
+					state = currentState;
 
 					switch (currentState) {
 						case CrestronWebsocketState.Requesting:
-							closing |= await handleRequestingAsync(deviceModel, subdeviceModel, webSocket, ct);
+							await handleRequestingAsync(deviceModel, subConnection, webSocket, ct);
 							break;
 
 						case CrestronWebsocketState.InQueue:
-							closing |= await handleInQueueAsync(webSocket, ct);
+							await handleInQueueAsync(webSocket, ct);
 							break;
 
 						case CrestronWebsocketState.InControl:
-							closing |= await handleInControlAsync(webSocket, ct);
-							break;
-
-						case CrestronWebsocketState.TimeLimitExceeded:
-							(bool disconnect, DateTime time) handelTimeLimitResult = await handleTimeLimitExceededAsync(webSocket, ct);
-							disconnectTime = handelTimeLimitResult.time;
-							closing |= handelTimeLimitResult.disconnect;
-							break;
-
-						case CrestronWebsocketState.WaitingForInput:
-							closing |= await handleWaitingForInputAsync(webSocket, ct);
+							await handleInControlAsync(webSocket, ct);
 							break;
 
 						case CrestronWebsocketState.Disconnecting:
-							closing |= await handleDisconnectingAsync(webSocket, ct);
+							handleDisconnectingAsync(webSocket, ct);
 							break;
 
 						default:
 							throw new ArgumentOutOfRangeException();
 					}
-
-					if (closing) {
-						logger.LogDebug("Closing the connection");
-						await closeWebsocketAsync(webSocket, "Protocol not followed", ct);
-					}
 				}
 			}
 			catch (Exception e) {
-				logger.LogDebug("startAsync", e);
-
-				throw;
+				Console.WriteLine("startAsync exception: " + e.Message);
+				await closeWebsocketAsync(webSocket, "Error", ct);
 			}
 		}
 
@@ -143,32 +149,20 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		/// <param name="ct"></param>
 		/// <param name="deviceModel"></param>
 		/// <returns>Should the connection close, True = yes</returns>
-		private async Task<bool> handleRequestingAsync(DeviceModel deviceModel, SubConnectionModel subConnectionModel, ClientWebSocket clientWebSocket, CancellationToken ct) {
-			//Confirm Requesting
-			await sendString(clientWebSocket, CrestronWebsocketState.Requesting.ToString(), ct);
-			//Get request for id
-			string requestId = await receiveString(clientWebSocket, ct);
-			//If req does not match expected string, close
-			if (!requestId.Equals("id")) {
-				logger.LogDebug("handleRequestingAsync: requestId, protocol error");
-				return true;
-			}
-			//Send Device
-			string wantedDevice = JsonSerializer.Serialize(deviceModel);
-			string wantedSubDevice = JsonSerializer.Serialize(subConnectionModel);
-			await sendString(clientWebSocket, wantedDevice, ct);
-			await sendString(clientWebSocket, wantedSubDevice, ct);
+		private async Task handleRequestingAsync(DeviceModel deviceModel, SubConnectionModel subConnectionModel, ClientWebSocket clientWebSocket, CancellationToken ct) {
+			//Send Requesting Device model
+			RequestingDeviceModel requestingDevice = new RequestingDeviceModel(deviceModel.name, deviceModel.location, deviceModel.type, subConnectionModel.guid);
+			string requestingDeviceString = JsonSerializer.Serialize(requestingDevice);
+			await sendString(clientWebSocket, requestingDeviceString, ct);
 
 			//Confirm if the device is found or not
 			string found = await receiveString(clientWebSocket, ct);
 			//if the returned string isn't true, close connection
 			if (!found.Equals("True")) {
-				logger.LogDebug("handleRequestingAsync: found, protocol error");
-				return true;
+				Console.WriteLine("handleRequestingAsync: Device was not found");
+				//Set to closing
+				isClosing = true;
 			}
-
-			//no issues, return false for not closing connection
-			return false;
 		}
 
 		/// <summary>
@@ -180,80 +174,51 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		/// <param name="clientWebSocket"></param>
 		/// <param name="ct"></param>
 		/// <returns></returns>
-		private async Task<bool> handleInQueueAsync(ClientWebSocket clientWebSocket, CancellationToken ct) {
-			//confirm state
-			await sendString(clientWebSocket, CrestronWebsocketState.InQueue.ToString(), ct);
-
-			//Receive request for token
-			string token = await receiveString(clientWebSocket, ct);
-
-			//check for correct response
-			if (!token.Equals("Token")) {
-				logger.LogDebug("handleInQueue: token, protocol error");
-				return true;
-			}
-
-			//send true if you have a token, false if not
-			if (controlToken is null) {
-				//Get a token
-				await sendString(clientWebSocket, "False", ct);
-				string controlTokenJson = await receiveString(clientWebSocket, ct);
-				//check if error occurred
-				if (controlTokenJson.Equals("closing")) {
-					logger.LogDebug("handleInQueue: token, protocol error");
-					return true;
-				}
-				//set new control token
-				controlToken = JsonSerializer.Deserialize<ControlToken>(controlTokenJson);
-			}
-			else {
-				//Send token
-				await sendString(clientWebSocket, "True", ct);
-				string controlTokenJson = JsonSerializer.Serialize(controlToken);
-				await sendString(clientWebSocket, controlTokenJson, ct);
-			}
-
-			//receive confirmation of token
-			string confToken = await receiveString(clientWebSocket, ct);
-
-			//Check for correct response
-			if (!confToken.Equals("Confirmed")) {
-				logger.LogDebug("handleInQueue: confirm token, protocol error");
-				return true;
-			}
-
+		private async Task handleInQueueAsync(ClientWebSocket clientWebSocket, CancellationToken ct) {
 			//Get signal that we are entering the queue
 			string enteringQueue = await receiveString(clientWebSocket, ct);
 
 			//Check for correct response
-			if (!enteringQueue.Equals("Entering queue")) {
-				logger.LogDebug("handleInQueue: entering queue, protocol error");
-				return true;
+			if (!enteringQueue.Equals("Entering Queue")) {
+				Console.WriteLine("handleInQueue: entering queue, protocol error");
+				isClosing = true;
+				return;
 			}
 
-			//Send queue confirmation
-			await sendString(clientWebSocket, "True", ct);
-
-			bool inQueue = true;
-
-			while (inQueue) {
+			Console.WriteLine("Entering Queue");
+			while (true) {
+				//Check if anything happened to the connection
 				if (webSocket.State != WebSocketState.Open) {
-					logger.LogDebug("handleInQueue: Socket closed while in queue");
-					return true;
+					Console.WriteLine("handleInQueue: Socket closed while in queue");
+					isClosing = true;
+					return;
 				}
 
-				//Get queue position or end signal
+				//Get queue position
 				string queuePos = await receiveString(clientWebSocket, ct);
+
 				//Check if end signal
 				if (queuePos.Equals("Complete")) {
-					inQueue = false;
-					continue;
+					queuePos = "Position in queue: 0";
+					return;
 				}
-				//Update position
-				positionInQueue = "Position: " + queuePos;
-			}
+				else if (queuePos.Equals("closing")) {
+					Console.WriteLine("handleInQueue: While in queue, received close from the backend");
+					isClosing = true;
+					return;
+				}
 
-			return false;
+				try {
+					QueueStatusModel queueStatus = JsonSerializer.Deserialize<QueueStatusModel>(queuePos);
+					queuePos = "Position in queue: " + queueStatus.position;
+					Console.WriteLine("Leaving queue");
+				}
+				catch (Exception) {
+					Console.WriteLine("HandleInQueue: Failed to deserialize");
+					isClosing = true;
+					return;
+				}
+			}
 		}
 
 		/// <summary>
@@ -262,156 +227,69 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		/// </summary>
 		/// <param name="clientWebSocket"></param>
 		/// <param name="ct"></param>
-		/// <returns></returns>
-		private async Task<bool> handleInControlAsync(ClientWebSocket clientWebSocket, CancellationToken ct) {
-			//Send InControl state confirmation
-			await sendString(clientWebSocket, CrestronWebsocketState.InControl.ToString(), ct);
-
-			//Receive start signal
-			string startSignal = await receiveString(clientWebSocket, ct);
+		/// <returns>True if the connection should close</returns>
+		private async Task handleInControlAsync(ClientWebSocket clientWebSocket, CancellationToken ct) {
+			Console.WriteLine("Entering In Control");
+			//Receive confirmation if you have control or not
+			string controlling = await receiveString(clientWebSocket, ct);
 
 			//Check if correct signal
-			if (startSignal.Equals("Start")) {
+			if (controlling.Equals("Controlling")) {
 				//do nothing
 			}
-			else if (startSignal.Equals("not controlling")) {
+			else if (controlling.Equals("Not controlling")) {
 				//return normally and wait for next state
-				logger.LogDebug("handleInControl: not in control");
-				return false;
+				Console.WriteLine("handleInControl: not in control");
+				return;
 			}
 			else {
-				logger.LogDebug("handleInControl: startSignal, protocol error");
-				return true;
+				//return and close the connection
+				Console.WriteLine("handleInControl: controlling signal error, protocol error");
+				isClosing = true;
+				return;
 			}
 
-			//InControl
-			bool inControl = true;
-
-			//wait for a stop command in separate task
-			Task stopListener = Task.Run(async () => {
-				string receivedString = await receiveString(clientWebSocket, ct);
-				inControl = false;
-			});
-
-			var reader = commandChannel.Reader;
-
-			while (inControl) {
+			//Queue for incoming messages
+			ConcurrentQueue<string> commandQueue = commandConcurrentQueue;
+			Console.WriteLine("Entering control loop");
+			while (!ct.IsCancellationRequested) {
 				//check if connection is still ok
 				if (webSocket.State != WebSocketState.Open) {
-					logger.LogDebug("handleInControl: Socket state not open in control loop");
-					return true;
+					Console.WriteLine("handleInControl: Socket state not open in control loop");
+					isClosing = true;
+					return;
 				}
 				//get bytes from channel
-				string toSend = await reader.ReadAsync(ct);
-				await sendString(clientWebSocket, toSend, ct);
+				if (commandQueue.TryDequeue(out string toSend)) {
+					await sendString(clientWebSocket, toSend, ct);
+				}
+				else {
+					await Task.Delay(250, cancellationTokenSource.Token);
+				}
 			}
-
-			return false;
 		}
 
 		/// <summary>
-		/// Send message to the channel, which is read and sent to the server
+		/// Add a message to the queue
 		/// </summary>
 		/// <param name="msg"></param>
 		/// <returns></returns>
-		public async Task<bool> trySendingControlMessage(string msg) {
+		public bool trySendingControlMessage(string msg) {
 			//Check if in control
-			if (lastState == CrestronWebsocketState.InControl) {
-				await commandChannel.Writer.WriteAsync(msg);
+			if (state == CrestronWebsocketState.InControl) {
+				commandConcurrentQueue.Enqueue(msg);
 				return true;
 			}
 			//not in control
 			return false;
 		}
 
-		/// <summary>
-		/// handleTimeLimitExceeded
-		/// Receives time until backend abandons the connection
-		/// </summary>
-		/// <param name="clientWebSocket"></param>
-		/// <param name="ct"></param>
-		/// <returns></returns>
-		private async Task<(bool, DateTime)> handleTimeLimitExceededAsync(ClientWebSocket clientWebSocket, CancellationToken ct) {
-			//Send time limit state
-			await sendString(clientWebSocket, CrestronWebsocketState.TimeLimitExceeded.ToString(), ct);
-
-			string time = await receiveString(clientWebSocket, ct);
-			try {
-				DateTime timeUntilDisconnect = DateTime.Parse(time);
-				return (false, timeUntilDisconnect);
-			}
-			catch (Exception e) {
-				logger.LogDebug("handleTimeLimitExceeded", e);
-				return (true, DateTime.Now);
-			}
-		}
-
-		private async Task<bool> handleWaitingForInputAsync(ClientWebSocket clientWebSocket, CancellationToken ct) {
-			//confirm state
-			await sendString(clientWebSocket, CrestronWebsocketState.WaitingForInput.ToString(), ct);
-
-			//Clear Channel
-			resetChannel();
-
-			//Cancellation token for waiting Task
-			CancellationTokenSource waitForInputCanceler = new CancellationTokenSource();
-			CancellationToken waitForInputToken = waitForInputCanceler.Token;
-
-			Task waitForInput = Task.Run(async () => {
-				await commandChannel.Reader.ReadAsync(waitForInputToken);
-				return Task.CompletedTask;
-			});
-
-			//Cancellation token for waiting Task
-			CancellationTokenSource checkTimeCanceler = new CancellationTokenSource();
-			CancellationToken checkTimeToken = checkTimeCanceler.Token;
-
-			Task checkTime = Task.Run(async () => {
-				bool dateNotPassed = true;
-				while (dateNotPassed) {
-					if (disconnectTime < DateTime.Now) {
-						dateNotPassed = false;
-					}
-					//wait
-					await Task.Delay(1000, checkTimeToken);
-				}
-
-				return Task.CompletedTask;
-			});
-			//wait for any task to complete
-			await Task.WhenAny(waitForInput, checkTime);
-
-			if (checkTime.IsCompleted) {
-				//Stop tasks
-				waitForInputCanceler.Cancel();
-				checkTimeCanceler.Cancel();
-				//Disconnect
-				logger.LogDebug("handleWaitingForInputAsync: ran out of time");
-				return true;
-			}
-			else if (waitForInput.IsCompleted) {
-				//Stop tasks
-				waitForInputCanceler.Cancel();
-				checkTimeCanceler.Cancel();
-				//Send confirmation
-				await sendString(clientWebSocket, "Confirm", ct);
-				return false;
-			}
-			else {
-				//stop tasks
-				waitForInputCanceler.Cancel();
-				checkTimeCanceler.Cancel();
-				//Disconnect
-				logger.LogDebug("handleWaitingForInputAsync: neither task completed");
-				return true;
-			}
-		}
 
 		/// <summary>
-		/// Creates a new empty channel
+		/// Clears the command queue
 		/// </summary>
-		private void resetChannel() {
-			commandChannel = Channel.CreateUnbounded<string>();
+		private void resetQueue() {
+			commandConcurrentQueue.Clear();
 		}
 
 		/// <summary>
@@ -420,47 +298,62 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		/// <param name="clientWebSocket"></param>
 		/// <param name="ct"></param>
 		/// <returns></returns>
-		private Task<bool> handleDisconnectingAsync(ClientWebSocket clientWebSocket, CancellationToken ct) {
-			logger.LogDebug("handleDisconnecting");
-			return Task.FromResult(true);
+		private void handleDisconnectingAsync(ClientWebSocket clientWebSocket, CancellationToken ct) {
+			Console.WriteLine("handleDisconnecting");
+			isClosing = true;
+			return;
 		}
 
 		/// <summary>
-		/// Handles the various states a websocket can be in, and checks if the connection needs to be closed
+		/// Handles the various states a websocket can be in
+		/// If the connection is not open, it should be closed
 		/// </summary>
 		/// <param name="clientWebSocket"></param>
 		/// <param name="ct"></param>
 		/// <returns>Bool, True if connection is closing</returns>
-		private async Task<bool> handleWebsocketStatesAsync(ClientWebSocket clientWebSocket, CancellationToken ct) {
+		private void checkIfClosing(ClientWebSocket clientWebSocket, CancellationToken ct) {
 			switch (clientWebSocket.State) {
 				case WebSocketState.None:
-					return true;
+					isClosing = true;
+					return;
 
 				case WebSocketState.Connecting:
-					return false;
+					isClosing = true;
+					return;
 
 				case WebSocketState.Open:
-					return false;
+					return;
 
 				case WebSocketState.CloseSent:
-					return true;
+					isClosing = true;
+					return;
 
 				case WebSocketState.CloseReceived:
-					await clientWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure,
-						"Received Close from Server", ct);
-					return true;
+					isClosing = true;
+					return;
 
 				case WebSocketState.Closed:
-					return true;
+					isClosing = true;
+					return;
 
 				case WebSocketState.Aborted:
-					return true;
+					isClosing = true;
+					return;
 
 				default:
-					throw new ArgumentOutOfRangeException();
+					isClosing = true;
+					return;
 			}
 		}
 
+		/// <summary>
+		/// Close the connection from any state
+		/// If close has been received, close only output
+		/// </summary>
+		/// <param name="clientWebSocket"></param>
+		/// <param name="msg"></param>
+		/// <param name="ct"></param>
+		/// <returns></returns>
 		private async Task closeWebsocketAsync(ClientWebSocket clientWebSocket, string msg, CancellationToken ct) {
 			try {
 				switch (clientWebSocket.State) {
@@ -468,18 +361,18 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 						break;
 
 					case WebSocketState.Connecting:
-						await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", ct);
+						await clientWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", ct);
 						break;
 
 					case WebSocketState.Open:
-						await webSocket.CloseAsync(WebSocketCloseStatus.ProtocolError, msg, ct);
+						await clientWebSocket.CloseAsync(WebSocketCloseStatus.ProtocolError, msg, ct);
 						break;
 
 					case WebSocketState.CloseSent:
 						break;
 
 					case WebSocketState.CloseReceived:
-						await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "client Closing in response to closed socket", ct);
+						await clientWebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "client Closing in response to closed socket", ct);
 						break;
 
 					case WebSocketState.Closed:
@@ -493,7 +386,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 				}
 			}
 			catch (Exception e) {
-				logger.LogDebug("closeWebsocketAsync", e);
+				Console.WriteLine("closeWebsocketAsync", e);
 				await clientWebSocket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "error", ct);
 				throw;
 			}
@@ -501,6 +394,11 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 
 		private async Task sendString(WebSocket clientWebSocket, string s, CancellationToken token) {
 			byte[] bytes = Encoding.UTF32.GetBytes(s);
+			//Get size
+			byte[] size = BitConverter.GetBytes(bytes.Length);
+			//Send size
+			await clientWebSocket.SendAsync(size, WebSocketMessageType.Binary, true, token);
+			//Send msg
 			await clientWebSocket.SendAsync(bytes, WebSocketMessageType.Text, true, token);
 		}
 
@@ -511,10 +409,6 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 			byte[] stringBytes = new byte[size];
 			await clientWebSocket.ReceiveAsync(stringBytes, token);
 			return Encoding.UTF32.GetString(stringBytes);
-		}
-
-		public void Dispose() {
-			webSocket?.Dispose();
 		}
 	}
 }

@@ -13,8 +13,6 @@ namespace Blazor_Instrument_Cluster.Shared.Websocket.Enum {
 		Requesting,
 		InQueue,
 		InControl,
-		TimeLimitExceeded,
-		WaitingForInput,
 		Disconnecting
 	}
 }

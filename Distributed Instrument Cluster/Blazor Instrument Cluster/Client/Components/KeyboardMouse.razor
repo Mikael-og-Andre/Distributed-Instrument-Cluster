@@ -1,6 +1,7 @@
 ﻿@layout NothingLayout
+@using Blazor_Instrument_Cluster.Shared.Websocket.Enum
+@using Blazor_Instrument_Cluster.Shared.DeviceSelection
 @inherits Blazor_Instrument_Cluster.Client.Code.KeyboardMouse
-
 
 <div class="container">
     <div class="row">
@@ -17,23 +18,39 @@
                 Lock Mouse
             </button>
         </div>
+        @if (crestronWebsocket is null) {
+            <div class="col">
+                <button @onclick="this.connectToCrestronControl" class="btn btn-dark" style="width: 100%;">
+                    Request Control
+                </button>
+            </div>
+        }
+        else {
+            <div class="col">
+                <button @onclick="this.reconnectWithCrestron" class="btn btn-dark" style="width: 100%;">
+                    Reconnect
+                </button>
+            </div>
+        }
 
         <div class="col">
-            <button @onclick="connectToCrestronControl" class="btn btn-dark" style="width: 100%;">
-                Request Control
-            </button>
+            
         </div>
-
         <div class="col">
-            @if (deviceAndControllerFound && (!controlling)) {
-                <p><b>Status:</b> Waiting for Control</p>
-            }
-            else if (deviceAndControllerFound && controlling) {
-                <p><b>Status:</b> Controlling</p>
-            }
-            else {
-                <p><b>Status:</b> Not Connected</p>
-            }
+            <select @bind="currentGuid">
+                <option value="@String.Empty">
+                    None
+                </option>
+                @{
+                    int i = 1;
+                    @foreach (SubConnectionModel subcon in controllerDeviceList) {
+                        <option value="@subcon.guid">
+                            Device @i
+                        </option>
+                        i += 1;
+                    }
+                }
+            </select>
         </div>
     </div>
 </div>

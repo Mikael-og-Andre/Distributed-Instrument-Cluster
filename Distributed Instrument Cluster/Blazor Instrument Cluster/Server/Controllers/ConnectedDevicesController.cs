@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
+using Blazor_Instrument_Cluster.Shared.DeviceSelection;
 using PackageClasses;
 
 namespace Blazor_Instrument_Cluster.Server.Controllers {

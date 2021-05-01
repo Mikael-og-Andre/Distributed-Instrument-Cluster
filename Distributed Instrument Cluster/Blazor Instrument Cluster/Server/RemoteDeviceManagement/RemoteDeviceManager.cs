@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Server.Stream;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Server_Library;
 using Server_Library.Authorization;
@@ -38,6 +39,12 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// Streams
 		/// </summary>
 		private MJPEGStreamManager streamManager;
+
+		/// <summary>
+		/// Object used to lock when checking if a device exists, so that no duplicates get created
+		/// </summary>
+		private object existsCheckLock { get; set; }
+	
 		
 		/// <summary>
 		/// Constructor, Injects logger and service provider
@@ -49,14 +56,27 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			this.logger = logger;
 			listRemoteDevices = new List<RemoteDevice>();
 			streamManager = (MJPEGStreamManager) services.GetService(typeof(MJPEGStreamManager));
+			existsCheckLock = new object();
 		}
 
+		/// <summary>
+		/// Add a Remote device connection to the list of remote devices
+		/// Multiple connections can exists on one device, so if a matching name, location and type are found, it will be added to that
+		/// </summary>
+		/// <param name="connection"></param>
+		/// <param name="isVideo"></param>
+		/// <param name="name"></param>
+		/// <param name="location"></param>
+		/// <param name="type"></param>
+		/// <returns></returns>
 		public async Task addConnectionToRemoteDevices(ConnectionBaseAsync connection, bool isVideo, string name, string location, string type) {
-			AccessToken accessToken = connection.accessToken;
 
 			//Check if a device with the same accessToken is already in the system
-
-			(bool found,RemoteDevice device) result = checkIfDeviceExists(accessToken);
+			(bool found, RemoteDevice device) result;
+			//Only one device checks at a time
+			lock (existsCheckLock) {
+				result = checkIfDeviceExists(name,location,type);	
+			}
 
 			//if device was found add the new connection to it
 			if (result.found&&isVideo) {
@@ -109,21 +129,18 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		}
 		
 		/// <summary>
-		/// Checks the list of RemoteDevices for a device with the matching accessToken
+		/// Checks the list of RemoteDevices for a device with the matching name location and type
 		/// </summary>
-		/// <param name="accessToken"></param>
 		/// <returns>
 		/// Bool representing if the device was found
 		/// if the device was found the device will also be returned
 		/// </returns>
-		private (bool found,RemoteDevice device) checkIfDeviceExists(AccessToken accessToken) {
+		private (bool found,RemoteDevice device) checkIfDeviceExists(string name, string location, string type) {
 			//Lock list so devices are added in correct order and so on
 			lock (listRemoteDevices) {
 				foreach (var device in listRemoteDevices) {
-					AccessToken deviceAccessToken = device.accessToken;
-
-					//Check if accessToken exists
-					if (deviceAccessToken.Equals(accessToken)) {
+					//Check if the devices exists
+					if (device.name.Equals(name)&&device.location.Equals(location)&&device.type.Equals(type)) {
 						return (true,device);
 					}
 				}

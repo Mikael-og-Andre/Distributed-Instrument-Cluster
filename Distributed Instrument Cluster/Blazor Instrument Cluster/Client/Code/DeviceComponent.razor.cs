@@ -5,8 +5,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
-using Blazor_Instrument_Cluster.Client.Code.UrlObjects;
 using Blazor_Instrument_Cluster.Shared;
+using Blazor_Instrument_Cluster.Shared.DeviceSelection;
 using Microsoft.AspNetCore.Components;
 
 namespace Blazor_Instrument_Cluster.Client.Code {
@@ -27,28 +27,24 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		protected void navigateToDevicePage() {
 
 			//Loop devices
-			List<int> portslist = new List<int>();
-			List<Guid> controlerIds = new List<Guid>();
-			foreach (var subdevice in deviceInfo.subDevice) {
-				if (subdevice.isVideoDevice) {
-					portslist.Add(subdevice.port);
+			List<SubConnectionModel> videoConnectionModels = new List<SubConnectionModel>();
+			List<SubConnectionModel> controllerConnections = new List<SubConnectionModel>();
+			foreach (var subConnectionModel in deviceInfo.subDevice) {
+				if (subConnectionModel.isVideoDevice) {
+					videoConnectionModels.Add(subConnectionModel);
 				}
 				else {
-					controlerIds.Add(subdevice.guid);
+					controllerConnections.Add(subConnectionModel);
 				}
 			}
 			//json for portsList
-			PortsList portsList = new PortsList();
-			portsList.portsList = portslist;
-			string portJson = JsonSerializer.Serialize(portsList);
+			string videoJson = JsonSerializer.Serialize(videoConnectionModels);
 
 			//Json control devices
-			ControlConnections controlDevices = new ControlConnections();
-			controlDevices.controllerIdList = controlerIds;
-			string idsJson = JsonSerializer.Serialize(controlDevices);
+			string controllerJson = JsonSerializer.Serialize(controllerConnections);
 
 
-			string fullPath = basePath + "/" + HttpUtility.UrlEncode(deviceInfo.name) + "/" + HttpUtility.UrlEncode(deviceInfo.location) + "/" + HttpUtility.UrlEncode(deviceInfo.type) + "/" + HttpUtility.UrlEncode(idsJson) + "/" + HttpUtility.UrlEncode(portJson);
+			string fullPath = basePath + "/" + HttpUtility.UrlEncode(deviceInfo.name) + "/" + HttpUtility.UrlEncode(deviceInfo.location) + "/" + HttpUtility.UrlEncode(deviceInfo.type) + "/" + HttpUtility.UrlEncode(controllerJson) + "/" + HttpUtility.UrlEncode(videoJson);
 
 			navigationManager.NavigateTo(fullPath);
 		}

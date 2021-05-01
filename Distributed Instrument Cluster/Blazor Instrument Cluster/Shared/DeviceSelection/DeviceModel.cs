@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace Blazor_Instrument_Cluster.Shared {
+namespace Blazor_Instrument_Cluster.Shared.DeviceSelection {
 
 	/// <summary>
 	/// Represents a device that can be connected to

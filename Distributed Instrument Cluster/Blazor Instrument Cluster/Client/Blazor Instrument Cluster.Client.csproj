@@ -6,6 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Shared\**" />
+    <Content Remove="Shared\**" />
+    <EmbeddedResource Remove="Shared\**" />
+    <None Remove="Shared\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="wwwroot\css\TopBar.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -20,10 +27,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shared\Blazor Instrument Cluster.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Shared\" />
   </ItemGroup>
 
 </Project>

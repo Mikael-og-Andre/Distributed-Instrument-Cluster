@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel;
 
-namespace Blazor_Instrument_Cluster.Shared {
+namespace Blazor_Instrument_Cluster.Shared.DeviceSelection {
+	/// <summary>
+	/// <author>Mikael Nilssen</author>
+	/// </summary>
+	
 	public class SubConnectionModel {
 
 		public Guid guid { get; set; }
