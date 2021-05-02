@@ -254,9 +254,9 @@ namespace MAIN_Program {
 		private async Task relayThread() {
 			while (true) {
 				try {
-
 					byte[] bytes = await crestronClient.receiveBytesAsync();
-					commandParser.pars(Encoding.UTF32.GetString(bytes));
+					var msg = JsonSerializer.Deserialize<CrestronCommand>(Encoding.UTF32.GetString(bytes)).msg;
+					commandParser.pars(msg);
 				}
 				catch (Exception e) {
 					Console.WriteLine(e);
