@@ -43,13 +43,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// <param name="instance"></param>
 		public void deleteControllerInstance(ControllerInstance instance) {
 			lock (controllerInstances) {
-				for (int i = 0; i < controllerInstances.Count; i++) {
-					ControllerInstance controller = controllerInstances[i];
-					if (controller.controlToken.tokenId.Equals(instance.controlToken.tokenId)) {
-						controllerInstances.RemoveAt(i);
-						break;
-					}
-				}
+				controllerInstances.Remove(instance);
 			}
 		}
 
@@ -62,7 +56,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 			lock (controllerInstances) {
 				for (int i = 0; i < controllerInstances.Count; i++) {
 					//Check if same
-					if (controllerInstance.controlToken.tokenId.ToString().Equals(controllerInstances[i].controlToken.tokenId.ToString())) {
+					if (controllerInstance.Equals(controllerInstances[i])) {
 						return i;
 					}
 				}
@@ -77,8 +71,11 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// <returns></returns>
 		public bool checkIfControlling(ControllerInstance controllerInstance) {
 			try {
-				ControllerInstance first = controllerInstances.First();
-				if (first.controlToken.tokenId.ToString().Equals(controllerInstance.controlToken.tokenId.ToString())) {
+				ControllerInstance first = controllerInstances[0];
+				if (first is null) {
+					return false;
+				}
+				if (first.Equals(controllerInstance)) {
 					return true;
 				}
 				return false;

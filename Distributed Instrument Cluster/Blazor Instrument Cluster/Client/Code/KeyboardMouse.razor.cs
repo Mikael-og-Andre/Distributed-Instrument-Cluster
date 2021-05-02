@@ -202,7 +202,9 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 				logger.LogDebug("connectToCrestronControl: no current sub connection is selected");
 				return;
 			}
-
+			//stop any old connection
+			crestronWebsocket?.cancel();
+			crestronWebsocket?.Dispose();
 			//Crestron connection
 			crestronWebsocket = new CrestronWebsocket(uriCrestron);
 			SubConnectionModel subConnectionModel = default;

@@ -15,7 +15,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 	/// Class for managing the websocket connection ot the backend
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class CrestronWebsocket {
+	public class CrestronWebsocket : IDisposable {
 
 		/// <summary>
 		/// The last state received from the backend
@@ -186,7 +186,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 			}
 
 			Console.WriteLine("Entering Queue");
-			while (true) {
+			while (!ct.IsCancellationRequested) {
 				//Check if anything happened to the connection
 				if (webSocket.State != WebSocketState.Open) {
 					Console.WriteLine("handleInQueue: Socket closed while in queue");
@@ -410,6 +410,11 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 			byte[] stringBytes = new byte[size];
 			await clientWebSocket.ReceiveAsync(stringBytes, token);
 			return Encoding.UTF32.GetString(stringBytes);
+		}
+
+		public void Dispose() {
+			webSocket?.Dispose();
+			cancellationTokenSource?.Dispose();
 		}
 	}
 }

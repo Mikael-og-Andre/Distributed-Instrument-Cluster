@@ -57,6 +57,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 							break;
 						case CrestronWebsocketState.Disconnecting:
 							await handleDisconnecting();
+							controllerInstance?.delete();
 							tskCompletionSource.SetResult(new object());
 							return;
 
@@ -68,6 +69,8 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			catch (Exception e) {
 				Console.WriteLine("Exception in CrestronWebsocketBackend: ",e);
 			}
+			//remove device from list if it exists
+			controllerInstance?.delete();
 		}
 
 		private async Task<CrestronWebsocketState> handleRequesting() {
@@ -172,6 +175,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			while (!cancellationTokenSource.IsCancellationRequested) {
 				//check if remote endpoint closed
 				if (webSocket.State!=WebSocketState.Open) {
+					controllerInstance.delete();
 					return CrestronWebsocketState.Disconnecting;
 				}
 
@@ -179,9 +183,11 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				//Attempt to send
 				if (!await controllerInstance.send(receivedString,cancellationTokenSource.Token)) {
 					//Sending failed, disconnect
+					controllerInstance.delete();
 					return CrestronWebsocketState.Disconnecting;
 				}
 			}
+			controllerInstance.delete();
 			//Disconnect
 			return CrestronWebsocketState.Disconnecting;
 		}
