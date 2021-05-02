@@ -28,7 +28,7 @@ namespace MAIN_Program {
 		private readonly List<VideoConnection> videoConnections = new();
 		private CommandParser commandParser;
 		//private ReceivingClient<ExampleVideoObject> videoClient;
-		private ReceivingClient crestronClient;
+		private DuplexClientAsync crestronClient;
 
 		private static string configFile = "config.json";
 		private static void Main(string[] args) {
@@ -41,10 +41,10 @@ namespace MAIN_Program {
 			var json = parsConfigFile(configFile);
 
 
-			//while (!setupSerialCable(json.serialCable)) {
-			//	Thread.Sleep(3000);
-			//	Console.WriteLine("Retrying...");
-			//}
+			while (!setupSerialCable(json.serialCable).Result) {
+				Thread.Sleep(3000);
+				Console.WriteLine("Retrying...");
+			}
 
 			List<Task> videoSetupTasks = new List<Task>();
 			foreach (var device in json.videoDevices) {
@@ -54,11 +54,9 @@ namespace MAIN_Program {
 
 			Task.WhenAll(videoSetupTasks).Wait();
 
-			////Start crestron command relay thread. (this should be event based as an optimal solution).
-			//var relayThread = new Thread(this.relayThread) { IsBackground = true };
-			//relayThread.Start();
-
-
+			//Start crestron command relay thread. (this should be event based as an optimal solution).
+			var relayThread = this.relayThread();
+			
 			//Start video relay threads. 
 			for (int i = 0; i < videoConnections.Count; i++) {
 				Task videoSendingTasks = videoThread(i);
@@ -113,13 +111,36 @@ namespace MAIN_Program {
 		/// </summary>
 		/// <param name="port">Com port to connect to.</param>
 		/// <returns>If setup was successful.</returns>
-		private bool setupSerialCable(JsonClasses.SerialCable serialCable) {
+		private async Task<bool> setupSerialCable(JsonClasses.SerialCable serialCable) {
 			Console.WriteLine("Initializing serial cable...");
 
 			//Try to set up communication socket.
 			var communicator = serialCable.communicator;
 			try {
-				setupCrestronCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.subName ,communicator.accessHash);
+				await setupCrestronCommunicator(communicator.ip, communicator.port,communicator.accessHash).ContinueWith(
+					task => {
+						switch (task.Status) {
+							case TaskStatus.Created:
+								break;
+							case TaskStatus.WaitingForActivation:
+								break;
+							case TaskStatus.WaitingToRun:
+								break;
+							case TaskStatus.Running:
+								break;
+							case TaskStatus.WaitingForChildrenToComplete:
+								break;
+							case TaskStatus.RanToCompletion:
+								break;
+							case TaskStatus.Canceled:
+								break;
+							case TaskStatus.Faulted:
+								if (task.Exception != null) throw task.Exception;
+								break;
+							default:
+								throw new ArgumentOutOfRangeException();
+						}
+					});
 			} catch {
 				writeWarning("Failed to connect to server.");
 				return false;
@@ -214,15 +235,13 @@ namespace MAIN_Program {
 			return videoClient;
 		}
 
-		public void setupCrestronCommunicator(string ip, int port, string name, string location, string type, string subName, string accessHash) {
+		public async Task setupCrestronCommunicator(string ip, int port,string accessHash) {
 			string crestronIP = ip;
 			int crestronPort = port;
-			ClientInformation info = new ClientInformation(name, location, type,subName);
 			AccessToken accessToken = new AccessToken(accessHash);
-			CancellationToken crestronCancellationToken = new CancellationToken(false);
 
-			crestronClient = new ReceivingClient(ip, port, info, accessToken, crestronCancellationToken);
-			crestronClient.run();
+			crestronClient = new DuplexClientAsync(ip, port, accessToken);
+			await crestronClient.setup();
 		}
 
 		#endregion setup methods
@@ -232,15 +251,12 @@ namespace MAIN_Program {
 		/// <summary>
 		/// Thread for relaying commands coming from internet socket to command parser.
 		/// </summary>
-		private void relayThread() {
+		private async Task relayThread() {
 			while (true) {
 				try {
-					if (crestronClient.receiveBytes(out var messageObject)) {
-						CrestronCommand temp =
-							JsonSerializer.Deserialize<CrestronCommand>(
-								Encoding.UTF8.GetString(messageObject).Replace("\0",string.Empty));
-						if (temp != null) commandParser.pars(temp.msg);
-					}
+
+					byte[] bytes = await crestronClient.receiveBytesAsync();
+					commandParser.pars(Encoding.UTF32.GetString(bytes));
 				}
 				catch (Exception e) {
 					Console.WriteLine(e);

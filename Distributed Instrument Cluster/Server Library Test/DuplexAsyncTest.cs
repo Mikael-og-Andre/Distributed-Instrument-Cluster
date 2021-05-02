@@ -34,16 +34,16 @@ namespace Server_Library_Test {
 			Assert.AreEqual(aToken.getAccessString(), serverToken.getAccessString());
 
 			listener.stop();
-			server.Dispose();
+			//server.Dispose();
 		}
 
 		[TestMethod]
 		public async Task duplexReadingBytesTest() {
-			IPEndPoint ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 5601);
+			IPEndPoint ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 5600);
 			DuplexListenerAsync listener = new DuplexListenerAsync(ip);
 
 			AccessToken aToken = new AccessToken("Authorize");
-			DuplexClientAsync client = new DuplexClientAsync("127.0.0.1", 5601, aToken);
+			DuplexClientAsync client = new DuplexClientAsync("127.0.0.1", 5600, aToken);
 
 			Task server = Task.Run(async () => await listener.run());
 			Task setupTask = Task.Run(async () => await client.setup());
