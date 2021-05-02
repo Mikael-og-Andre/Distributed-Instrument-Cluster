@@ -23,7 +23,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		private IServiceProvider services;
 
 		/// <summary>
-		/// Remote devices
+		/// Remote device manager
 		/// </summary>
 		private RemoteDeviceManager remoteDeviceManager;
 

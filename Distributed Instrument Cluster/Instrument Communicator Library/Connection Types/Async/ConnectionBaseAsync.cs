@@ -40,6 +40,15 @@ namespace Server_Library.Connection_Types.Async {
 			this.cancellation = cancellation;
 			this.connectionNetworkStream = new NetworkStream(socket, true);
 		}
+
+		/// <summary>
+		/// Check if the socket is connected
+		/// https://stackoverflow.com/questions/2661764/how-to-check-if-a-socket-is-connected-disconnected-in-c
+		/// </summary>
+		/// <returns></returns>
+		public bool isSocketConnected() {
+			return !((socket.Poll(1000, SelectMode.SelectRead) && (socket.Available == 0)) || !socket.Connected);
+		}
 		
 	}
 }

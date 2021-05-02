@@ -57,6 +57,9 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		/// </summary>
 		private CancellationTokenSource cancellationTokenSource { get; set; }
 
+		/// <summary>
+		/// Boolean used to determine if the connection should close for any reason
+		/// </summary>
 		private bool isClosing { get; set; }
 
 		/// <summary>
@@ -96,12 +99,11 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 				while (!ct.IsCancellationRequested) {
 					//Handle possible states, and check if websocket is viable
 					checkIfClosing(webSocket, ct);
-					
 
 					//Connection is closing
 					if (isClosing) {
 						Console.WriteLine("Closing Crestron Websocket");
-						await closeWebsocketAsync(webSocket,"Closing",ct);
+						await closeWebsocketAsync(webSocket, "Closing", ct);
 						cancellationTokenSource.Cancel();
 						break;
 					}
@@ -211,7 +213,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 				try {
 					QueueStatusModel queueStatus = JsonSerializer.Deserialize<QueueStatusModel>(queuePos);
 					queuePos = "Position in queue: " + queueStatus.position;
-					Console.WriteLine("Updating Queue: "+queuePos);
+					Console.WriteLine("Updating Queue: " + queuePos);
 					await Task.Delay(250, cancellationTokenSource.Token);
 				}
 				catch (Exception) {
@@ -284,7 +286,6 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 			//not in control
 			return false;
 		}
-
 
 		/// <summary>
 		/// Clears the command queue

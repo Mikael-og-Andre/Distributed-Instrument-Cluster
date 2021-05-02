@@ -41,6 +41,9 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<DeviceModel>))]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		public IEnumerable<DeviceModel> getRemoteDevices() {
+
+			//Remove disconnected devices from list
+			remoteDeviceManager.removeDisconnectedSubConnections();
 			//Get list of video connections
 			List<RemoteDevice> listOfRemoteDevices = remoteDeviceManager.getListOfRemoteDevices();
 			if (listOfRemoteDevices.Any()) {

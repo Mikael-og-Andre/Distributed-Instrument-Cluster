@@ -244,7 +244,6 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 					
 				}
 			}
-
 			controllerInstance = default;
 			return false;
 		}

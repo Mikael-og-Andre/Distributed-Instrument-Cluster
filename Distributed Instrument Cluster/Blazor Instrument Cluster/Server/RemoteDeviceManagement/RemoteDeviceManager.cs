@@ -65,7 +65,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <returns></returns>
 		public async Task addConnectionToRemoteDevices(ConnectionBaseAsync connection, bool isVideo, string name, string location, string type) {
 
-			//wait until safe
+			//wait lock method until complete
 			existsCheckLock.WaitOne();
 
 			//Check if a device with the same accessToken is already in the system
@@ -154,6 +154,27 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		public List<RemoteDevice> getListOfRemoteDevices() {
 			lock (listRemoteDevices) {
 				return listRemoteDevices;
+			}
+		}
+
+		/// <summary>
+		/// Remove disconnected devices and sub connections
+		/// </summary>
+		public void removeDisconnectedSubConnections() {
+			lock (listRemoteDevices) {
+				foreach (var remoteDevice in listRemoteDevices) {
+					//Check sub connections for disconnected sockets, remove it if it is disconnected
+					foreach (var subConnection in remoteDevice.getListOfSubConnections()) {
+						bool isConnected = subConnection.connection.isSocketConnected();
+						if (!isConnected) {
+							remoteDevice.getListOfSubConnections().Remove(subConnection);
+						}
+					}
+					//If a remote device no longer has sub connections remove it
+					if (remoteDevice.getListOfSubConnections().Count < 1) {
+						listRemoteDevices.Remove(remoteDevice);
+					}
+				}
 			}
 		}
 	}

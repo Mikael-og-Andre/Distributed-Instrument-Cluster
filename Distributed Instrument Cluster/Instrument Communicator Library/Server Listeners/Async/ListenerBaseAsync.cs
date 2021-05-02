@@ -39,7 +39,7 @@ namespace Server_Library.Server_Listeners.Async {
 		/// <summary>
 		/// List of all started Tasks for handling connected devices
 		/// </summary>
-		private List<Task> connectionTasksList;
+		public List<(Task,ConnectionBaseAsync)> connectionTasksList { get; set; }
 
 		/// <summary>
 		/// Constructor
@@ -53,7 +53,7 @@ namespace Server_Library.Server_Listeners.Async {
 
 			//Init data structs
 			stackIncomingConnection = new ConcurrentStack<ConnectionBaseAsync>();
-			connectionTasksList = new List<Task>();
+			connectionTasksList = new List<(Task,ConnectionBaseAsync)>();
 		}
 
 		/// <summary>
@@ -84,7 +84,7 @@ namespace Server_Library.Server_Listeners.Async {
 
 				//Add to list of running connection tasks
 				lock (connectionTasksList) {
-					connectionTasksList.Add(connectionTask);
+					connectionTasksList.Add((connectionTask,newClientConnection));
 				}
 			}
 		}
