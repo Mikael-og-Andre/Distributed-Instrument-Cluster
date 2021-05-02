@@ -17,7 +17,6 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 	/// Stores data about connections belonging to each device, and the providers
 	/// </summary>
 	public class RemoteDevice {
-		[Inject] public ILogger<RemoteDevice> logger { get; set; }
 
 		/// <summary>
 		/// Top level name of the device
@@ -97,21 +96,21 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			Task videoProviderTask = startVideoFrameProviderAsync(connection, streamer).ContinueWith(task => {
 				switch (task.Status) {
 					case TaskStatus.RanToCompletion:
-						logger.LogWarning("Video provider task Ended with state RanToCompletion");
+						Console.WriteLine("Video provider task Ended with state RanToCompletion");
 						break;
 
 					case TaskStatus.Canceled:
-						logger.LogWarning("Video provider task Ended with state cancel");
+						Console.WriteLine("Video provider task Ended with state cancel");
 						break;
 
 					case TaskStatus.Faulted:
-						logger.LogWarning("Video provider task Ended with state Faulted");
+						Console.WriteLine("Video provider task Ended with state Faulted");
 						Exception exception = task.Exception?.Flatten();
 						if (exception != null) throw exception;
 						break;
 
 					default:
-						logger.LogWarning("Video provider task ended without the status canceled, faulted, or ran to completion");
+						Console.WriteLine("Video provider task ended without the status canceled, faulted, or ran to completion");
 						break;
 				}
 
