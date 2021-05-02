@@ -14,6 +14,7 @@ using Server_Library.Authorization;
 using Server_Library.Socket_Clients;
 using Video_Library;
 using PackageClasses;
+using Server_Library.Socket_Clients.Async;
 
 namespace MAIN_Program {
 
@@ -26,7 +27,7 @@ namespace MAIN_Program {
 	internal class Program {
 		private readonly List<VideoConnection> videoConnections = new();
 		private CommandParser commandParser;
-		private ReceivingClient crestronClient;
+		private DuplexClientAsync crestronClient;
 
 		private static string configFile = "config.json";
 		private static void Main(string[] args) {
@@ -39,24 +40,25 @@ namespace MAIN_Program {
 			var json = parsConfigFile(configFile);
 
 
-			while (!setupSerialCable(json.serialCable)) {
+			while (!setupSerialCable(json.serialCable).Result) {
 				Thread.Sleep(3000);
 				Console.WriteLine("Retrying...");
 			}
 
+			List<Task> videoSetupTasks = new List<Task>();
 			foreach (var device in json.videoDevices) {
-				setupVideoDevice(device);
+				Task task = Task.Run(async () => await setupVideoDevice(device));
+				videoSetupTasks.Add(task);
 			}
 
+			Task.WhenAll(videoSetupTasks).Wait();
+
 			//Start crestron command relay thread. (this should be event based as an optimal solution).
-			var relayThread = new Thread(this.relayThread) { IsBackground = true };
-			relayThread.Start();
-
-
+			var relayThread = this.relayThread();
+			
 			//Start video relay threads. 
 			for (int i = 0; i < videoConnections.Count; i++) {
-				var videoThread = new Thread(this.videoThread) {IsBackground = true};
-				videoThread.Start(i);
+				Task videoSendingTasks = videoThread(i);
 			}
 
 			//Start CLI loop.
@@ -108,13 +110,36 @@ namespace MAIN_Program {
 		/// </summary>
 		/// <param name="port">Com port to connect to.</param>
 		/// <returns>If setup was successful.</returns>
-		private bool setupSerialCable(JsonClasses.SerialCable serialCable) {
+		private async Task<bool> setupSerialCable(JsonClasses.SerialCable serialCable) {
 			Console.WriteLine("Initializing serial cable...");
 
 			//Try to set up communication socket.
 			var communicator = serialCable.communicator;
 			try {
-				setupCrestronCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.subName ,communicator.accessHash);
+				await setupCrestronCommunicator(communicator.ip, communicator.port,communicator.accessHash).ContinueWith(
+					task => {
+						switch (task.Status) {
+							case TaskStatus.Created:
+								break;
+							case TaskStatus.WaitingForActivation:
+								break;
+							case TaskStatus.WaitingToRun:
+								break;
+							case TaskStatus.Running:
+								break;
+							case TaskStatus.WaitingForChildrenToComplete:
+								break;
+							case TaskStatus.RanToCompletion:
+								break;
+							case TaskStatus.Canceled:
+								break;
+							case TaskStatus.Faulted:
+								if (task.Exception != null) throw task.Exception;
+								break;
+							default:
+								throw new ArgumentOutOfRangeException();
+						}
+					});
 			} catch {
 				writeWarning("Failed to connect to server.");
 				return false;
@@ -166,16 +191,15 @@ namespace MAIN_Program {
 		/// <summary>
 		/// Method tries to connect to a video device and gives feedback on fail or success.
 		/// </summary>
-		/// <param name="index">Index of device from DSHOW API.</param>
 		/// <returns>If setup was successful.</returns>
-		private bool setupVideoDevice(JsonClasses.VideoDevice device) {
+		private async Task<bool> setupVideoDevice(JsonClasses.VideoDevice device) {
 			Console.WriteLine($"Initializing video device{device.deviceIndex}...");
 
 			//Try to set up communication socket.
 			var communicator = device.communicator;
-			SendingClient connection;
+			DuplexClientAsync connection;
 			try {
-				connection = setupVideoCommunicator(communicator.ip, communicator.port, communicator.name, communicator.location, communicator.type, communicator.subName ,communicator.accessHash);
+				connection = await setupVideoCommunicator(communicator.ip, communicator.port,communicator.accessHash);
 			}
 			catch (Exception e) {
 				writeWarning("Failed to connect to server.");
@@ -203,27 +227,20 @@ namespace MAIN_Program {
 			return true;
 		}
 
-		public SendingClient setupVideoCommunicator(string ip, int port, string name, string location, string type,string subName, string accessHash) {
-			string videoIP = ip;
-			int videoPort = port;
-			ClientInformation info = new ClientInformation(name, location, type, subName);
+		public async Task<DuplexClientAsync> setupVideoCommunicator(string ip, int port,string accessHash) {
 			AccessToken accessToken = new AccessToken(accessHash);
-			CancellationToken videoCancellationToken = new CancellationToken(false);
-
-			var videoClient = new SendingClient(ip, port, info, accessToken, videoCancellationToken);
-			videoClient.run();
+			var videoClient = new DuplexClientAsync(ip, port, accessToken);
+			await videoClient.setup();
 			return videoClient;
 		}
 
-		public void setupCrestronCommunicator(string ip, int port, string name, string location, string type, string subName, string accessHash) {
+		public async Task setupCrestronCommunicator(string ip, int port,string accessHash) {
 			string crestronIP = ip;
 			int crestronPort = port;
-			ClientInformation info = new ClientInformation(name, location, type,subName);
 			AccessToken accessToken = new AccessToken(accessHash);
-			CancellationToken crestronCancellationToken = new CancellationToken(false);
 
-			crestronClient = new ReceivingClient(ip, port, info, accessToken, crestronCancellationToken);
-			crestronClient.run();
+			crestronClient = new DuplexClientAsync(ip, port, accessToken);
+			await crestronClient.setup();
 		}
 
 		#endregion setup methods
@@ -233,15 +250,12 @@ namespace MAIN_Program {
 		/// <summary>
 		/// Thread for relaying commands coming from internet socket to command parser.
 		/// </summary>
-		private void relayThread() {
+		private async Task relayThread() {
 			while (true) {
 				try {
-					if (crestronClient.receiveBytes(out var messageObject)) {
-						CrestronCommand temp =
-							JsonSerializer.Deserialize<CrestronCommand>(
-								Encoding.UTF8.GetString(messageObject).Replace("\0",string.Empty));
-						if (temp != null) commandParser.pars(temp.msg);
-					}
+					byte[] bytes = await crestronClient.receiveBytesAsync();
+					var msg = JsonSerializer.Deserialize<CrestronCommand>(Encoding.UTF32.GetString(bytes)).msg;
+					commandParser.pars(msg);
 				}
 				catch (Exception e) {
 					Console.WriteLine(e);
@@ -253,7 +267,7 @@ namespace MAIN_Program {
 		/// Thread for sending frames to server at a constant or dynamic* fps.
 		/// </summary>
 		/// <param name="index">Video device index</param>
-		private void videoThread(object index) {
+		private async Task videoThread(object index) {
 			var i = (int) index;
 			var device = videoConnections[i].device;
 			var connection = videoConnections[i].connection;
@@ -264,7 +278,7 @@ namespace MAIN_Program {
 			while (true) {
 				try {
 					var jpg = device.readJpg(quality);
-					connection.sendBytes(jpg.ToArray());
+					await connection.sendBytesAsync(jpg);
 				} catch (Exception e) {
 					Console.WriteLine(e);
 				}

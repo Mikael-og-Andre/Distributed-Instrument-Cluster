@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using Blazor_Instrument_Cluster.Server.Stream;
+﻿using Blazor_Instrument_Cluster.Server.Stream;
 using Microsoft.Extensions.Logging;
-using Server_Library;
-using Server_Library.Connection_Classes;
-using Server_Library.Connection_Types;
+using Server_Library.Connection_Types.Async;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Video_Library;
 
 namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
@@ -13,7 +13,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 	/// Class for storing connection lists
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class RemoteDeviceManager : IRemoteDeviceManager {
+	public class RemoteDeviceManager {
 
 		/// <summary>
 		/// Services
@@ -24,7 +24,6 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// Logger
 		/// </summary>
 		private ILogger<RemoteDeviceManager> logger;
-
 
 		/// <summary>
 		/// List of remote devices
@@ -37,11 +36,9 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		private MJPEGStreamManager streamManager;
 
 		/// <summary>
-		/// Can multiple users control a sendingConnection
+		/// Object used to lock when checking if a device exists, so that no duplicates get created
 		/// </summary>
-		private const bool AllowMultiUser = false;
-
-		private const int AllowedInactiveTime = 1000 * 60 * 3;
+		private Mutex existsCheckLock { get; set; }
 
 		/// <summary>
 		/// Constructor, Injects logger and service provider
@@ -51,108 +48,143 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		public RemoteDeviceManager(ILogger<RemoteDeviceManager> logger, IServiceProvider services) {
 			this.services = services;
 			this.logger = logger;
-			listRemoteDevices = new List<RemoteDeviceManagement.RemoteDevice>();
-			streamManager = (MJPEGStreamManager) services.GetService(typeof(MJPEGStreamManager));
+			listRemoteDevices = new List<RemoteDevice>();
+			streamManager = (MJPEGStreamManager)services.GetService(typeof(MJPEGStreamManager));
+			existsCheckLock = new Mutex();
 		}
 
 		/// <summary>
-		/// Adds a connection to the remoteDevice with the corresponding name location and type, if not found it creates a new one
+		/// Add a Remote device connection to the list of remote devices
+		/// Multiple connections can exists on one device, so if a matching name, location and type are found, it will be added to that
 		/// </summary>
 		/// <param name="connection"></param>
-		public void addConnectionToRemoteDevices(ConnectionBase connection) {
-			ClientInformation newInformation = connection.getClientInformation();
-
-			//Track if the device was found or a new one was added
-			bool deviceAlreadyExisted = false;
-			//Lock list so devices are added in correct order and so on
-			lock (listRemoteDevices) {
-				foreach (var device in listRemoteDevices) {
-					string deviceName = device.name;
-					string deviceLocation = device.location;
-					string deviceType = device.type;
-					//Check if type name and location are all the same
-					if (newInformation.Name.Equals(deviceName) && newInformation.Location.Equals(deviceLocation) && newInformation.Type.Equals(deviceType)) {
-						//Set already existed to true
-						deviceAlreadyExisted = true;
-
-						//If found add to the remote device in the correct category, and if it is a receiver create a provider
-						var receivingInstance = typeof(ReceivingConnection);
-						if (receivingInstance.IsInstanceOfType(connection)) {
-							ReceivingConnection receivingConnection = (ReceivingConnection)connection;
-
-							//Create a new stream
-							MJPEG_Streamer streamer = new MJPEG_Streamer(30,8080);
-							streamManager.streams.Add(streamer);
-
-							device.addReceivingConnection(receivingConnection,streamer);
-						}
-						//If it was not receiving it is sending
-						else {
-							SendingConnection sendingConnection = (SendingConnection)connection;
-							device.addSendingConnection(sendingConnection, AllowMultiUser,AllowedInactiveTime);
-						}
-						//Stop looking
-						break;
-					}
-				}
-
-				//If device did not exist create a new one
-				if (!deviceAlreadyExisted) {
-					RemoteDeviceManagement.RemoteDevice newDevice =
-						new RemoteDeviceManagement.RemoteDevice(newInformation.Name, newInformation.Location, newInformation.Type);
-
-					var receivingInstance = typeof(ReceivingConnection);
-					bool isReceivingConnection = receivingInstance.IsInstanceOfType(connection);
-					if (isReceivingConnection) {
-						ReceivingConnection receivingConnection = (ReceivingConnection)connection;
-
-						//Create a new video stream
-						MJPEG_Streamer streamer = new MJPEG_Streamer(30,8080);
-						streamManager.streams.Add(streamer);
-
-						newDevice.addReceivingConnection(receivingConnection,streamer);
-					}
-					//If it was not receiving it is sending
-					else {
-						SendingConnection sendingConnection = (SendingConnection)connection;
-						newDevice.addSendingConnection(sendingConnection,AllowMultiUser,AllowedInactiveTime);
-					}
-					//Add to list of remote devices
-					listRemoteDevices.Add(newDevice);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Get a remote device with its name location and type
-		/// </summary>
+		/// <param name="isVideo"></param>
 		/// <param name="name"></param>
 		/// <param name="location"></param>
 		/// <param name="type"></param>
-		/// <param name="outputDevice"></param>
-		/// <returns>If it was found or not</returns>
-		public bool getRemoteDeviceWithNameLocationAndType(string name, string location, string type, out RemoteDeviceManagement.RemoteDevice outputDevice) {
-			lock (listRemoteDevices) {
-				foreach (var device in listRemoteDevices) {
-					//Check if device info is the same
-					if (device.name.Equals(name) && device.location.Equals(location) && device.type.Equals(type)) {
-						outputDevice = device;
-						return true;
-					}
-				}
+		/// <returns></returns>
+		public async Task addConnectionToRemoteDevices(ConnectionBaseAsync connection, bool isVideo, string name, string location, string type) {
 
-				outputDevice = default;
-				return false;
+			//wait lock method until complete
+			existsCheckLock.WaitOne();
+
+			//Check if a device with the same accessToken is already in the system
+			(bool found, RemoteDevice device) result;
+			//Only one device checks at a time
+
+			result = checkIfDeviceExists(name, location, type);
+
+			//if device was found add the new connection to it
+			if (result.found && isVideo) {
+				//Create stream
+				MJPEG_Streamer stream = new MJPEG_Streamer(30, 8080);
+				lock (streamManager.streams) {
+					streamManager.streams.Add(stream);
+				}
+				//Add device as a video connection
+				await result.device.addVideoConnectionToDevice((DuplexConnectionAsync)connection, stream);
+			}
+			else if (result.found) {
+				//add device as a control device
+				result.device.addControlConnectionAsync((DuplexConnectionAsync)connection);
+			}
+			//If the device was not found create a new one and add the connection to it
+			else {
+				await handleDeviceNotFound(connection, isVideo, name, location, type);
+			}
+
+			//release mutex
+			existsCheckLock.ReleaseMutex();
+		}
+
+		/// <summary>
+		/// Handles creating a new remote device if one did not already exist
+		/// </summary>
+		/// <param name="connection"></param>
+		/// <param name="isVideo"></param>
+		/// <param name="name"></param>
+		/// <param name="location"></param>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		private async Task handleDeviceNotFound(ConnectionBaseAsync connection, bool isVideo, string name, string location, string type) {
+			RemoteDevice newRemoteDevice = new RemoteDevice(name, location, type, connection.accessToken);
+			lock (listRemoteDevices) {
+				listRemoteDevices.Add(newRemoteDevice);
+			}
+
+			if (isVideo) {
+				//Create stream
+				MJPEG_Streamer stream = new MJPEG_Streamer(30, 8080);
+				lock (streamManager.streams) {
+					streamManager.streams.Add(stream);
+				}
+				//add As a video connection
+				await newRemoteDevice.addVideoConnectionToDevice((DuplexConnectionAsync)connection, stream);
+			}
+			else {
+				//add as a control connection
+				newRemoteDevice.addControlConnectionAsync((DuplexConnectionAsync)connection);
 			}
 		}
 
 		/// <summary>
-		/// Get List Of RemoteDevices
+		/// Checks the list of RemoteDevices for a device with the matching name location and type
 		/// </summary>
-		/// <returns>List with type RemoteDevice</returns>
-		public List<RemoteDeviceManagement.RemoteDevice> getListOfRemoteDevices() {
+		/// <returns>
+		/// Bool representing if the device was found
+		/// if the device was found the device will also be returned
+		/// </returns>
+		private (bool found, RemoteDevice device) checkIfDeviceExists(string name, string location, string type) {
+			//Lock list so devices are added in correct order and so on
+			lock (listRemoteDevices) {
+				foreach (var device in listRemoteDevices) {
+					//Check if the devices exists
+					if (device.name.Equals(name) && device.location.Equals(location) && device.type.Equals(type)) {
+						return (true, device);
+					}
+				}
+				return (false, default);
+			}
+		}
+
+		/// <summary>
+		/// Returns a list of all remote devices in the manager
+		/// </summary>
+		/// <returns>List containing RemoteDevice</returns>
+		public List<RemoteDevice> getListOfRemoteDevices() {
 			lock (listRemoteDevices) {
 				return listRemoteDevices;
+			}
+		}
+
+		/// <summary>
+		/// Remove disconnected devices and sub connections
+		/// </summary>
+		public void removeDisconnectedSubConnections() {
+			lock (listRemoteDevices) {
+				List<RemoteDevice> remoteDevicesToRemove = new List<RemoteDevice>();
+				foreach (var remoteDevice in listRemoteDevices) {
+					//Check sub connections for disconnected sockets, remove it if it is disconnected
+					List<SubConnection> connectionsToRemove = new List<SubConnection>();
+					foreach (var subConnection in remoteDevice.getListOfSubConnections()) {
+						bool isConnected = subConnection.connection.isSocketConnected();
+						if (!isConnected) {
+							connectionsToRemove.Add(subConnection);
+						}
+					}
+					//remove connections
+					foreach (var connection in connectionsToRemove) {
+						remoteDevice.getListOfSubConnections().Remove(connection);
+					}
+					//If a remote device no longer has sub connections add to list of remote devices to remove
+					if (remoteDevice.getListOfSubConnections().Count < 1) {
+						remoteDevicesToRemove.Add(remoteDevice);
+					}
+				}
+				//remove remote devices
+				foreach (var remoteDevice in remoteDevicesToRemove) {
+					listRemoteDevices.Remove(remoteDevice);
+				}
 			}
 		}
 	}

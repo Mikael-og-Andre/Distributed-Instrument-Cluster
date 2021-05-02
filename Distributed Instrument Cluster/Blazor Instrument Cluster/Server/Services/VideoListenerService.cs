@@ -1,15 +1,14 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Server_Library.Connection_Classes;
-using Server_Library.Connection_Types;
-using Server_Library.Server_Listeners;
+using Server_Library.Connection_Types.Async;
+using Server_Library.Server_Listeners.Async;
 using System;
 using System.IO;
 using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
 
 namespace Blazor_Instrument_Cluster.Server.Services {
 
@@ -35,9 +34,12 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		private RemoteDeviceManager remoteDeviceManager;
 
 		/// <summary>
-		/// ReceivingListener for accepting SendingClients
+		/// Listener for incoming connections
 		/// </summary>
-		private ReceivingListener receivingListener;
+		private DuplexListenerAsync duplexListenerAsync;
+
+		private string ip { get; set; }
+		private int port { get; set; }
 
 		/// <summary>
 		/// Constructor, injects logger and remote device connections
@@ -47,14 +49,12 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		public VideoListenerService(ILogger<VideoListenerService> logger, IServiceProvider services) {
 			this.logger = logger;
 			//Get Remote devices from services
-			remoteDeviceManager = (RemoteDeviceManager)services.GetService(typeof(IRemoteDeviceManager));
+			remoteDeviceManager = (RemoteDeviceManager)services.GetService(typeof(RemoteDeviceManager));
 			//Init ReceivingListener
 			var jsonString = File.ReadAllText(@"config.json");
 			var json = JsonSerializer.Deserialize<Json>(jsonString);
-			var ip = json.serverIP;
-			var port = json.videoPort;
-
-			receivingListener = new ReceivingListener(new IPEndPoint(IPAddress.Parse(ip), port));
+			ip = json.serverIP;
+			port = json.videoPort;
 		}
 
 		/// <summary>
@@ -63,22 +63,84 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		/// <param name="stoppingToken"></param>
 		/// <returns></returns>
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
-			//Run server
-			Thread listenerThread = new Thread(() => receivingListener.start());
-			listenerThread.Start();
+			Task listenerTask = listenerLoop(stoppingToken).ContinueWith(task => {
+				switch (task.Status) {
+					case TaskStatus.RanToCompletion:
+						logger.LogDebug("Video ListenerTask Ended with state RanToCompletion");
+						break;
 
-			//Get incoming connections and start providers for them
+					case TaskStatus.Canceled:
+						logger.LogDebug("Video ListenerTask Ended with state cancel");
+						break;
+
+					case TaskStatus.Faulted:
+						logger.LogDebug("Video ListenerTask Ended with state Faulted");
+						Exception exception = task.Exception?.Flatten();
+						if (exception != null) throw exception;
+						break;
+
+					default:
+						logger.LogWarning("Video listenerTask ended without the status canceled, faulted, or ran to completion");
+						break;
+				}
+
+				//Do something when ended
+
+			}, stoppingToken);
+
+			Task incomingConnectionTask = incomingDeviceLoop(stoppingToken).ContinueWith(task => {
+				switch (task.Status) {
+					case TaskStatus.RanToCompletion:
+						logger.LogDebug("Video incomingConnectionTask Ended with state RanToCompletion");
+						break;
+
+					case TaskStatus.Canceled:
+						logger.LogDebug("Video incomingConnectionTask Ended with state cancel");
+						break;
+
+					case TaskStatus.Faulted:
+						logger.LogDebug("Video incomingConnectionTask Ended with state Faulted");
+						Exception exception = task.Exception?.Flatten();
+						if (exception != null) throw exception;
+						break;
+
+					default:
+						logger.LogWarning("Video incomingConnectionTask ended without the status canceled, faulted, or ran to completion");
+						break;
+				}
+
+				//Do something when ended
+
+			}, stoppingToken);
+		}
+
+		private async Task listenerLoop(CancellationToken stoppingToken) {
 			while (!stoppingToken.IsCancellationRequested) {
-				if (receivingListener.getIncomingConnection(out ConnectionBase output)) {
-					//Cast to correct connection
-					ReceivingConnection receivingConnection = (ReceivingConnection)output;
-					//Add to list of remote devices
-					remoteDeviceManager.addConnectionToRemoteDevices(receivingConnection);
+				//Create new listener
+				duplexListenerAsync = new DuplexListenerAsync(new IPEndPoint(IPAddress.Parse(ip), port));
+				//listen
+				await duplexListenerAsync.run();
+				logger.LogWarning("Video Listener ended");
+			}
+		}
+
+		private async Task incomingDeviceLoop(CancellationToken stoppingToken) {
+			while (!stoppingToken.IsCancellationRequested) {
+				if (duplexListenerAsync.getIncomingConnection(out ConnectionBaseAsync output)) {
+					DuplexConnectionAsync connection = (DuplexConnectionAsync)output;
+
+					(string name, string location, string type) result = await queryDatabase();
+
+					await remoteDeviceManager.addConnectionToRemoteDevices(connection, true, result.name, result.location, result.type);
 				}
 				else {
-					await Task.Delay(5);
+					await Task.Delay(1000, stoppingToken);
 				}
 			}
+		}
+
+		private async Task<(string name, string location, string type)> queryDatabase() {
+			return ("hardcodedname","hardcodedlocation","hardcodedtype");
 		}
 	}
 }

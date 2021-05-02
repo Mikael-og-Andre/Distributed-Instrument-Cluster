@@ -1,13 +1,13 @@
-﻿using Blazor_Instrument_Cluster.Client.Code.UrlObjects;
-using Blazor_Instrument_Cluster.Shared;
+﻿using Blazor_Instrument_Cluster.Client.Code.Websocket;
+using Blazor_Instrument_Cluster.Shared.DeviceSelection;
+using Blazor_Instrument_Cluster.Shared.Websocket.Enum;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using PackageClasses;
 using System;
 using System.Collections.Generic;
-using System.Net.WebSockets;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,39 +17,89 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 	/// <summary>
 	/// Handles capturing pointer lock data, key events and sends it to a web socket.
-	/// <author>Andre Helland, Mikael Nilssen</author>
+	/// <author>Mikael Nilssen, Andre Helland</author>
 	/// </summary>
-	public class KeyboardMouse : ComponentBase {
+	public class KeyboardMouse : ComponentBase, IUpdate {
 
 		[Inject]
 		private IJSRuntime JS { get; set; }
+
 		[Inject]
 		private NavigationManager navigationManager { get; set; }
 
-		private const string pathToCrestronWebsocket = "crestronControl";
-		private CancellationTokenSource disposalTokenSource = new CancellationTokenSource();    //Disposal token used in websocket communication
-		private ClientWebSocket crestronWebSocket = null;                                       //Websocket client
+		/// <summary>
+		/// Logger for keyboard mouse
+		/// </summary>
+		[Inject]
+		public ILogger<KeyboardMouse> logger { get; set; }
 
+		/// <summary>
+		/// Url encoded string with name
+		/// </summary>
+		[Parameter]
+		public string urlName { get; set; }
 
+		/// <summary>
+		/// Url encoded string with location
+		/// </summary>
 		[Parameter]
 		public string urlName { get; set; }                                        //Name of the wanted device
 		[Parameter]
 		public string urlLocation { get; set; }
+
+		/// <summary>
+		/// Url encoded string with type
+		/// </summary>
 		[Parameter]
 		public string urlType { get; set; }
+
+		/// <summary>
+		/// list of control connections, Url encoded and serialized to json
+		/// </summary>
 		[Parameter]
-		public string urlSubnames { get; set; }
+		public string urlListSubconnections { get; set; }
 
 		public string name { get; set; }
 		public string location { get; set; }
 		public string type { get; set; }
 
-		protected List<string> listOfSubNames = default;
-		protected string currentSubname = default;
+		/// <summary>
+		/// Device name location type
+		/// </summary>
+		private DeviceModel deviceModel { get; set; }
 
-		protected bool connected = false;
-		protected bool deviceAndControllerFound = false;                                               //Bool representing if the control of the device has been granted
-		protected bool controlling = false;
+		/// <summary>
+		/// Crestron websocket communication
+		/// </summary>
+		protected CrestronWebsocket crestronWebsocket { get; set; }
+
+		/// <summary>
+		/// Token for canceling the crestron websocket
+		/// </summary>
+		private CancellationTokenSource crestronCanceler = new CancellationTokenSource();    //Disposal token used in websocket communication
+
+		/// <summary>
+		/// Path to crestron
+		/// </summary>
+		private const string PathToCrestronWebsocket = "crestronControl";
+
+		/// <summary>
+		/// Uri to the backend
+		/// </summary>
+		private Uri uriCrestron { get; set; }
+
+		/// <summary>
+		/// List of control connections
+		/// </summary>
+		protected List<SubConnectionModel> controllerDeviceList = default;
+
+		/// <summary>
+		/// The current device id selected in the UI
+		/// used for requesting device from backend
+		/// </summary>
+		protected string currentGuid { get; set; }
+
+		protected Task currentConnectionTask { get; set; }
 
 		#region Lifecycle
 
@@ -66,26 +116,43 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// <returns></returns>
 		protected override async Task OnInitializedAsync() {
 			await decodeUrlText();
-			continuouslyCheckSocketStateAsync();
+			await setupUri();
+			//updateQueueState();
 		}
 
-		private async Task decodeUrlText() {
-			try {
+		/// <summary>
+		/// Get base uri and path to crestron and create a new uri to connect to for the crestron
+		/// </summary>
+		/// <returns></returns>
+		private Task setupUri() {
+			string path = navigationManager.BaseUri.Replace("https://", "wss://").Replace("http://", "wss://");
+			string pathCrestron = path + PathToCrestronWebsocket;
+			UriBuilder uriBuilder = new UriBuilder(pathCrestron);
+			uriCrestron = uriBuilder.Uri;
+			return Task.CompletedTask;
+		}
 
+		/// <summary>
+		/// Parse incoming url parameters from url and make them into objects
+		/// </summary>
+		/// <returns></returns>
+		private Task decodeUrlText() {
+			try {
 				name = HttpUtility.UrlDecode(urlName);
 				location = HttpUtility.UrlDecode(urlLocation);
 				type = HttpUtility.UrlDecode(urlType);
+				deviceModel = new DeviceModel(name, location, type, new List<SubConnectionModel>());
 				//convert url object to object
-				string controlSubdevicesJson = HttpUtility.UrlDecode(urlSubnames).TrimStart('\0').TrimEnd('\0');
-				ControlSubdevices controlSubdevices = JsonSerializer.Deserialize<ControlSubdevices>(controlSubdevicesJson);
+				string controlSubConnectionsJson = HttpUtility.UrlDecode(urlListSubconnections).TrimStart('\0').TrimEnd('\0');
+				List<SubConnectionModel> controlConnections = JsonSerializer.Deserialize<List<SubConnectionModel>>(controlSubConnectionsJson);
 				//Set list
-				listOfSubNames = controlSubdevices.subnameList;
-				if (listOfSubNames.Count>0) {
-					currentSubname = listOfSubNames[0];
-				}
+				controllerDeviceList = controlConnections;
+
+				return Task.CompletedTask;
 			}
 			catch (Exception e) {
 				Console.WriteLine("Error in url decoding");
+				return Task.FromException(e);
 			}
 		}
 
@@ -97,33 +164,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// If anything happens to the socket like closing or receiving a close request update the bool values
 		/// </summary>
 		/// <returns></returns>
-		protected async Task continuouslyCheckSocketStateAsync() {
-			await Task.Run(() => {
-				while (!disposalTokenSource.IsCancellationRequested) {
-					if (
-						(crestronWebSocket.State == WebSocketState.CloseReceived) ||
-						(crestronWebSocket.State == WebSocketState.CloseSent) ||
-						(crestronWebSocket.State == WebSocketState.Closed) ||
-						(crestronWebSocket.State == WebSocketState.Aborted)
-					) {
-						//reset bools
-						resetStates();
-						StateHasChanged();
-					}
-					Task.Delay(5000);
-				}
-			});
-		}
-
-		/// <summary>
-		/// Sets all booleans to false
-		/// </summary>
-		private void resetStates() {
-			//reset bools
-			connected = false;
-			deviceAndControllerFound = false;
-			controlling = false;
-			StateHasChanged();
+		protected async Task updateQueueState() {
 		}
 
 		#endregion UI Updating
@@ -132,12 +173,8 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 		private async void sendData(string s) {
 			StateHasChanged();
-			if (!deviceAndControllerFound) {
-				Console.WriteLine("Device not found");
-				return;
-			}
-			if (!controlling) {
-				Console.WriteLine("Not controlling");
+			if (crestronWebsocket.state is not (CrestronWebsocketState.InControl)) {
+				logger.LogDebug("sendData: CrestronWebsocket not in a state to receive data");
 				return;
 			}
 
@@ -146,11 +183,9 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 				CrestronCommand sendingObject = new CrestronCommand(s);
 				//Create json
 				string json = JsonSerializer.Serialize(sendingObject);
-				//Convert to bytes
-				ArraySegment<byte> bytesToSend = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
 
 				//Send data to socket.
-				await crestronWebSocket.SendAsync(bytesToSend, WebSocketMessageType.Text, true, disposalTokenSource.Token);
+				crestronWebsocket.trySendingControlMessage(json);
 			}
 			catch (Exception e) {
 				Console.WriteLine(e.Message);
@@ -159,120 +194,75 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 		#endregion Sending commands
 
-		#region socket
+		#region Websokcet Communication
 
 		/// <summary>
 		/// Connect to the backend device
 		/// </summary>
 		/// <returns></returns>
 		protected async Task connectToCrestronControl() {
-			//if name is not in the list of subnames, dont try to connect
-			if (!listOfSubNames.Contains(currentSubname)) {
-				Console.WriteLine("Can not connect to this subname");
+			if (currentGuid is null) {
+				logger.LogDebug("connectToCrestronControl: no current sub connection is selected");
 				return;
 			}
-			//abort websocket one already exists and reset website states
-			crestronWebSocket?.Abort();
-			resetStates();
-			crestronWebSocket = new ClientWebSocket();
+			else if (currentGuid.Equals(String.Empty)) {
+				logger.LogDebug("connectToCrestronControl: no current sub connection is selected");
+				return;
+			}
 
-			//Get base uri and connect to that
-			string basePath = navigationManager.BaseUri;
-			basePath = basePath.Replace("https://", "wss://");
+			//Crestron connection
+			crestronWebsocket = new CrestronWebsocket(uriCrestron,this);
+			SubConnectionModel subConnectionModel = default;
 
-			await crestronWebSocket.ConnectAsync(new Uri(basePath + pathToCrestronWebsocket), disposalTokenSource.Token);
-			//Check if the device requested exists
-			try {
-				StateHasChanged();
-				deviceAndControllerFound = await setupSocket();
-				StateHasChanged();
-				//enter the queue
-				if (deviceAndControllerFound) {
-					controlling = await enterQueue();
-					StateHasChanged();
+			foreach (var subConnection in controllerDeviceList) {
+				if (currentGuid.Equals(subConnection.guid.ToString())) {
+					subConnectionModel = subConnection;
+					break;
 				}
 			}
-			catch (Exception) {
-				Console.WriteLine("Connection failed");
+			//Check if device from select is in list of devices
+			if (subConnectionModel is null) {
+				logger.LogDebug("connectToCrestron: Connection not found");
+				return;
 			}
+			currentConnectionTask = crestronWebsocket.startProtocol(deviceModel, subConnectionModel);
+			stateHasChanged();
 		}
 
-		/// <summary>
-		/// Does setup with backend websocket, sends name to server, and returns if it was found or not
-		/// </summary>
-		/// <returns></returns>
-		private async Task<bool> setupSocket() {
-			try {
-				//Receive start signal
-				byte[] startBuffer = new byte[1024];
-				ArraySegment<byte> startSignalBuffer = new ArraySegment<byte>(startBuffer);
-				await crestronWebSocket.ReceiveAsync(startSignalBuffer, disposalTokenSource.Token);
-
-				//Get json data for a RequestConnectionModel
-				RequestConnectionModel requestModel = new RequestConnectionModel(name, location, type, currentSubname);
-
-				string json = JsonSerializer.Serialize(requestModel);
-				ArraySegment<byte> jsonArraySegment = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
-				//Send device data
-				await crestronWebSocket.SendAsync(jsonArraySegment, WebSocketMessageType.Text, true, disposalTokenSource.Token);
-
-				//Get found or not
-				byte[] foundBuffer = new byte[1024];
-				ArraySegment<byte> foundBytes = new ArraySegment<byte>(foundBuffer);
-				await crestronWebSocket.ReceiveAsync(foundBytes, disposalTokenSource.Token);
-				string found = Encoding.UTF8.GetString(foundBytes).TrimEnd('\0');
-
-				//Device was found
-				return found.ToLower().Equals("Found Device".ToLower());
-			}
-			catch (Exception) {
-				Console.WriteLine("Error when requesting a device");
-				return false;
-			}
-		}
-
-		/// <summary>
-		/// Handle being in the queue and update the position
-		/// </summary>
-		/// <returns></returns>
-		private async Task<bool> enterQueue() {
-			try {
-				//receive in queue
-				byte[] startQueueBytes = new byte[1024];
-				ArraySegment<byte> startQueueSegment = new ArraySegment<byte>(startQueueBytes);
-				await crestronWebSocket.ReceiveAsync(startQueueSegment, disposalTokenSource.Token);
-
-				while (!disposalTokenSource.IsCancellationRequested) {
-					QueueStatusModel queueStatus = null;
-					try {
-						//Receive a message
-						byte[] queueBytes = new byte[4098];
-						ArraySegment<byte> qSegment = new ArraySegment<byte>(queueBytes);
-						await crestronWebSocket.ReceiveAsync(qSegment, disposalTokenSource.Token);
-						string receivedJson = Encoding.UTF8.GetString(queueBytes).TrimEnd('\0');
-
-						queueStatus = JsonSerializer.Deserialize<QueueStatusModel>(receivedJson);
-
-						//If you have control return true
-						if (queueStatus != null && queueStatus.hasControl) {
-							Console.WriteLine("Received Control");
-							return true;
-						}
+		protected async Task stopCurrentConnection() {
+			//Close old connection
+			if (crestronWebsocket is not null) {
+				await crestronWebsocket.cancel();
+				Console.WriteLine("Waiting for task to end");
+				await currentConnectionTask.ContinueWith(task => {
+					switch (task.Status) {
+						case TaskStatus.Created:
+							break;
+						case TaskStatus.WaitingForActivation:
+							break;
+						case TaskStatus.WaitingToRun:
+							break;
+						case TaskStatus.Running:
+							break;
+						case TaskStatus.WaitingForChildrenToComplete:
+							break;
+						case TaskStatus.RanToCompletion:
+							break;
+						case TaskStatus.Canceled:
+							break;
+						case TaskStatus.Faulted:
+							break;
+						default:
+							throw new ArgumentOutOfRangeException();
 					}
-					catch (Exception) {
-						Console.WriteLine("Failed deserialize in queue");
-						return false;
-					}
-				}
-				return false;
+				});
+				Console.WriteLine("Task ended");
+				crestronWebsocket.Dispose();
 			}
-			catch (Exception) {
-				Console.WriteLine("Error occurred while in queue");
-				return false;
-			}
+			stateHasChanged();
 		}
 
-		#endregion socket
+#endregion Websokcet Communication
 
 		#region Events
 
@@ -362,5 +352,12 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		}
 
 		#endregion Events
+
+		/// <summary>
+		/// IUpdate implementation that allows other classes to update the state of this class
+		/// </summary>
+		public void stateHasChanged() {
+			StateHasChanged();
+		}
 	}
 }

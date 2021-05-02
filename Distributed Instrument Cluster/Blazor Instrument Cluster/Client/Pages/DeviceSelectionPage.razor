@@ -1,10 +1,6 @@
-﻿@using System.Net.Http
-@using Blazor_Instrument_Cluster.Shared
-@using Blazor_Instrument_Cluster.Client.Components
-@layout TopBarLayout
+﻿@layout TopBarLayout
 @inject HttpClient Http
 @inject NavigationManager navigationManager
-
 
 @page "/DeviceSelect"
 
@@ -24,7 +20,7 @@
     </div>
 </div>
 
-@if(!loading){
+@if (!loading) {
     <div id="ListConnected" class="" style="list-style: none">
         <ul>
             @if (devices != null) {
@@ -51,8 +47,7 @@ else {
     public string pathToApi = "api/ConnectedDevices";
     IEnumerable<DeviceModel> devices = null;
 
-    protected override async Task OnInitializedAsync()
-    {
+    protected override async Task OnInitializedAsync() {
         await fetchData();
     }
 

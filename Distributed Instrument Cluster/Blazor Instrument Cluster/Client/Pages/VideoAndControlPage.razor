@@ -1,30 +1,23 @@
-﻿@page "/VideoAndControl/{urlName}/{urlLocation}/{urlType}/{urlSubnames}/{urlVideoPorts}"
-@using Blazor_Instrument_Cluster.Client.Components.VirtualKeyboard;
+﻿@page "/VideoAndControl/{urlName}/{urlLocation}/{urlType}/{urlJsonCrestronConnection}/{urlVideoConnection}"
 @layout TopBarLayout
 
-<div class="container">
-    <KeyboardMouse urlName="@urlName" urlLocation="@urlLocation" urlType="@urlType" urlSubnames="@urlSubnames" @ref="keyboardMouse"></KeyboardMouse>
-    <div style="width: 1280px; height: 720px; position: relative">
-        <VideoMJPEG urlPortObject="@urlVideoPorts"></VideoMJPEG>
-    </div>
-    <div style="padding-top: 1em">
-        <VirtualKeyboard keyEvent="@handleKeyEvent"></VirtualKeyboard>
-    </div>
+<div style="width: 1280px; height: 720px; position: relative" class="container">
+    <KeyboardMouse urlName="@urlName" urlLocation="@urlLocation" urlType="@urlType" urlListSubconnections="@urlJsonCrestronConnection"></KeyboardMouse>
+    <VideoMJPEG urlJsonSubConnectionsList="@urlVideoConnection"></VideoMJPEG>
 </div>
-
 
 
 @code {
     [Parameter]
-    public string urlName { get; set; }                                        //Name of the wanted device
+    public string urlName { get; set; }
     [Parameter]
     public string urlLocation { get; set; }
     [Parameter]
     public string urlType { get; set; }
     [Parameter]
-    public string urlSubnames { get; set; }
+    public string urlJsonCrestronConnection { get; set; }
     [Parameter]
-    public string urlVideoPorts { get; set; }
+    public string urlVideoConnection { get; set; }
 
     private KeyboardMouse keyboardMouse;
 

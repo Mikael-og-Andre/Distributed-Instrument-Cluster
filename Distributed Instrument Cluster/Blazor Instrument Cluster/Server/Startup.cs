@@ -39,18 +39,16 @@ namespace Blazor_Instrument_Cluster.Server {
 		/// </summary>
 		/// <param name="services"></param>
 		public void configureServices(IServiceCollection services) {
+			
 			//MJPEG stream manager.
 			services.AddSingleton<MJPEGStreamManager>();
-
 			//Add Remote device connection tracker
-			services.AddSingleton<IRemoteDeviceManager, RemoteDeviceManager>();
-
+			services.AddSingleton<RemoteDeviceManager>();
 			//Start Connection listeners as background services
 			services.AddHostedService<VideoListenerService>();
 			services.AddHostedService<CrestronListenerService>();
-
 			//Add singletons for web socket handling
-			services.AddSingleton<ICrestronSocketHandler, CrestronWebsocketHandler>();
+			services.AddSingleton<CrestronWebsocketHandler>();
 
 			//Use controller
 			services.AddControllers();
@@ -90,8 +88,8 @@ namespace Blazor_Instrument_Cluster.Server {
 						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
 							var socketFinishedTcs = new TaskCompletionSource<object>();
 
-							var crestronWebsocketHandler = (CrestronWebsocketHandler)app.ApplicationServices.GetService<ICrestronSocketHandler>();
-							crestronWebsocketHandler.StartCrestronWebsocketProtocol(webSocket, socketFinishedTcs);
+							var crestronWebsocketHandler = (CrestronWebsocketHandler)app.ApplicationServices.GetService<CrestronWebsocketHandler>();
+							crestronWebsocketHandler?.startProtocol(webSocket, socketFinishedTcs);
 
 							await socketFinishedTcs.Task;
 						}

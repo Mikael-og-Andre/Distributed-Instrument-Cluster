@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace Blazor_Instrument_Cluster.Shared {
+namespace Blazor_Instrument_Cluster.Shared.DeviceSelection {
 
 	/// <summary>
 	/// Represents a device that can be connected to
@@ -16,12 +12,12 @@ namespace Blazor_Instrument_Cluster.Shared {
 		public string location { get; set; }
 		public string type { get; set; }
 
-		public List<SubDeviceModel> subDevice { get; set;}
+		public List<SubConnectionModel> subDevice { get; set;}
 
 		public DeviceModel() {
 	        
         }
-		public DeviceModel(string name, string location, string type, List<SubDeviceModel> subDeviceList) {
+		public DeviceModel(string name, string location, string type, List<SubConnectionModel> subDeviceList) {
 			this.name = name;
 			this.location = location;
 			this.type = type;

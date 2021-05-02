@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
+using Blazor_Instrument_Cluster.Shared.DeviceSelection;
 using PackageClasses;
 
 namespace Blazor_Instrument_Cluster.Server.Controllers {
@@ -29,7 +30,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		/// </summary>
 		/// <param name="services"></param>
 		public ConnectedDevicesController(IServiceProvider services) {
-			this.remoteDeviceManager = (RemoteDeviceManager)services.GetService<IRemoteDeviceManager>();
+			this.remoteDeviceManager = (RemoteDeviceManager)services.GetService<RemoteDeviceManager>();
 		}
 
 		/// <summary>
@@ -40,6 +41,9 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<DeviceModel>))]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		public IEnumerable<DeviceModel> getRemoteDevices() {
+
+			//Remove disconnected devices from list
+			remoteDeviceManager.removeDisconnectedSubConnections();
 			//Get list of video connections
 			List<RemoteDevice> listOfRemoteDevices = remoteDeviceManager.getListOfRemoteDevices();
 			if (listOfRemoteDevices.Any()) {
@@ -54,12 +58,12 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 						string deviceType = device.type;
 						
 						//Get sub devices
-                        List<SubDevice> subDeviceInfo = device.getSubDeviceList();
+                        List<SubConnection> subDeviceInfo = device.getListOfSubConnections();
 
 						//Create a list of models
-                        List<SubDeviceModel> modelList = new List<SubDeviceModel>();
-						foreach(SubDevice subDevice in subDeviceInfo){
-							modelList.Add(new SubDeviceModel(subDevice.videoDevice,subDevice.subname,subDevice.port,subDevice.streamType));
+                        List<SubConnectionModel> modelList = new List<SubConnectionModel>();
+						foreach(SubConnection subDevice in subDeviceInfo){
+							modelList.Add(new SubConnectionModel(subDevice.id,subDevice.videoDevice,subDevice.port,subDevice.streamType));
 						}
 
 

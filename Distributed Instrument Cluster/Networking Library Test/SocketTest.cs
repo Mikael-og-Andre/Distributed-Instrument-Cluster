@@ -46,14 +46,13 @@ namespace Networking_Library_Test {
 				Assert.AreEqual(obj.name, jsonObject.name);
 				Assert.AreEqual(obj.age, jsonObject.age);
 			}
-			connectingSocket.Dispose();
-			listenerSocket.Dispose();
+			
 		}
 
 		[TestMethod]
 		public void testStringSending() {
 			//Setup listener
-			IPEndPoint ipEnd = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4069);
+			IPEndPoint ipEnd = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 5676);
 			Socket listenerSocket = new Socket(ipEnd.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 			listenerSocket.Bind(ipEnd);
 			listenerSocket.Listen(10);
@@ -75,7 +74,7 @@ namespace Networking_Library_Test {
 
 			Thread.Sleep(1000);
 			Socket connectingSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-			connectingSocket.Connect(IPAddress.Parse("127.0.0.1"), 4069);
+			connectingSocket.Connect(IPAddress.Parse("127.0.0.1"), 5676);
 
 			foreach (var obj in listOfObjects) {
 				string str = NetworkingOperations.receiveStringWithSocket(connectingSocket);
@@ -160,8 +159,6 @@ namespace Networking_Library_Test {
 
 			//Streams
 			listeningSocket.Close();
-			receivingSocket.Dispose();
-			senderSocket.Dispose();
 		}
 	}
 }

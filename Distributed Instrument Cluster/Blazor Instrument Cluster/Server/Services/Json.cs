@@ -7,5 +7,7 @@
 		public string serverIP { get; set; }
 		public int crestronPort { get; set; }
 		public int videoPort { get; set; }
+
+		public int remoteDevicePort { get; set; }
 	}
 }

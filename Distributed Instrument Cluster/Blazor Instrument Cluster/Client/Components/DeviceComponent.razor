@@ -15,11 +15,26 @@
             <button @onclick="navigateToDevicePage" class="btn-dark">Select</button>
         </div>
     </div>
-    <div class="row">
-        @foreach (var subDev in deviceInfo.subDevice) {
-            <div class="col">
-                @subDev.subname
-            </div>
+    @{
+        int video = 0;
+        int control = 0;
+        foreach (var subDev in deviceInfo.subDevice) {
+            if (subDev.isVideoDevice) {
+                video++;
+            }
+            else {
+                control++;
+            }
         }
+    }
+    <div class="row">
+        <div class="col">
+            <p><b>Video Connections:</b> @video</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <p><b>Control Connections:</b> @control</p>
+        </div>
     </div>
 </li>
