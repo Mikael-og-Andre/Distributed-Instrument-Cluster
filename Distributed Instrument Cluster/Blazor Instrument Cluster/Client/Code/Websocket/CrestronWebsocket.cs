@@ -12,11 +12,10 @@ using System.Threading.Tasks;
 namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 
 	/// <summary>
-	/// Class for managing the websocket connection ot the backend
+	/// Class for managing the websocket connection to the backend
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	public class CrestronWebsocket : IDisposable {
-
 		/// <summary>
 		/// The last state received from the backend
 		/// </summary>
@@ -33,6 +32,11 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		private Uri connectionUri { get; set; }
 
 		/// <summary>
+		/// Interface for signaling updated state
+		/// </summary>
+		private IUpdate stateUpdater { get; set; }
+
+		/// <summary>
 		/// Token with id for controlling a crestron
 		/// </summary>
 		private ControlToken controlToken { get; set; }
@@ -40,7 +44,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		/// <summary>
 		/// Position in queue
 		/// </summary>
-		public string positionInQueue { get; set; }
+		private string positionInQueue { get;  set; }
 
 		/// <summary>
 		/// Queue for messages
@@ -63,20 +67,39 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		private bool isClosing { get; set; }
 
 		/// <summary>
+		/// is the connection closed
+		/// </summary>
+		public bool isStopped { get; private set; }
+
+		/// <summary>
+		/// Status of the crestron
+		/// </summary>
+		public string statusMsg { get; private set; }
+
+		/// <summary>
 		/// CrestronWebsocket
 		/// </summary>
 		/// <param name="connectionUri">Uri the websocket will connect to</param>
-		public CrestronWebsocket(Uri connectionUri) {
+		/// <param name="stateUpdater">IStateHasChanged object used to update states</param>
+		public CrestronWebsocket(Uri connectionUri,IUpdate stateUpdater = null) {
 			this.connectionUri = connectionUri;
 			this.controlToken = null;
 			this.positionInQueue = "waiting";
 			this.commandConcurrentQueue = new ConcurrentQueue<string>();
 			this.disconnectTime = DateTime.Now;
-			isClosing = false;
+			this.isClosing = false;
+			this.isStopped = false;
+			this.statusMsg = "Setting up";
+			this.stateUpdater = stateUpdater;
 		}
 
-		public void cancel() {
+		/// <summary>
+		/// Cancel the cancellation token
+		/// </summary>
+		public async Task cancel() {
+			await closeWebsocketAsync(webSocket, "Canceled", CancellationToken.None);
 			cancellationTokenSource.Cancel();
+
 		}
 
 		/// <summary>
@@ -91,8 +114,13 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 			CancellationToken ct = cancellationTokenSource.Token;
 			isClosing = false;
 			webSocket = new ClientWebSocket();
+			//Update state of the input IUpdate
+			updateState();
 
 			try {
+				this.statusMsg = "Connecting";
+				updateState();
+
 				//Connect
 				await webSocket.ConnectAsync(connectionUri, ct);
 
@@ -102,8 +130,10 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 
 					//Connection is closing
 					if (isClosing) {
+						this.statusMsg = "Disconnected";
+						updateState();
 						Console.WriteLine("Closing Crestron Websocket");
-						await closeWebsocketAsync(webSocket, "Closing", ct);
+						await closeWebsocketAsync(webSocket, "Closing",ct);
 						cancellationTokenSource.Cancel();
 						break;
 					}
@@ -115,10 +145,14 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 
 					switch (currentState) {
 						case CrestronWebsocketState.Requesting:
+							this.statusMsg = "Requesting Device";
+							updateState();
 							await handleRequestingAsync(deviceModel, subConnection, webSocket, ct);
 							break;
 
 						case CrestronWebsocketState.InQueue:
+							this.statusMsg = "Entering Queue";
+							updateState();
 							await handleInQueueAsync(webSocket, ct);
 							break;
 
@@ -127,6 +161,8 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 							break;
 
 						case CrestronWebsocketState.Disconnecting:
+							this.statusMsg = "Disconnected";
+							updateState();
 							handleDisconnectingAsync(webSocket, ct);
 							break;
 
@@ -136,9 +172,14 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 				}
 			}
 			catch (Exception e) {
+				this.statusMsg = "Disconnected";
+				isStopped = true;
+				updateState();
 				Console.WriteLine("startAsync exception: " + e.Message);
-				await closeWebsocketAsync(webSocket, "Error", ct);
+				await closeWebsocketAsync(webSocket, "Error",ct);
 			}
+			isStopped = true;
+			updateState();
 		}
 
 		/// <summary>
@@ -201,6 +242,8 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 
 				//Check if end signal
 				if (queuePos.Equals("Complete")) {
+					this.statusMsg = "Queue Complete";
+					updateState();
 					queuePos = "Position in queue: 0";
 					return;
 				}
@@ -213,6 +256,8 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 				try {
 					QueueStatusModel queueStatus = JsonSerializer.Deserialize<QueueStatusModel>(queuePos);
 					queuePos = "Position in queue: " + queueStatus.position;
+					this.statusMsg = queuePos;
+					updateState();
 					Console.WriteLine("Updating Queue: " + queuePos);
 					await Task.Delay(250, cancellationTokenSource.Token);
 				}
@@ -255,6 +300,8 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 			//Queue for incoming messages
 			ConcurrentQueue<string> commandQueue = commandConcurrentQueue;
 			Console.WriteLine("Entering control loop");
+			this.statusMsg = "Controlling";
+			updateState();
 			while (!ct.IsCancellationRequested) {
 				//check if connection is still ok
 				if (webSocket.State != WebSocketState.Open) {
@@ -351,12 +398,13 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		/// <summary>
 		/// Close the connection from any state
 		/// If close has been received, close only output
+		/// https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
 		/// </summary>
 		/// <param name="clientWebSocket"></param>
 		/// <param name="msg"></param>
 		/// <param name="ct"></param>
 		/// <returns></returns>
-		private async Task closeWebsocketAsync(ClientWebSocket clientWebSocket, string msg, CancellationToken ct) {
+		private async Task closeWebsocketAsync(ClientWebSocket clientWebSocket, string msg,CancellationToken ct) {
 			try {
 				switch (clientWebSocket.State) {
 					case WebSocketState.None:
@@ -367,7 +415,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 						break;
 
 					case WebSocketState.Open:
-						await clientWebSocket.CloseAsync(WebSocketCloseStatus.ProtocolError, msg, ct);
+						await clientWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, msg, ct);
 						break;
 
 					case WebSocketState.CloseSent:
@@ -389,8 +437,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 			}
 			catch (Exception e) {
 				Console.WriteLine("closeWebsocketAsync", e);
-				await clientWebSocket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "error", ct);
-				throw;
+				await clientWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "error", ct);
 			}
 		}
 
@@ -413,6 +460,16 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 			return Encoding.UTF32.GetString(stringBytes);
 		}
 
+		/// <summary>
+		/// Call update function on the passed in IUpdate if it is not null
+		/// </summary>
+		private void updateState() {
+			stateUpdater?.stateHasChanged();
+		}
+
+		/// <summary>
+		/// IDisposable to catch browser closure, so the server knows websocket is disconnected
+		/// </summary>
 		public void Dispose() {
 			webSocket?.Dispose();
 			cancellationTokenSource?.Dispose();

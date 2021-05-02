@@ -57,7 +57,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 							break;
 						case CrestronWebsocketState.Disconnecting:
 							await handleDisconnecting();
-							controllerInstance?.delete();
+							controllerInstance.delete();
 							tskCompletionSource.SetResult(new object());
 							return;
 
@@ -67,10 +67,11 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				}
 			}
 			catch (Exception e) {
-				Console.WriteLine("Exception in CrestronWebsocketBackend: ",e);
+				Console.WriteLine("Exception in CrestronWebsocketBackend: {0}",e.Message);
 			}
 			//remove device from list if it exists
 			controllerInstance?.delete();
+			tskCompletionSource.SetResult(new object());
 		}
 
 		private async Task<CrestronWebsocketState> handleRequesting() {
@@ -150,6 +151,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 					QueueStatusModel queueStatus = new QueueStatusModel(pos);
 					string queueJson = JsonSerializer.Serialize(queueStatus);
 					await sendString(webSocket, queueJson, cancellationTokenSource.Token);
+					await Task.Delay(1000, cancellationTokenSource.Token);
 				}
 			}
 

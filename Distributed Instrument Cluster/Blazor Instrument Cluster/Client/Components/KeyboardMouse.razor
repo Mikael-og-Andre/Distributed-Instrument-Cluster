@@ -25,16 +25,28 @@
                 </button>
             </div>
         }
+        else if (@crestronWebsocket.isStopped) {
+            <div class="col">
+                <button @onclick="this.connectToCrestronControl" class="btn btn-dark" style="width: 100%;">
+                    Request Control
+                </button>
+            </div>
+        }
         else {
             <div class="col">
-                <button @onclick="this.reconnectWithCrestron" class="btn btn-dark" style="width: 100%;">
-                    Reconnect
+                <button @onclick="this.stopCurrentConnection" class="btn btn-dark" style="width: 100%;">
+                    Disconnect
                 </button>
             </div>
         }
 
         <div class="col">
-            
+            @if (crestronWebsocket is null) {
+                <p><b>Status: </b> None</p>
+            }
+            else {
+                <p><b>Status:</b>@crestronWebsocket.statusMsg</p>
+            }
         </div>
         <div class="col">
             <select @bind="currentGuid">

@@ -19,7 +19,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 	/// Handles capturing pointer lock data, key events and sends it to a web socket.
 	/// <author>Mikael Nilssen, Andre Helland</author>
 	/// </summary>
-	public class KeyboardMouse : ComponentBase {
+	public class KeyboardMouse : ComponentBase, IUpdate {
 
 		[Inject]
 		private IJSRuntime JS { get; set; }
@@ -91,7 +91,13 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// </summary>
 		protected List<SubConnectionModel> controllerDeviceList = default;
 
+		/// <summary>
+		/// The current device id selected in the UI
+		/// used for requesting device from backend
+		/// </summary>
 		protected string currentGuid { get; set; }
+
+		protected Task currentConnectionTask { get; set; }
 
 		#region Lifecycle
 
@@ -202,11 +208,9 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 				logger.LogDebug("connectToCrestronControl: no current sub connection is selected");
 				return;
 			}
-			//stop any old connection
-			crestronWebsocket?.cancel();
-			crestronWebsocket?.Dispose();
+
 			//Crestron connection
-			crestronWebsocket = new CrestronWebsocket(uriCrestron);
+			crestronWebsocket = new CrestronWebsocket(uriCrestron,this);
 			SubConnectionModel subConnectionModel = default;
 
 			foreach (var subConnection in controllerDeviceList) {
@@ -215,19 +219,49 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 					break;
 				}
 			}
-
+			//Check if device from select is in list of devices
 			if (subConnectionModel is null) {
 				logger.LogDebug("connectToCrestron: Connection not found");
 				return;
 			}
-			await crestronWebsocket.startProtocol(deviceModel, subConnectionModel);
+			currentConnectionTask = crestronWebsocket.startProtocol(deviceModel, subConnectionModel);
+			stateHasChanged();
 		}
 
-		protected async Task reconnectWithCrestron() {
-			await connectToCrestronControl();
+		protected async Task stopCurrentConnection() {
+			//Close old connection
+			if (crestronWebsocket is not null) {
+				await crestronWebsocket.cancel();
+				Console.WriteLine("Waiting for task to end");
+				await currentConnectionTask.ContinueWith(task => {
+					switch (task.Status) {
+						case TaskStatus.Created:
+							break;
+						case TaskStatus.WaitingForActivation:
+							break;
+						case TaskStatus.WaitingToRun:
+							break;
+						case TaskStatus.Running:
+							break;
+						case TaskStatus.WaitingForChildrenToComplete:
+							break;
+						case TaskStatus.RanToCompletion:
+							break;
+						case TaskStatus.Canceled:
+							break;
+						case TaskStatus.Faulted:
+							break;
+						default:
+							throw new ArgumentOutOfRangeException();
+					}
+				});
+				Console.WriteLine("Task ended");
+				crestronWebsocket.Dispose();
+			}
+			stateHasChanged();
 		}
 
-		#endregion Websokcet Communication
+#endregion Websokcet Communication
 
 		#region Events
 
@@ -302,5 +336,12 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		}
 
 		#endregion Events
+
+		/// <summary>
+		/// IUpdate implementation that allows other classes to update the state of this class
+		/// </summary>
+		public void stateHasChanged() {
+			StateHasChanged();
+		}
 	}
 }

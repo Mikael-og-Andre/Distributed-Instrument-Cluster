@@ -162,18 +162,28 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// </summary>
 		public void removeDisconnectedSubConnections() {
 			lock (listRemoteDevices) {
+				List<RemoteDevice> remoteDevicesToRemove = new List<RemoteDevice>();
 				foreach (var remoteDevice in listRemoteDevices) {
 					//Check sub connections for disconnected sockets, remove it if it is disconnected
+					List<SubConnection> connectionsToRemove = new List<SubConnection>();
 					foreach (var subConnection in remoteDevice.getListOfSubConnections()) {
 						bool isConnected = subConnection.connection.isSocketConnected();
 						if (!isConnected) {
-							remoteDevice.getListOfSubConnections().Remove(subConnection);
+							connectionsToRemove.Add(subConnection);
 						}
 					}
-					//If a remote device no longer has sub connections remove it
-					if (remoteDevice.getListOfSubConnections().Count < 1) {
-						listRemoteDevices.Remove(remoteDevice);
+					//remove connections
+					foreach (var connection in connectionsToRemove) {
+						remoteDevice.getListOfSubConnections().Remove(connection);
 					}
+					//If a remote device no longer has sub connections add to list of remote devices to remove
+					if (remoteDevice.getListOfSubConnections().Count < 1) {
+						remoteDevicesToRemove.Add(remoteDevice);
+					}
+				}
+				//remove remote devices
+				foreach (var remoteDevice in remoteDevicesToRemove) {
+					listRemoteDevices.Remove(remoteDevice);
 				}
 			}
 		}
