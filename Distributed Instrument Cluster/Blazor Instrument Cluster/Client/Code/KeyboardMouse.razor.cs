@@ -34,12 +34,6 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		public ILogger<KeyboardMouse> logger { get; set; }
 
 		/// <summary>
-		/// Url encoded string with name
-		/// </summary>
-		[Parameter]
-		public string urlName { get; set; }
-
-		/// <summary>
 		/// Url encoded string with location
 		/// </summary>
 		[Parameter]

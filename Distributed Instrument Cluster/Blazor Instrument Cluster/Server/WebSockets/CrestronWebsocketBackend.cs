@@ -57,7 +57,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 							break;
 						case CrestronWebsocketState.Disconnecting:
 							await handleDisconnecting();
-							controllerInstance.delete();
+							controllerInstance?.delete();
 							tskCompletionSource.SetResult(new object());
 							return;
 
