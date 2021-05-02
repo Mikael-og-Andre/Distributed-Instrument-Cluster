@@ -106,7 +106,6 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 					case TaskStatus.Faulted:
 						Console.WriteLine("Video provider task Ended with state Faulted");
 						Exception exception = task.Exception?.Flatten();
-						if (exception != null) throw exception;
 						break;
 
 					default:

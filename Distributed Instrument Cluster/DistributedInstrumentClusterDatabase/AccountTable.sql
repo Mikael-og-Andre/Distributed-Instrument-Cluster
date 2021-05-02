@@ -1,0 +1,8 @@
+﻿CREATE TABLE [dbo].[AccountTable]
+(
+	[AccountID] INT NOT NULL IDENTITY(1,1) PRIMARY KEY, 
+    [Email] VARCHAR(MAX) UNIQUE NOT NULL, 
+    [Password] VARCHAR(50) NOT NULL, 
+    [Date] DATETIME NOT NULL DEFAULT GETDATE(), 
+    [Confirmed] BIT NOT NULL DEFAULT 0
+)

@@ -126,7 +126,7 @@ namespace Networking_Library {
 				//Get size of incoming bytes
 				byte[] sizeBytes = new byte[sizeof(int)];
 				await stream.ReadAsync(sizeBytes, 0, sizeBytes.Length);
-				Thread.Sleep(2);
+				Thread.Sleep(20);
 				int size = BitConverter.ToInt32(sizeBytes);
 
 				//Receive byte array

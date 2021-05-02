@@ -63,6 +63,7 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		/// <param name="stoppingToken"></param>
 		/// <returns></returns>
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+			await Task.Delay(100);
 			Task listenerTask = listenerLoop(stoppingToken).ContinueWith(task => {
 				switch (task.Status) {
 					case TaskStatus.RanToCompletion:
@@ -108,10 +109,10 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 						logger.LogWarning("Video incomingConnectionTask ended without the status canceled, faulted, or ran to completion");
 						break;
 				}
-
 				//Do something when ended
-
 			}, stoppingToken);
+
+			
 		}
 
 		private async Task listenerLoop(CancellationToken stoppingToken) {
