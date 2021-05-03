@@ -186,8 +186,17 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			//Run the provider
 			while (!streamCancellationToken.IsCancellationRequested) {
 				try {
-					byte[] img = await connection.receiveBytesAsync();
-					stream.Image = img;
+					byte[] bytes = await connection.receiveBytesAsync();
+					var length = BitConverter.ToInt32(bytes);
+					List<byte> image = new();
+
+					while (image.Count < length) {
+						var receiveBytes = await connection.receiveBytesAsync();
+						foreach (var receiveByte in receiveBytes) image.Add(receiveByte);
+					}
+
+
+					stream.Image = image.ToArray();
 				}
 				catch (Exception) {
 					//Stop provider
