@@ -1,15 +1,73 @@
 ﻿@using Blazor_Instrument_Cluster.Client.Components.VirtualKeyboard;
+@using System.Net
+@using System.Text
+@layout TopBarLayout
+@inject HttpClient Http
+@inject NavigationManager navigationManager
 @page "/Test"
 <h3>test</h3>
 
 
 <div style="width: 1280px; height: 720px; position: relative" class="container">
     <VirtualKeyboard></VirtualKeyboard>
+    <img src="@imagePath"/>
 </div>
 
 
 
 
 @code {
+
+    private Uri imagePath;
+
+    private byte[] image;
+
+    private bool loading = false;
+
+    public string pathToApi = "api/ConnectedDevices";
+    IEnumerable<DeviceModel> devices = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await fetchData();
+        await fetchData2();
+
+        imagePath = new Uri(navigationManager.BaseUri + "api/MJPEG/test");
+    }
+
+    protected async Task fetchData()
+    {
+        loading = true;
+        StateHasChanged();
+        string uriBase = navigationManager.BaseUri;
+        string path = uriBase + pathToApi;
+        try
+        {
+            devices = await Http.GetFromJsonAsync<IEnumerable<DeviceModel>>(new Uri(path));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Exception thrown: " + ex.Message);
+            loading = false;
+        }
+        loading = false;
+    }
+
+    protected async Task fetchData2() {
+        try {
+            var temp = await Http.GetByteArrayAsync(new Uri(navigationManager.BaseUri + "api/MJPEG/test"));
+            Console.WriteLine(Encoding.ASCII.GetString(temp));
+            image = temp;
+            
+        }
+        catch (Exception e) {
+            Console.WriteLine(e);
+            throw;
+        }
+
+
+
+
+    }
 
 }

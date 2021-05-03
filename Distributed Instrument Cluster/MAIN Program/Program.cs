@@ -36,7 +36,7 @@ namespace MAIN_Program {
 		}
 
 		private Program(string configFile) {
-			Thread.Sleep(10000);
+			//Thread.Sleep(10000);
 			var json = parsConfigFile(configFile);
 
 
@@ -115,6 +115,7 @@ namespace MAIN_Program {
 
 			//Try to set up communication socket.
 			var communicator = serialCable.communicator;
+			Exception exception = default;
 			try {
 				await setupCrestronCommunicator(communicator.ip, communicator.port,communicator.accessHash).ContinueWith(
 					task => {
@@ -134,7 +135,7 @@ namespace MAIN_Program {
 							case TaskStatus.Canceled:
 								break;
 							case TaskStatus.Faulted:
-								if (task.Exception != null) throw task.Exception;
+								if (task.Exception != null) exception = task.Exception;
 								break;
 							default:
 								throw new ArgumentOutOfRangeException();
@@ -144,6 +145,12 @@ namespace MAIN_Program {
 				writeWarning("Failed to connect to server.");
 				return false;
 			}
+
+			if (exception is not null) {
+				writeWarning("Failed to connect to server.");
+				return false;
+			}
+
 
 			try {
 				var serialPort = new SerialPortInterface(serialCable.portName);
