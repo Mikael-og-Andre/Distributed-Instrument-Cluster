@@ -285,24 +285,7 @@ namespace MAIN_Program {
 			while (true) {
 				try {
 					var jpg = device.readJpg(quality);
-
-					await connection.sendBytesAsync(BitConverter.GetBytes(jpg.Length));
-					var sizeLimit = 5000;
-
-					for (var j = 0; j < (int) Math.Ceiling(jpg.Length / (decimal) sizeLimit); j++) {
-						byte[] bs;
-						var rangeStart = (int)j * sizeLimit;
-						var rangeEnd = (int)(j + 1) * sizeLimit;
-						try {
-							bs = jpg[rangeStart..rangeEnd];
-						}
-						catch {
-							bs = jpg[rangeStart..jpg.Length];
-						}
-
-						await connection.sendBytesAsync(bs);
-					}
-					//await connection.sendBytesAsync(jpg);
+					await connection.sendBytesAsync(jpg);
 				} catch (Exception e) {
 					Console.WriteLine(e);
 				}
