@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Packet_Classes\Packet_Classes.csproj" />
+    <ProjectReference Include="..\Server_Library\Server_Library.csproj" />
+  </ItemGroup>
+
+</Project>
