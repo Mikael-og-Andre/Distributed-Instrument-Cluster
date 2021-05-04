@@ -19,8 +19,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Communication", "Communicat
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{6ADC0D1E-394F-4595-B8D2-7A96F8A31B15}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{0D951003-BCFC-42D4-9BD6-90F50E934933}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron_Demo", "Crestron_Demo\Crestron_Demo.csproj", "{6B09E076-A62D-43E1-85EB-0734732492E9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrestronReceiver", "CrestronReceiver\CrestronReceiver.csproj", "{60D9AF6B-BDE5-4ACD-867F-7F944727DB49}"
@@ -55,16 +53,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron_Test", "Crestron_T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Video Library", "Video Library\Video Library.csproj", "{4C95A439-4AAB-434A-A66B-7FE70D1C3232}"
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{623231A7-8D12-4D4E-BEC3-C5460E5554ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0D951003-BCFC-42D4-9BD6-90F50E934933}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0D951003-BCFC-42D4-9BD6-90F50E934933}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0D951003-BCFC-42D4-9BD6-90F50E934933}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0D951003-BCFC-42D4-9BD6-90F50E934933}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6B09E076-A62D-43E1-85EB-0734732492E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6B09E076-A62D-43E1-85EB-0734732492E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B09E076-A62D-43E1-85EB-0734732492E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -133,6 +129,10 @@ Global
 		{4C95A439-4AAB-434A-A66B-7FE70D1C3232}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C95A439-4AAB-434A-A66B-7FE70D1C3232}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C95A439-4AAB-434A-A66B-7FE70D1C3232}.Release|Any CPU.Build.0 = Release|Any CPU
+		{623231A7-8D12-4D4E-BEC3-C5460E5554ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{623231A7-8D12-4D4E-BEC3-C5460E5554ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{623231A7-8D12-4D4E-BEC3-C5460E5554ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{623231A7-8D12-4D4E-BEC3-C5460E5554ED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
