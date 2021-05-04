@@ -6,6 +6,7 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
     <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
+    <StartupObject>Blazor_Instrument_Cluster.Server.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

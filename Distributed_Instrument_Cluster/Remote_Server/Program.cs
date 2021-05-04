@@ -28,6 +28,7 @@ namespace MAIN_Program {
 		private readonly List<VideoConnection> videoConnections = new();
 		private CommandParser commandParser;
 		private DuplexClientAsync crestronClient;
+		private JsonClasses.ServerSettings serverSettings;
 
 		private static string configFile = "config.json";
 		private static void Main(string[] args) {
@@ -36,14 +37,12 @@ namespace MAIN_Program {
 		}
 
 		private Program(string configFile) {
-			Thread.Sleep(10000);
 			var json = parsConfigFile(configFile);
 
-
-			//while (!setupSerialCable(json.serialCable).Result) {
-			//	Thread.Sleep(3000);
-			//	Console.WriteLine("Retrying...");
-			//}
+			while (!setupSerialCable(json.crestronCable).Result) {
+				Thread.Sleep(3000);
+				Console.WriteLine("Retrying...");
+			}
 
 			List<Task> videoSetupTasks = new List<Task>();
 			foreach (var device in json.videoDevices) {
@@ -54,7 +53,7 @@ namespace MAIN_Program {
 			Task.WhenAll(videoSetupTasks).Wait();
 
 			//Start crestron command relay thread. (this should be event based as an optimal solution).
-			//var relayThread = this.relayThread();
+			var relayThread = this.relayThread();
 			
 			//Start video relay threads. 
 			for (int i = 0; i < videoConnections.Count; i++) {
@@ -79,7 +78,7 @@ namespace MAIN_Program {
 			Console.WriteLine("Parsing config file...");
 			var jsonString = File.ReadAllText(file);
 			var json = JsonSerializer.Deserialize<JsonClasses>(jsonString);
-
+			serverSettings = json.serverSettings;
 			writeSuccess("Read config file.");
 			return json;
 		}
@@ -110,14 +109,14 @@ namespace MAIN_Program {
 		/// </summary>
 		/// <param name="port">Com port to connect to.</param>
 		/// <returns>If setup was successful.</returns>
-		private async Task<bool> setupSerialCable(JsonClasses.SerialCable serialCable) {
+		private async Task<bool> setupSerialCable(JsonClasses.CrestronCable crestronCable) {
 			Console.WriteLine("Initializing serial cable...");
 
 			//Try to set up communication socket.
-			var communicator = serialCable.communicator;
+			var deviceInfo = crestronCable.deviceInfo;
 			Exception exception = default;
 			try {
-				await setupCrestronCommunicator(communicator.ip, communicator.port,communicator.accessHash).ContinueWith(
+				await setupCrestronCommunicator(serverSettings.ip, serverSettings.crestronPort, deviceInfo.accessHash).ContinueWith(
 					task => {
 						switch (task.Status) {
 							case TaskStatus.Created:
@@ -153,8 +152,8 @@ namespace MAIN_Program {
 
 
 			try {
-				var serialPort = new SerialPortInterface(serialCable.portName);
-				commandParser = new CommandParser(serialPort, serialCable.largeMagnitude, serialCable.smallMagnitude, serialCable.maxDelta);
+				var serialPort = new SerialPortInterface(crestronCable.portName);
+				commandParser = new CommandParser(serialPort, crestronCable.largeMagnitude, crestronCable.smallMagnitude, crestronCable.maxDelta);
 
 				//NumLock check may be unnecessary.
 				var task = Task.Run(() => numLockCheck(serialPort));
@@ -172,12 +171,12 @@ namespace MAIN_Program {
 				//Release all keys.
 				serialPort.SendBytes(0x38);
 			} catch {
-				writeWarning("Failed to connect to port: " + serialCable.portName);
+				writeWarning("Failed to connect to port: " + crestronCable.portName);
 				writeWarning($"Available ports: {string.Join(",",SerialPortInterface.GetAvailablePorts())}");
 				return false;
 			}
 
-			writeSuccess("Successfully connected to port: " + serialCable.portName);
+			writeSuccess("Successfully connected to port: " + crestronCable.portName);
 			return true;
 		}
 
@@ -203,10 +202,10 @@ namespace MAIN_Program {
 			Console.WriteLine($"Initializing video device{device.deviceIndex}...");
 
 			//Try to set up communication socket.
-			var communicator = device.communicator;
+			var deviceInfo = device.deviceInfo;
 			DuplexClientAsync connection;
 			try {
-				connection = await setupVideoCommunicator(communicator.ip, communicator.port,communicator.accessHash);
+				connection = await setupVideoCommunicator(serverSettings.ip, serverSettings.videoPort,deviceInfo.accessHash);
 			}
 			catch (Exception e) {
 				writeWarning("Failed to connect to server.");

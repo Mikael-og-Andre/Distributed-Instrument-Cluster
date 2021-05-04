@@ -8,15 +8,16 @@ namespace MAIN_Program {
 	/// <author>Andre Helland</author>
 	internal class JsonClasses {
 
-		public SerialCable serialCable { get; set; }
+		public CrestronCable crestronCable { get; set; }
 		public List<VideoDevice> videoDevices { get; set; }
+		public ServerSettings serverSettings { get; set; }
 
-		public class SerialCable {
+		public class CrestronCable {
 			public string portName { get; set; }
 			public int largeMagnitude { get; set; }
 			public int smallMagnitude { get; set; }
 			public int maxDelta { get; set; }
-			public Communicator communicator { get; set; }
+			public DeviceInfo deviceInfo { get; set; }
 		}
 
 		public class VideoDevice {
@@ -26,13 +27,18 @@ namespace MAIN_Program {
 			public int height { get; set; }
 			public int quality { get; set; }
 			public int fps { get; set; }
-			public Communicator communicator { get; set; }
+			public DeviceInfo deviceInfo { get; set; }
 
 		}
 
-		public class Communicator {
+		public class ServerSettings {
 			public string ip { get; set; }
-			public int port { get; set; }
+			public int crestronPort { get; set; }
+			public int videoPort { get; set; }
+
+		}
+
+		public class DeviceInfo {
 			public string name { get; set; }
 			public string location { get; set; }
 			public string type { get; set; }
