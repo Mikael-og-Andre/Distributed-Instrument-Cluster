@@ -1,22 +1,23 @@
-﻿using Crestron_Library;
-using Server_Library;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Crestron_Library;
+using MAIN_Program;
 using OpenCvSharp;
-using Server_Library.Authorization;
-using Server_Library.Socket_Clients;
-using Video_Library;
 using Packet_Classes;
+using Remote_Server.Crestron;
+using Server_Library.Authorization;
+using Server_Library.Server_Listeners.Async;
 using Server_Library.Socket_Clients.Async;
+using Video_Library;
 
-namespace MAIN_Program {
+namespace Remote_Server {
 
 	/// <summary>
 	/// Main class for starting the system controlling data flow between hardware side libraries
@@ -27,38 +28,40 @@ namespace MAIN_Program {
 	internal class Program {
 		private readonly List<VideoConnection> videoConnections = new();
 		private CommandParser commandParser;
-		private DuplexClientAsync crestronClient;
 		private JsonClasses.ServerSettings serverSettings;
 
 		private static string configFile = "config.json";
+
+
+		private CrestronListener crestronListener { get; set; }
+
+
+
 		private static void Main(string[] args) {
 			parsArgs(args);
 			_ = new Program(configFile);
 		}
 
 		private Program(string configFile) {
+
+			TestCrestron crestron = new TestCrestron();
+
+			//Start crestron listener
+			crestronListener = new CrestronListener(new IPEndPoint(IPAddress.Any, 6981),crestron);
+			Task crestronListenerTask = crestronListener.run();
+
+
+
 			var json = parsConfigFile(configFile);
 
-			while (!setupSerialCable(json.crestronCable).Result) {
-				Thread.Sleep(3000);
-				Console.WriteLine("Retrying...");
-			}
-
-			List<Task> videoSetupTasks = new List<Task>();
-			foreach (var device in json.videoDevices) {
-				Task task = Task.Run(async () => await setupVideoDevice(device));
-				videoSetupTasks.Add(task);
-			}
-
-			Task.WhenAll(videoSetupTasks).Wait();
-
-			//Start crestron command relay thread. (this should be event based as an optimal solution).
-			var relayThread = this.relayThread();
+			//while (!setupSerialCable(json.crestronCable).Result) {
+			//	Thread.Sleep(3000);
+			//	Console.WriteLine("Retrying...");
+			//}
 			
-			//Start video relay threads. 
-			for (int i = 0; i < videoConnections.Count; i++) {
-				Task videoSendingTasks = videoThread(i);
-			}
+			////Start crestron command relay thread. (this should be event based as an optimal solution).
+			//var relayThread = this.relayThread();
+			
 
 			//Start CLI loop.
 			while (true) {
@@ -244,9 +247,7 @@ namespace MAIN_Program {
 			string crestronIP = ip;
 			int crestronPort = port;
 			AccessToken accessToken = new AccessToken(accessHash);
-
-			crestronClient = new DuplexClientAsync(ip, port, accessToken);
-			await crestronClient.setup();
+			
 		}
 
 		#endregion setup methods
@@ -259,9 +260,7 @@ namespace MAIN_Program {
 		private async Task relayThread() {
 			while (true) {
 				try {
-					byte[] bytes = await crestronClient.receiveBytesAsync();
-					var msg = JsonSerializer.Deserialize<CrestronCommand>(Encoding.UTF32.GetString(bytes)).msg;
-					commandParser.pars(msg);
+					
 				}
 				catch (Exception e) {
 					Console.WriteLine(e);
