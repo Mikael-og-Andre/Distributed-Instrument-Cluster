@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -44,10 +45,10 @@ namespace Remote_Server {
 
 		private Program(string configFile) {
 
+			//Testing class
 			TestCrestron crestron = new TestCrestron();
-
 			//Start crestron listener
-			crestronListener = new CrestronListener(new IPEndPoint(IPAddress.Any, 6981),crestron);
+			crestronListener = new CrestronListener(new IPEndPoint(IPAddress.Parse("0.0.0.0"), 6981), crestron);
 			Task crestronListenerTask = crestronListener.run();
 
 

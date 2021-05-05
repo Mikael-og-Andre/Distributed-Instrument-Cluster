@@ -32,11 +32,6 @@ namespace Server_Library.Server_Listeners.Async {
 		/// </summary>
 		protected readonly CancellationTokenSource cancellationTokenSource;
 
-		/// <summary>
-		/// Stack of incoming connections
-		/// </summary>
-		private ConcurrentStack<ConnectionBaseAsync> stackIncomingConnection;
-		/// <summary>
 		/// List of all started Tasks for handling connected devices
 		/// </summary>
 		public List<(Task,ConnectionBaseAsync)> connectionTasksList { get; set; }
@@ -52,7 +47,6 @@ namespace Server_Library.Server_Listeners.Async {
 			cancellationTokenSource = new CancellationTokenSource();
 
 			//Init data structs
-			stackIncomingConnection = new ConcurrentStack<ConnectionBaseAsync>();
 			connectionTasksList = new List<(Task,ConnectionBaseAsync)>();
 		}
 
@@ -78,9 +72,6 @@ namespace Server_Library.Server_Listeners.Async {
 
 				//Creates a new Task to run a client communication on
 				Task connectionTask = handleIncomingConnectionAsync(newClientConnection);
-				
-				//add connection as incoming connection on the stack
-				stackIncomingConnection.Push(newClientConnection);
 
 				//Add to list of running connection tasks
 				lock (connectionTasksList) {
@@ -127,29 +118,6 @@ namespace Server_Library.Server_Listeners.Async {
 
 			//Create connection with overriden method from child
 			return createConnectionType(socket, accessToken);
-		}
-
-		/// <summary>
-		/// push a connection to the stack
-		/// </summary>
-		/// <param name="connection"></param>
-		protected void addConnectionToStack(ConnectionBaseAsync connection) {
-			stackIncomingConnection.Push(connection);
-		}
-
-		/// <summary>
-		/// Get a connection from the stack of incoming accepted connections
-		/// </summary>
-		/// <param name="output">Connection of a child class of ConnectionBase</param>
-		/// <returns>True if object was found</returns>
-		public bool getIncomingConnection(out ConnectionBaseAsync output) {
-			if (stackIncomingConnection.TryPop(out ConnectionBaseAsync result)) {
-				output = result;
-				return true;
-			}
-
-			output = default;
-			return false;
 		}
 
 		/// <summary>

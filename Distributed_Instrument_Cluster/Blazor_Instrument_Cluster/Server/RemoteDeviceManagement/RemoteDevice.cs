@@ -5,9 +5,13 @@ using Server_Library.Authorization;
 using Server_Library.Connection_Types.Async;
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
+using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement.Interface;
 using Blazor_Instrument_Cluster.Shared.Websocket;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Video_Library;
 
 namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
@@ -16,10 +20,23 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 	/// A remote device connected to the server
 	/// Stores data about connections belonging to each device, and the providers
 	/// </summary>
-	public class RemoteDevice {
+	public class RemoteDevice : IRemoteDeviceStatus{
 
 		/// <summary>
-		/// Top level name of the device
+		/// Device id
+		/// </summary>
+		public int id { get; set; }
+		
+		/// <summary>
+		/// Internet address of the remote device
+		/// </summary>
+		private string ip { get; set; }
+
+		private int crestronPort { get; set; }
+		private int videoPort { get; set; }
+
+		/// <summary>
+		/// name of the device
 		/// </summary>
 		public string name { get; set; }
 
@@ -34,217 +51,122 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		public string type { get; set; }
 
 		/// <summary>
-		/// Access token received when establishing a connection
+		/// Access token sent when establishing a connection
 		/// </summary>
 		public AccessToken accessToken { get; private set; }
 
 		/// <summary>
-		/// List of sending connections for the device
+		/// Handles one time control of the crestron device
 		/// </summary>
-		private List<DuplexConnectionAsync> listCrestronConnections;
+		private ControlHandler controlHandler { get; set; }
 
 		/// <summary>
-		/// List of control handlers for the crestron connections
+		/// Crestron client
 		/// </summary>
-		private List<ControlHandler> listControlHandlers;
+		private CrestronClient crestronClient { get; set; }
 
 		/// <summary>
-		/// List of Receiving connections for the device
+		/// Does the remote device have a crestron
 		/// </summary>
-		private List<DuplexConnectionAsync> listVideoConenctions;
+		private bool _hasCrestron { get; set; }
 
 		/// <summary>
-		/// Tasks that reads bytes from the socket and send them to the mjpeg stream
+		/// Constructor with crestron
 		/// </summary>
-		private List<Task> listVideoTasks;
-
-		/// <summary>
-		/// List of sub devices
-		/// </summary>
-		private List<SubConnection> listOfSubconnections;
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
+		/// <param name="crestronPort"></param>
+		/// <param name="videoPort"></param>
 		/// <param name="name"></param>
 		/// <param name="location"></param>
 		/// <param name="type"></param>
-		public RemoteDevice(string name, string location, string type, AccessToken accessToken) {
+		/// <param name="id"></param>
+		/// <param name="ip"></param>
+		public RemoteDevice(int id,string ip,int crestronPort,int videoPort,string name, string location, string type, AccessToken accessToken) {
+			this.id = id;
+			this.ip = ip;
+			this.crestronPort = crestronPort;
+			this.videoPort = videoPort;
 			this.name = name;
 			this.location = location;
 			this.type = type;
 			this.accessToken = accessToken;
-			this.listCrestronConnections = new List<DuplexConnectionAsync>();
-			this.listControlHandlers = new List<ControlHandler>();
-			this.listVideoConenctions = new List<DuplexConnectionAsync>();
-			this.listVideoTasks = new List<Task>();
-			this.listOfSubconnections = new List<SubConnection>();
+			this._hasCrestron = true;
+			this.crestronClient = new CrestronClient(ip,crestronPort,accessToken);
+			this.controlHandler = new ControlHandler(crestronClient);
 		}
 
 		/// <summary>
-		/// Adds a video connection to the list of video connections for this remote device and start its corresponding stream
+		/// Constructor without crestron
 		/// </summary>
-		/// <param name="connection"></param>
-		/// <param name="streamer"></param>
-		public async Task addVideoConnectionToDevice(DuplexConnectionAsync connection, MJPEG_Streamer streamer) {
-			lock (listVideoConenctions) {
-				listVideoConenctions.Add(connection);
-			}
-			//Add sub device
-			await addVideoConnectionAsync(connection, streamer);
-			////Start a provider to run asynchronously pushing frames to the stream
-			Task videoProviderTask = startVideoFrameProviderAsync(connection, streamer).ContinueWith(task => {
-				switch (task.Status) {
-					case TaskStatus.RanToCompletion:
-						Console.WriteLine("Video provider task Ended with state RanToCompletion");
-						break;
-
-					case TaskStatus.Canceled:
-						Console.WriteLine("Video provider task Ended with state cancel");
-						break;
-
-					case TaskStatus.Faulted:
-						Console.WriteLine("Video provider task Ended with state Faulted");
-						Exception exception = task.Exception?.Flatten();
-						break;
-
-					default:
-						Console.WriteLine("Video provider task ended without the status canceled, faulted, or ran to completion");
-						break;
-				}
-
-				//Do something when ended
-			});
-			lock (listVideoTasks) {
-				listVideoTasks.Add(videoProviderTask);
-			}
+		/// <param name="videoPort"></param>
+		/// <param name="name"></param>
+		/// <param name="location"></param>
+		/// <param name="type"></param>
+		/// <param name="id"></param>
+		/// <param name="ip"></param>
+		public RemoteDevice(int id,string ip,int videoPort,string name, string location, string type, AccessToken accessToken) {
+			this.id = id;
+			this.ip = ip;
+			this.crestronPort = crestronPort;
+			this.videoPort = videoPort;
+			this.name = name;
+			this.location = location;
+			this.type = type;
+			this.accessToken = accessToken;
+			this._hasCrestron = false;
+			this.crestronClient = default;
+			this.controlHandler = default;
 		}
 
 		/// <summary>
-		/// Adds a sending connection tot he list of sending connections for this remote device
+		/// Does the remote device have a crestron connection
 		/// </summary>
-		public void addControlConnectionAsync(DuplexConnectionAsync connection) {
-			lock (listCrestronConnections) {
-				listCrestronConnections.Add(connection);
-			}
-			//Add connection to connection
-			SubConnection subConnection = addControlConnection(connection);
-			//create handler
-			createControlHandler(subConnection);
+		/// <returns>True if crestron is set</returns>
+		public bool hasCrestron() {
+			return this._hasCrestron;
 		}
 
 		/// <summary>
-		/// Add a Video connection to the remote device
+		/// Create a controller instance for the crestronConnection
 		/// </summary>
-		/// <param name="connection"></param>
-		/// <param name="streamer"></param>
-		private async Task addVideoConnectionAsync(DuplexConnectionAsync connection, MJPEG_Streamer streamer) {
-			string streamtype = "Mjpeg";
-			//Wait for a port to be assigned in the streamer
-			while (!streamer.isPortSet) {
-				await Task.Delay(100);
-			}
-
-			//Add a sub device
-			lock (listOfSubconnections) {
-				listOfSubconnections.Add(new SubConnection(connection, true,
-					streamer.portNumber, streamtype));
+		/// <returns>ControllerInstance</returns>
+		public ControllerInstance createControllerInstance() {
+			lock (controlHandler) {
+				return controlHandler.createControllerInstance();
 			}
 		}
 
 		/// <summary>
-		/// Add a Control connection to the remote device
-		/// </summary>
-		/// <param name="connection"></param>
-		private SubConnection addControlConnection(DuplexConnectionAsync connection) {
-			SubConnection subConnection = new SubConnection(connection);
-			lock (listOfSubconnections) {
-				listOfSubconnections.Add(subConnection);
-			}
-
-			return subConnection;
-		}
-
-		/// <summary>
-		/// Adds a control handler for a crestron connection
-		/// </summary>
-		/// <param name="subConnection"></param>
-		private void createControlHandler(SubConnection subConnection) {
-			lock (listControlHandlers) {
-				ControlHandler controlHandler = new ControlHandler(subConnection);
-				listControlHandlers.Add(controlHandler);
-			}
-		}
-
-		/// <summary>
-		/// start a task that Pushes objects from the receiving connection to the stream
-		/// </summary>
-		/// <param name="connection"></param>
-		/// <param name="stream"></param>
-		private async Task startVideoFrameProviderAsync(DuplexConnectionAsync connection, MJPEG_Streamer stream) {
-			CancellationToken streamCancellationToken = stream.getCancellationToken();
-			//Run the provider
-			while (!streamCancellationToken.IsCancellationRequested) {
-				try {
-					byte[] img = await connection.receiveBytesAsync();
-					stream.Image = img;
-				}
-				catch (Exception) {
-					//Stop provider
-					stream.Dispose();
-					throw;
-				}
-			}
-		}
-
-		/// <summary>
-		/// Get a list of sub device
+		/// Get crestron client
 		/// </summary>
 		/// <returns></returns>
-		public List<SubConnection> getListOfSubConnections() {
-			lock (listOfSubconnections) {
-				return listOfSubconnections;
-			}
+		public CrestronClient getCrestronClient() {
+			return crestronClient;
 		}
 
-		/// <summary>
-		/// Create a controller instance for the subConnection
-		/// </summary>
-		/// <param name="subConnection"></param>
-		/// <param name="controllerInstance"></param>
-		/// <returns>True if found</returns>
-		public bool createControllerInstance(SubConnection subConnection, out ControllerInstance controllerInstance) {
-			lock (listControlHandlers) {
-				foreach (var handler in listControlHandlers) {
-					Guid handlerId = handler.id;
-					if (handlerId.Equals(subConnection.id)) {
-						ControllerInstance controller =handler.createControllerInstance();
-						controllerInstance = controller;
-						return true;
-					}
-				}
+#region Interface impl
+
+		public bool isConnected() {
+			return crestronClient.isSocketConnected();
+		}
+
+		public void disconnect() {
+			crestronClient.disconnect();
+		}
+
+		public async Task reconnect() {
+			await crestronClient.connectAsync();
+		}
+
+		public bool ping(int pingTimeout) {
+			Ping ping = new Ping();
+			PingReply reply = ping.Send(ip,pingTimeout);
+			if (reply.Status==IPStatus.Success) {
+				return true;
 			}
 
-			controllerInstance = default;
 			return false;
 		}
 
-
-		/// <summary>
-		/// Get an existing controller instance for the subConnection
-		/// </summary>
-		/// <param name="controllerInstance"></param>
-		/// <returns>True if found</returns>
-		public bool getControllerInstance(ControlToken controlToken, out ControllerInstance controllerInstance) {
-			lock (listControlHandlers) {
-				foreach (var handler in listControlHandlers) {
-					Guid handlerId = handler.id;
-					
-				}
-			}
-			controllerInstance = default;
-			return false;
-		}
-
+#endregion
 	}
 }

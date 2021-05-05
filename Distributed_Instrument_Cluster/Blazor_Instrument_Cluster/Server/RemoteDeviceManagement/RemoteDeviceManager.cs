@@ -3,8 +3,11 @@ using Microsoft.Extensions.Logging;
 using Server_Library.Connection_Types.Async;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Server_Library.Authorization;
 using Video_Library;
 
 namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
@@ -30,161 +33,70 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// </summary>
 		private List<RemoteDevice> listRemoteDevices;
 
-		/// <summary>
-		/// Streams
-		/// </summary>
-		private MJPEGStreamManager streamManager;
 
 		/// <summary>
-		/// Object used to lock when checking if a device exists, so that no duplicates get created
+		/// Access token used when connecting to remote devices
 		/// </summary>
-		private Mutex existsCheckLock { get; set; }
+		private AccessToken accessToken { get; set; }
 
 		/// <summary>
 		/// Constructor, Injects logger and service provider
 		/// </summary>
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
-		public RemoteDeviceManager(ILogger<RemoteDeviceManager> logger, IServiceProvider services) {
+		/// <param name="configuration"></param>
+		public RemoteDeviceManager(ILogger<RemoteDeviceManager> logger, IServiceProvider services, IConfiguration configuration) {
 			this.services = services;
 			this.logger = logger;
 			listRemoteDevices = new List<RemoteDevice>();
-			streamManager = (MJPEGStreamManager)services.GetService(typeof(MJPEGStreamManager));
-			existsCheckLock = new Mutex();
+			accessToken = new AccessToken("access");
+
+			//TODO: HARDOCDED RemoteDevice
+			addRemoteDevice(1,"127.0.0.1",6981,6980,"Hardcoded Name","Hardcoded location", "Hardcoded type");
+
 		}
 
 		/// <summary>
-		/// Add a Remote device connection to the list of remote devices
-		/// Multiple connections can exists on one device, so if a matching name, location and type are found, it will be added to that
+		/// Add a new remote device to the list of devices
+		/// This method is for a remote device that does not have a crestron
 		/// </summary>
-		/// <param name="connection"></param>
-		/// <param name="isVideo"></param>
+		/// <param name="id"></param>
+		/// <param name="ip"></param>
+		/// <param name="videoPort"></param>
 		/// <param name="name"></param>
 		/// <param name="location"></param>
 		/// <param name="type"></param>
-		/// <returns></returns>
-		public async Task addConnectionToRemoteDevices(ConnectionBaseAsync connection, bool isVideo, string name, string location, string type) {
-
-			//wait lock method until complete
-			existsCheckLock.WaitOne();
-
-			//Check if a device with the same accessToken is already in the system
-			(bool found, RemoteDevice device) result;
-			//Only one device checks at a time
-
-			result = checkIfDeviceExists(name, location, type);
-
-			//if device was found add the new connection to it
-			if (result.found && isVideo) {
-				//Create stream
-				MJPEG_Streamer stream = new MJPEG_Streamer(30, 8080);
-				lock (streamManager.streams) {
-					streamManager.streams.Add(stream);
-				}
-				//Add device as a video connection
-				await result.device.addVideoConnectionToDevice((DuplexConnectionAsync)connection, stream);
-			}
-			else if (result.found) {
-				//add device as a control device
-				result.device.addControlConnectionAsync((DuplexConnectionAsync)connection);
-			}
-			//If the device was not found create a new one and add the connection to it
-			else {
-				await handleDeviceNotFound(connection, isVideo, name, location, type);
-			}
-
-			//release mutex
-			existsCheckLock.ReleaseMutex();
-		}
-
-		/// <summary>
-		/// Handles creating a new remote device if one did not already exist
-		/// </summary>
-		/// <param name="connection"></param>
-		/// <param name="isVideo"></param>
-		/// <param name="name"></param>
-		/// <param name="location"></param>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		private async Task handleDeviceNotFound(ConnectionBaseAsync connection, bool isVideo, string name, string location, string type) {
-			RemoteDevice newRemoteDevice = new RemoteDevice(name, location, type, connection.accessToken);
+		public void addRemoteDevice(int id,string ip,int videoPort,string name,string location, string type) {
+			RemoteDevice remoteDevice = new RemoteDevice(id,ip,videoPort,name,location,type,accessToken);
 			lock (listRemoteDevices) {
-				listRemoteDevices.Add(newRemoteDevice);
-			}
-
-			if (isVideo) {
-				//Create stream
-				MJPEG_Streamer stream = new MJPEG_Streamer(30, 8080);
-				lock (streamManager.streams) {
-					streamManager.streams.Add(stream);
-				}
-				//add As a video connection
-				await newRemoteDevice.addVideoConnectionToDevice((DuplexConnectionAsync)connection, stream);
-			}
-			else {
-				//add as a control connection
-				newRemoteDevice.addControlConnectionAsync((DuplexConnectionAsync)connection);
+				listRemoteDevices.Add(remoteDevice);
 			}
 		}
 
 		/// <summary>
-		/// Checks the list of RemoteDevices for a device with the matching name location and type
+		/// Add a new remote device to the list of devices
+		/// This method is for a remote device with a crestron
 		/// </summary>
-		/// <returns>
-		/// Bool representing if the device was found
-		/// if the device was found the device will also be returned
-		/// </returns>
-		private (bool found, RemoteDevice device) checkIfDeviceExists(string name, string location, string type) {
-			//Lock list so devices are added in correct order and so on
+		/// <param name="ip">IpAddress of the remote device</param>
+		/// <param name="videoPort"></param>
+		/// <param name="name">Name of the remote device</param>
+		/// <param name="location">Location of the remote device</param>
+		/// <param name="type">type specification of the remote device</param>
+		/// <param name="crestronPort"></param>
+		public void addRemoteDevice(int id,string ip,int crestronPort,int videoPort,string name,string location, string type) {
+			RemoteDevice remoteDevice = new RemoteDevice(id,ip,crestronPort,videoPort,name,location,type,accessToken);
 			lock (listRemoteDevices) {
-				foreach (var device in listRemoteDevices) {
-					//Check if the devices exists
-					if (device.name.Equals(name) && device.location.Equals(location) && device.type.Equals(type)) {
-						return (true, device);
-					}
-				}
-				return (false, default);
+				listRemoteDevices.Add(remoteDevice);
 			}
 		}
 
 		/// <summary>
-		/// Returns a list of all remote devices in the manager
+		/// Get a list of remote devices
 		/// </summary>
-		/// <returns>List containing RemoteDevice</returns>
+		/// <returns></returns>
 		public List<RemoteDevice> getListOfRemoteDevices() {
 			lock (listRemoteDevices) {
 				return listRemoteDevices;
-			}
-		}
-
-		/// <summary>
-		/// Remove disconnected devices and sub connections
-		/// </summary>
-		public void removeDisconnectedSubConnections() {
-			lock (listRemoteDevices) {
-				List<RemoteDevice> remoteDevicesToRemove = new List<RemoteDevice>();
-				foreach (var remoteDevice in listRemoteDevices) {
-					//Check sub connections for disconnected sockets, remove it if it is disconnected
-					List<SubConnection> connectionsToRemove = new List<SubConnection>();
-					foreach (var subConnection in remoteDevice.getListOfSubConnections()) {
-						bool isConnected = subConnection.connection.isSocketConnected();
-						if (!isConnected) {
-							connectionsToRemove.Add(subConnection);
-						}
-					}
-					//remove connections
-					foreach (var connection in connectionsToRemove) {
-						remoteDevice.getListOfSubConnections().Remove(connection);
-					}
-					//If a remote device no longer has sub connections add to list of remote devices to remove
-					if (remoteDevice.getListOfSubConnections().Count < 1) {
-						remoteDevicesToRemove.Add(remoteDevice);
-					}
-				}
-				//remove remote devices
-				foreach (var remoteDevice in remoteDevicesToRemove) {
-					listRemoteDevices.Remove(remoteDevice);
-				}
 			}
 		}
 	}

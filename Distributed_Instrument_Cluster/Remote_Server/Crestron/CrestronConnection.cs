@@ -11,7 +11,7 @@ namespace Remote_Server.Crestron {
 	/// A connection for controlling a crestron
 	/// <Author>Mikael Nilssen</Author>
 	/// </summary>
-	public class CrestronConnection : DuplexConnectionAsync {
+	public class CrestronConnection : ConnectionBaseAsync {
 		/// <summary>
 		/// Is the connection closed
 		/// </summary>
@@ -40,10 +40,17 @@ namespace Remote_Server.Crestron {
 			return receivedBytes;
 		}
 
+		/// <summary>
+		/// Set closed boolean to true
+		/// </summary>
 		public void close() {
 			closed = true;
 		}
 
+		/// <summary>
+		/// Check the value of the closed field
+		/// </summary>
+		/// <returns></returns>
 		public bool isClosed() {
 			return closed;
 		}

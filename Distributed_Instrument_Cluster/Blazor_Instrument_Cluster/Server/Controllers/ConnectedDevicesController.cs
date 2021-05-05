@@ -38,17 +38,15 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		/// </summary>
 		/// <returns></returns>
 		[HttpGet]
-		[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<DeviceModel>))]
+		[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<DisplayRemoteDeviceModel>))]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		public IEnumerable<DeviceModel> getRemoteDevices() {
+		public IEnumerable<DisplayRemoteDeviceModel> getRemoteDevices() {
 
-			//Remove disconnected devices from list
-			remoteDeviceManager.removeDisconnectedSubConnections();
 			//Get list of video connections
 			List<RemoteDevice> listOfRemoteDevices = remoteDeviceManager.getListOfRemoteDevices();
 			if (listOfRemoteDevices.Any()) {
 				//Create an IEnumerable with device models
-				IEnumerable<DeviceModel> enumerableDeviceModels = Array.Empty<DeviceModel>();
+				IEnumerable<DisplayRemoteDeviceModel> enumerableDeviceModels = Array.Empty<DisplayRemoteDeviceModel>();
 				//Lock unsafe list
 				lock (listOfRemoteDevices) {
 					foreach (var device in listOfRemoteDevices) {
@@ -57,18 +55,13 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 						string deviceLocation = device.location;
 						string deviceType = device.type;
 						
-						//Get sub devices
-                        List<SubConnection> subDeviceInfo = device.getListOfSubConnections();
-
-						//Create a list of models
-                        List<SubConnectionModel> modelList = new List<SubConnectionModel>();
-						foreach(SubConnection subDevice in subDeviceInfo){
-							modelList.Add(new SubConnectionModel(subDevice.id,subDevice.videoDevice,subDevice.port,subDevice.streamType));
-						}
+						//check if it has a crestron
+						bool hasCrestron=device.hasCrestron();
+						
 
 
 						enumerableDeviceModels =
-							enumerableDeviceModels.Append(new DeviceModel(deviceName,deviceLocation,deviceType,modelList));
+							enumerableDeviceModels.Append(new DisplayRemoteDeviceModel(deviceName,deviceLocation,deviceType,hasCrestron));
 					}
 				}
 

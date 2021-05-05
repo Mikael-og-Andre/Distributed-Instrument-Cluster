@@ -15,12 +15,12 @@ namespace Server_Library.Socket_Clients.Async {
 		/// <summary>
 		/// Ip address of target server
 		/// </summary>
-		private string Ip { get; set; }
+		protected string Ip { get; set; }
 
 		/// <summary>
 		/// Port of target server
 		/// </summary>
-		private int Port { get; set; }
+		protected int Port { get; set; }
 
 		/// <summary>
 		/// Connection to server
@@ -36,12 +36,6 @@ namespace Server_Library.Socket_Clients.Async {
 		/// Authorization code to send to the server
 		/// </summary>
 		protected AccessToken accessToken;
-
-		//State
-		/// <summary>
-		/// Is the socket connected to the server
-		/// </summary>
-		public bool isSocketConnected { get; set; } = false;
 
 		/// <summary>
 		/// Is the setup process Complete
@@ -72,17 +66,16 @@ namespace Server_Library.Socket_Clients.Async {
 		/// Attempts to connect to the given host and ip
 		/// </summary>
 		/// <param name="socket"> unconnected Socket</param>
-		/// <returns> boolean representing successful connection</returns>
-		private async Task connectToServer(Socket socket) {
+		/// <returns></returns>
+		protected async Task connectToServer(Socket socket) {
 			await socket.ConnectAsync(Ip,Port);
-			isSocketConnected = true;
 		}
 
 		/// <summary>
 		/// Sends needed information for a connection ot the server
 		/// </summary>
 		/// <param name="socket"></param>
-		private async Task setupConnection(Socket socket) {
+		protected async Task setupConnection(Socket socket) {
 			//NetworkStream
 			NetworkStream stream = new NetworkStream(socket);
 			//Get start signal
@@ -108,6 +101,14 @@ namespace Server_Library.Socket_Clients.Async {
 			}
 		}
 
+		/// <summary>
+		/// Check if the socket is connected
+		/// https://stackoverflow.com/questions/2661764/how-to-check-if-a-socket-is-connected-disconnected-in-c
+		/// </summary>
+		/// <returns></returns>
+		public bool isSocketConnected() {
+			return !((connectionSocket.Poll(1000, SelectMode.SelectRead) && (connectionSocket.Available == 0)) || !connectionSocket.Connected);
+		}
 
 	}
 }

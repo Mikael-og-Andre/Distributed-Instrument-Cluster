@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement.Interface;
 using Server_Library.Connection_Types.Async;
 
 namespace Blazor_Instrument_Cluster.Server.CrestronControl {
@@ -14,13 +15,12 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 	public class ControlHandler {
 		public Guid id { get; set; }
 
-		private SubConnection subConnection { get; set; }
+		private IConnectionControl connection { get; set; }
 
 		private List<ControllerInstance> controllerInstances { get; set; }
 
-		public ControlHandler(SubConnection subConnection) {
-			this.subConnection = subConnection;
-			this.id = subConnection.id;
+		public ControlHandler(IConnectionControl connection) {
+			this.connection = connection;
 			this.controllerInstances = new List<ControllerInstance>();
 		}
 
@@ -90,12 +90,11 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// </summary>
 		/// <param name="bytes">Bytes sent to the remote connection</param>
 		/// <param name="controllerInstance"></param>
-		/// <returns></returns>
-		public async Task<bool> sendAsync(byte[] bytes,ControllerInstance controllerInstance) {
+		/// <returns>True if msg was sent</returns>
+		public async Task<bool> sendAsync(string bytes,ControllerInstance controllerInstance) {
 			bool isControlling=checkIfControlling(controllerInstance);
 			if (isControlling) {
-				DuplexConnectionAsync con=(DuplexConnectionAsync)subConnection.connection;
-				await con.sendBytesAsync(bytes);
+				await this.connection.send(bytes);
 				return true;
 			}
 			else {

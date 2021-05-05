@@ -44,13 +44,12 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		}
 
 		/// <summary>
-		/// Send msg to connection
+		/// Attempt to send msg to remote device
 		/// </summary>
 		/// <param name="msg"></param>
-		/// <returns></returns>
+		/// <returns>True if msg was sent</returns>
 		public async Task<bool> send(string msg, CancellationToken ct) {
-			byte[] msgBytes = Encoding.UTF32.GetBytes(msg);
-			return await controlHandler.sendAsync(msgBytes,this);
+			return await controlHandler.sendAsync(msg,this);
 		}
 
 		/// <summary>

@@ -41,12 +41,14 @@ namespace Blazor_Instrument_Cluster.Server {
 		public void configureServices(IServiceCollection services) {
 			
 			//MJPEG stream manager.
-			services.AddSingleton<MJPEGStreamManager>();
+			//services.AddSingleton<MJPEGStreamManager>();
 			//Add Remote device connection tracker
 			services.AddSingleton<RemoteDeviceManager>();
+
 			//Start Connection listeners as background services
-			services.AddHostedService<VideoListenerService>();
-			services.AddHostedService<CrestronListenerService>();
+			//services.AddHostedService<VideoListenerService>();
+			//services.AddHostedService<CrestronListenerService>();
+			services.AddHostedService<RemoteDeviceMonitorService>();
 			//Add singletons for web socket handling
 			services.AddSingleton<CrestronWebsocketHandler>();
 
