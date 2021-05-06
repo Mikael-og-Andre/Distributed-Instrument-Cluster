@@ -145,6 +145,14 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		#region Sending commands
 
 		private async void sendData(string s) {
+			//check if device is null
+			if (crestronWebsocket is null) {
+				return;
+			}
+			//if (!(await JS.InvokeAsync<bool>("isLocked"))) {
+			//	logger.LogDebug("sendData: Can not send data when not locked");
+			//	return;
+			//}
 			StateHasChanged();
 			if (crestronWebsocket.state is not (CrestronWebsocketState.InControl)) {
 				logger.LogDebug("sendData: CrestronWebsocket not in a state to receive data");
@@ -157,8 +165,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 				//Create json
 				string json = JsonSerializer.Serialize(sendingObject);
 
-				//Send data to socket.
-				crestronWebsocket.trySendingControlMessage(json);
+				bool wasSent=await crestronWebsocket.sendExternal(json);
 			}
 			catch (Exception e) {
 				Console.WriteLine(e.Message);

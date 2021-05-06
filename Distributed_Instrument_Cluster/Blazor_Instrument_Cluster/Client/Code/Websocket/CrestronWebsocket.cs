@@ -15,7 +15,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 	/// Class for managing the websocket connection to the backend
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-	public class CrestronWebsocket : IDisposable {
+	public class CrestronWebsocket :IExternalSender, IDisposable {
 		/// <summary>
 		/// The last state received from the backend
 		/// </summary>
@@ -47,11 +47,6 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		private string positionInQueue { get;  set; }
 
 		/// <summary>
-		/// Queue for messages
-		/// </summary>
-		private ConcurrentQueue<string> commandConcurrentQueue { get; set; }
-
-		/// <summary>
 		/// Time the backend will abandon the connection
 		/// </summary>
 		private DateTime disconnectTime { get; set; }
@@ -77,6 +72,11 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		public string statusMsg { get; private set; }
 
 		/// <summary>
+		/// boolean used to check if external senders can send when in the control loop
+		/// </summary>
+		private bool inControlLoop { get; set; }
+
+		/// <summary>
 		/// CrestronWebsocket
 		/// </summary>
 		/// <param name="connectionUri">Uri the websocket will connect to</param>
@@ -85,12 +85,12 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 			this.connectionUri = connectionUri;
 			this.controlToken = null;
 			this.positionInQueue = "waiting";
-			this.commandConcurrentQueue = new ConcurrentQueue<string>();
 			this.disconnectTime = DateTime.Now;
 			this.isClosing = false;
 			this.isStopped = false;
 			this.statusMsg = "Setting up";
 			this.stateUpdater = stateUpdater;
+			this.inControlLoop = false;
 		}
 
 		/// <summary>
@@ -163,6 +163,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 							this.statusMsg = "Disconnected";
 							updateState();
 							handleDisconnectingAsync(webSocket, ct);
+							isClosing = true;
 							break;
 
 						default:
@@ -173,6 +174,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 			catch (Exception e) {
 				this.statusMsg = "Disconnected";
 				isStopped = true;
+				inControlLoop = false;
 				updateState();
 				Console.WriteLine("startAsync exception: " + e.Message);
 				await closeWebsocketAsync(webSocket, "Error",ct);
@@ -186,7 +188,6 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		/// Share id of the device wanted by the client
 		/// Confirm if the device exists on the server
 		/// </summary>
-		/// <param name="subConnectionModel"></param>
 		/// <param name="clientWebSocket"></param>
 		/// <param name="ct"></param>
 		/// <param name="displayRemoteDeviceModel"></param>
@@ -296,50 +297,24 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 				return;
 			}
 
-			//Queue for incoming messages
-			ConcurrentQueue<string> commandQueue = commandConcurrentQueue;
 			Console.WriteLine("Entering control loop");
 			this.statusMsg = "Controlling";
+			inControlLoop = true;
 			updateState();
 			while (!ct.IsCancellationRequested) {
 				//check if connection is still ok
 				if (webSocket.State != WebSocketState.Open) {
 					Console.WriteLine("handleInControl: Socket state not open in control loop");
+					inControlLoop = false;
 					isClosing = true;
 					return;
-				}
-				//get bytes from channel
-				if (commandQueue.TryDequeue(out string toSend)) {
-					await sendString(clientWebSocket, toSend, ct);
 				}
 				else {
 					await Task.Delay(250, cancellationTokenSource.Token);
 				}
 			}
 		}
-
-		/// <summary>
-		/// Add a message to the queue
-		/// </summary>
-		/// <param name="msg"></param>
-		/// <returns></returns>
-		public bool trySendingControlMessage(string msg) {
-			//Check if in control
-			if (state == CrestronWebsocketState.InControl) {
-				commandConcurrentQueue.Enqueue(msg);
-				return true;
-			}
-			//not in control
-			return false;
-		}
-
-		/// <summary>
-		/// Clears the command queue
-		/// </summary>
-		private void resetQueue() {
-			commandConcurrentQueue.Clear();
-		}
-
+		
 		/// <summary>
 		/// Handles the Disconnecting state
 		/// </summary>
@@ -440,6 +415,14 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 			}
 		}
 
+		/// <summary>
+		/// Send a string as utf32 bytes
+		/// First send size, then the actual string
+		/// </summary>
+		/// <param name="clientWebSocket"></param>
+		/// <param name="s"></param>
+		/// <param name="token"></param>
+		/// <returns></returns>
 		private async Task sendString(WebSocket clientWebSocket, string s, CancellationToken token) {
 			byte[] bytes = Encoding.UTF32.GetBytes(s);
 			//Get size
@@ -450,6 +433,14 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 			await clientWebSocket.SendAsync(bytes, WebSocketMessageType.Text, true, token);
 		}
 
+		/// <summary>
+		/// Receive string UTF#" bytes
+		/// First receive int with size
+		/// Then actual string
+		/// </summary>
+		/// <param name="clientWebSocket"></param>
+		/// <param name="token"></param>
+		/// <returns></returns>
 		private async Task<string> receiveString(WebSocket clientWebSocket, CancellationToken token) {
 			byte[] sizeBytes = new byte[sizeof(int)];
 			await clientWebSocket.ReceiveAsync(sizeBytes, token);
@@ -472,6 +463,20 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		public void Dispose() {
 			webSocket?.Dispose();
 			cancellationTokenSource?.Dispose();
+		}
+
+		/// <summary>
+		/// Send string on websocket, if in controlling state, and in the control loop
+		/// </summary>
+		/// <param name="msg"></param>
+		/// <returns>True if message was sent, False if not</returns>
+		public async Task<bool> sendExternal(string msg) {
+			if (inControlLoop&&state == CrestronWebsocketState.InControl) {
+				await sendString(webSocket,msg,cancellationTokenSource.Token);
+				return true;
+			}
+
+			return false;
 		}
 	}
 }

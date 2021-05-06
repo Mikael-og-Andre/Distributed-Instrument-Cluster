@@ -57,7 +57,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 			if (isSocketConnected()) {
 				//Disconnect with reuse
 				connectionSocket.Disconnect(true);
-				isConnected = connectionSocket.Connected;
+				isConnected = false;
 			}
 		}
 
@@ -147,18 +147,26 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// </summary>
 		/// <returns></returns>
 		public async Task<bool> ensureUP() {
-			if (ready()) {
-				return true;
-			}
+			try {
+				//Check if connection is ok
+				if (ready()) {
+					return true;
+				}
+				//if not reconnect
+				Console.WriteLine("Crestron Client is reconnecting");
+				bool connected = await reconnect();
+				isConnected = connected;
+				if (connected) {
+					return true;
+				}
 
-			Console.WriteLine("Crestron Client is reconnecting");
-			bool connected = await reconnect();
-			isConnected = connected;
-			if (connected) {
-				return true;
+				return false;
 			}
-
-			return false;
+			catch (Exception e) {
+				Console.WriteLine("CrestronClient: Exception in ensureUP");
+				Console.WriteLine($"CrestronClient Exception: {e.Message}");
+				return false;
+			}
 		}
 
 		#endregion Interface impl
