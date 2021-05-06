@@ -11,7 +11,7 @@ namespace Server_Library.Socket_Clients.Async {
 	/// </summary>
 	public class DuplexClientAsync : ClientBaseAsync {
 
-		public DuplexClientAsync(string ip, int port, AccessToken accessToken) : base(ip, port, accessToken) {
+		public DuplexClientAsync(string ip, int port, AccessToken accessToken) : base(ip, port) {
 		}
 
 		/// <summary>

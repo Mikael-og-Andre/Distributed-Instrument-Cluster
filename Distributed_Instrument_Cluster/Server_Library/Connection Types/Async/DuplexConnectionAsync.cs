@@ -15,8 +15,8 @@ namespace Server_Library.Connection_Types.Async {
 
 		private bool abandoned = false;
 
-		public DuplexConnectionAsync(Socket socket, AccessToken accessToken, CancellationToken cancellation) : base(
-			socket, accessToken, cancellation) {
+		public DuplexConnectionAsync(Socket socket, CancellationToken cancellation) : base(
+			socket, cancellation) {
 		}
 
 		/// <summary>

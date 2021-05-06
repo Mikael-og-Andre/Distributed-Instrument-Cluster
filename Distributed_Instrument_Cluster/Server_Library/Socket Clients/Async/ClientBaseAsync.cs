@@ -1,4 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Networking_Library;
@@ -32,58 +34,22 @@ namespace Server_Library.Socket_Clients.Async {
 		/// </summary>
 		protected NetworkStream connectionNetworkStream { get; set; }
 
-		/// <summary>
-		/// Authorization code to send to the server
-		/// </summary>
-		protected AccessToken accessToken;
 
-		/// <summary>
-		/// Is the setup process Complete
-		/// </summary>
-		protected bool isSetup { get; set; } = false;
-
-		protected ClientBaseAsync(string ip, int port, AccessToken accessToken) {
+		protected ClientBaseAsync(string ip, int port) {
 			Ip = ip;
 			Port = port;
-			this.accessToken = accessToken;
+			this.connectionSocket = new Socket(AddressFamily.InterNetwork,SocketType.Stream,ProtocolType.Tcp);
 		}
-
-		/// <summary>
-		/// Starts the client and attempts to connect to the server
-		/// </summary>
-		public async Task setup() {
-			// Create new socket
-			connectionSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-			//Connect
-			await connectToServer(connectionSocket);
-			//Create stream
-			connectionNetworkStream = new NetworkStream(connectionSocket, true);
-			//Setup
-			await setupConnection(connectionSocket);
-		}
-
+		
 		/// <summary>
 		/// Attempts to connect to the given host and ip
 		/// </summary>
-		/// <param name="socket"> unconnected Socket</param>
 		/// <returns></returns>
-		protected async Task connectToServer(Socket socket) {
-			await socket.ConnectAsync(Ip,Port);
+		protected async Task connectToServer() {
+			await connectionSocket.ConnectAsync(Ip,Port);
+			this.connectionNetworkStream = new NetworkStream(connectionSocket, false);
 		}
 
-		/// <summary>
-		/// Sends needed information for a connection ot the server
-		/// </summary>
-		/// <param name="socket"></param>
-		protected async Task setupConnection(Socket socket) {
-			//NetworkStream
-			NetworkStream stream = new NetworkStream(socket);
-			//Get start signal
-			await NetworkingOperations.receiveStringAsync(stream);
-			//send auth hash
-			//TODO: add auth hash encryption
-			await NetworkingOperations.sendStringAsync(accessToken.getAccessString(), stream);
-		}
 
 		/// <summary>
 		/// Returns true if data available in socket is larger than 0
@@ -107,7 +73,30 @@ namespace Server_Library.Socket_Clients.Async {
 		/// </summary>
 		/// <returns></returns>
 		public bool isSocketConnected() {
+			if (connectionSocket is null) {
+				return false;
+			}
 			return !((connectionSocket.Poll(1000, SelectMode.SelectRead) && (connectionSocket.Available == 0)) || !connectionSocket.Connected);
+		}
+
+		/// <summary>
+		/// Closes current connection if needed, Then tries to connect to the ip and port
+		/// </summary>
+		/// <returns>Returns true if connected</returns>
+		protected async Task<bool> reconnect() {
+			if (isSocketConnected()) {
+				connectionSocket.Close();
+			}
+
+			try {
+				await connectToServer();
+				return true;
+			}
+			catch (Exception e) {
+				Console.WriteLine("ClientBaseAsync: Could not connect to {0}, {1}",Ip,Port);
+				Console.WriteLine("ClientBaseAsync: Exception: {0}",e.Message);
+				return false;
+			}
 		}
 
 	}

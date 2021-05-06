@@ -41,8 +41,8 @@ namespace Server_Library.Server_Listeners.Async {
 			}
 		}
 
-		protected override ConnectionBaseAsync createConnectionType(Socket socket, AccessToken accessToken) {
-			return new DuplexConnectionAsync(socket,accessToken,cancellationTokenSource.Token);
+		protected override ConnectionBaseAsync createConnectionType(Socket socket) {
+			return new DuplexConnectionAsync(socket,cancellationTokenSource.Token);
 		}
 	}
 }

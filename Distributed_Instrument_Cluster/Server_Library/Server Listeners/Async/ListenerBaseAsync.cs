@@ -99,7 +99,7 @@ namespace Server_Library.Server_Listeners.Async {
 		/// <param name="socket">Socket Of the incoming connection</param>
 		/// <param name="accessToken">String used to identify the connector</param>
 		/// <returns> a Connection of one of the child types of ConnectionBase</returns>
-		protected abstract ConnectionBaseAsync createConnectionType(Socket socket, AccessToken accessToken);
+		protected abstract ConnectionBaseAsync createConnectionType(Socket socket);
 
 		/// <summary>
 		/// Get accessToken and creates a connection with the correct type
@@ -107,17 +107,8 @@ namespace Server_Library.Server_Listeners.Async {
 		/// <param name="socket"></param>
 		/// <returns>Connection object</returns>
 		private async Task<ConnectionBaseAsync> setupConnectionAsync(Socket socket) {
-			//NetworkStream
-			NetworkStream networkStream = new NetworkStream(socket);
-			//Send start Auth signal
-			await NetworkingOperations.sendStringAsync("auth",networkStream);
-			//Get Authorization Token info
-			//TODO: Add encryption for auth token
-			string connectionHash = await NetworkingOperations.receiveStringAsync(networkStream);
-			AccessToken accessToken = new AccessToken(connectionHash);
-
 			//Create connection with overriden method from child
-			return createConnectionType(socket, accessToken);
+			return createConnectionType(socket);
 		}
 
 		/// <summary>

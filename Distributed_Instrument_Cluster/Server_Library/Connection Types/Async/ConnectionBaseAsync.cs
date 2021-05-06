@@ -9,11 +9,6 @@ namespace Server_Library.Connection_Types.Async {
 	public abstract class ConnectionBaseAsync {
 		
 		/// <summary>
-		/// Token representing a valid connection to the server
-		/// </summary>
-		public AccessToken accessToken { get; set; }
-
-		/// <summary>
 		/// Socket of the client Connection
 		/// </summary>
 		protected Socket socket { get; set; }
@@ -34,9 +29,8 @@ namespace Server_Library.Connection_Types.Async {
 		/// <param name="socket">Socket</param>
 		/// <param name="accessToken">Token for authorization</param>
 		/// <param name="cancellation">Token for cancelling</param>
-		protected ConnectionBaseAsync(Socket socket, AccessToken accessToken, CancellationToken cancellation) {
+		protected ConnectionBaseAsync(Socket socket, CancellationToken cancellation) {
 			this.socket = socket;
-			this.accessToken = accessToken;
 			this.cancellation = cancellation;
 			this.connectionNetworkStream = new NetworkStream(socket, true);
 		}
