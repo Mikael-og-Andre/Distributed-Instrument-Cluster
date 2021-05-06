@@ -258,7 +258,7 @@ namespace Remote_Server {
 		/// <summary>
 		/// Thread for relaying commands coming from internet socket to command parser.
 		/// </summary>
-		private async Task relayThread() {
+		private void relayThread() {
 			while (true) {
 				try {
 					

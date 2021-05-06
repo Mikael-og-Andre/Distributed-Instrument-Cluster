@@ -1,5 +1,6 @@
 ﻿using OpenCvSharp;
 using System;
+using System.Text;
 
 //TODO: Handle Unplugging w/out crashing.
 namespace Video_Library {
@@ -38,6 +39,7 @@ namespace Video_Library {
 		public byte[] readJpg(int quality=95) {
 			var frame = readFrame();
 			Cv2.ImEncode(".jpg", frame, out var buffer, new ImageEncodingParam(ImwriteFlags.JpegQuality, quality));
+			//buffer = Encoding.Convert(Encoding.UTF7, Encoding.UTF7, buffer);
 			return buffer;
 		}
 

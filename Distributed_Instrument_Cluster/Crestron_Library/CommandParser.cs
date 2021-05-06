@@ -20,6 +20,10 @@ namespace Crestron_Library
 			this.maxDelta = maxDelta;
 		}
 
+		public void sendCommandToCrestron(string msg) {
+			pars(msg);
+		}
+
 		/// <summary>
 		/// Pars commands from string to bytes and execute the commands by sending it to the serial port.
 		/// </summary>

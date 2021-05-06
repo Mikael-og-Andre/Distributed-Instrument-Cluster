@@ -14,17 +14,18 @@ namespace Video_Library {
 	/// <author>Andre Helland</author>
 	public class MJPEG_Streamer {
 
-		public byte[] image { get; set; }
+		private byte[] image { get; set; }
 		public byte[] Image {
 			set {
 				image = value;
-				foreach (var client in clients) {
-					client.frameSent = false;
+				lock (clients) {
+					foreach (var client in clients) {
+						client.frameSent = false;
+					}
 				}
 			}
 
 		}
-		public int fps { get; set; }
 		public int portNumber {private set; get; }
 		public bool isPortSet { get; set; } = false;
 
@@ -39,13 +40,11 @@ namespace Video_Library {
 		/// <summary>
 		/// Class for making a http mjpeg stream.
 		/// </summary>
-		/// <param name="fps">frame rate of stream (how fast images are sent to connected clients)</param>
 		/// <param name="port">what port to start server on (default 0 assigns available port automatically</param>
 		/// <author>Andre Helland</author>
-		public MJPEG_Streamer(int fps=30, int port=0) {
+		public MJPEG_Streamer(int port=0) {
 			disposalTokenSource = new CancellationTokenSource();
 
-			this.fps = fps;
 			clients = new List<Client>();
 			thread = null;
 			header = getBytes("HTTP/1.1 200 OK\r\n" + "Content-Type: multipart/x-mixed-replace; boundary=" + Boundary + "\r\n");
