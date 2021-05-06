@@ -29,9 +29,7 @@ namespace Blazor_Instrument_Cluster.Server {
             Host.CreateDefaultBuilder(args).ConfigureLogging((context,logging) => {
 		            logging.ClearProviders();
 		            logging.AddConsole();
-
-		            
-			})
+	            })
                 .ConfigureWebHostDefaults(webBuilder => {
                     webBuilder.UseStartup<Startup>();
                 });

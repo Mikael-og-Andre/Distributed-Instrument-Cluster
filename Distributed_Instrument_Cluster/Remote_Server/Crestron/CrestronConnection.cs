@@ -17,8 +17,7 @@ namespace Remote_Server.Crestron {
 		/// </summary>
 		public bool closed { get; set; }
 
-		public CrestronConnection(Socket socket, AccessToken accessToken, CancellationToken ct) : base(socket,
-			accessToken, ct) {
+		public CrestronConnection(Socket socket, CancellationToken ct) : base(socket, ct) {
 			closed = false;
 		}
 

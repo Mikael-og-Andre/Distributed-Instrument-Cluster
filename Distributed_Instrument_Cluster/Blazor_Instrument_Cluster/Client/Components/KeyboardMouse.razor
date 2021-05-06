@@ -48,21 +48,5 @@
                 <p><b>Status:</b>@crestronWebsocket.statusMsg</p>
             }
         </div>
-        <div class="col">
-            <select @bind="currentGuid">
-                <option value="@String.Empty">
-                    None
-                </option>
-                @{
-                    int i = 1;
-                    @foreach (SubConnectionModel subcon in controllerDeviceList) {
-                        <option value="@subcon.guid">
-                            Device @i
-                        </option>
-                        i += 1;
-                    }
-                }
-            </select>
-        </div>
     </div>
 </div>

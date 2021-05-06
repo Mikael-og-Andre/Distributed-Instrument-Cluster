@@ -6,23 +6,24 @@ namespace Blazor_Instrument_Cluster.Shared.DeviceSelection {
 	/// Represents a device that can be connected to
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
-    public class DeviceModel {
+    public class DisplayRemoteDeviceModel {
 
 		public string name { get; set; }
 		public string location { get; set; }
 		public string type { get; set; }
+		public bool hasCrestron { get; set; }
+		public bool pingResult { get; set; }
 
-		public List<SubConnectionModel> subDevice { get; set;}
-
-		public DeviceModel() {
+		public DisplayRemoteDeviceModel() {
 	        
         }
-		public DeviceModel(string name, string location, string type, List<SubConnectionModel> subDeviceList) {
+		public DisplayRemoteDeviceModel(string name, string location, string type, bool hasCrestron,bool pingResult) {
 			this.name = name;
 			this.location = location;
 			this.type = type;
-            this.subDevice = subDeviceList;
-        }
+			this.hasCrestron = hasCrestron;
+			this.pingResult = pingResult;
+		}
 		
     }
 }

@@ -37,30 +37,18 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// Url encoded string with location
 		/// </summary>
 		[Parameter]
-		public string urlName { get; set; }                                        //Name of the wanted device
-		[Parameter]
-		public string urlLocation { get; set; }
-
-		/// <summary>
-		/// Url encoded string with type
-		/// </summary>
-		[Parameter]
-		public string urlType { get; set; }
-
-		/// <summary>
-		/// list of control connections, Url encoded and serialized to json
-		/// </summary>
-		[Parameter]
-		public string urlListSubconnections { get; set; }
+		public string urlDeviceJson { get; set; }                                        //Name of the wanted device
+		
 
 		public string name { get; set; }
 		public string location { get; set; }
 		public string type { get; set; }
+		public bool hasCrestron { get; set; }
 
 		/// <summary>
 		/// Device name location type
 		/// </summary>
-		private DeviceModel deviceModel { get; set; }
+		private DisplayRemoteDeviceModel displayRemoteDeviceModel { get; set; }
 
 		/// <summary>
 		/// Crestron websocket communication
@@ -83,16 +71,8 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		private Uri uriCrestron { get; set; }
 
 		/// <summary>
-		/// List of control connections
+		/// Current task the connection is in
 		/// </summary>
-		protected List<SubConnectionModel> controllerDeviceList = default;
-
-		/// <summary>
-		/// The current device id selected in the UI
-		/// used for requesting device from backend
-		/// </summary>
-		protected string currentGuid { get; set; }
-
 		protected Task currentConnectionTask { get; set; }
 
 		#region Lifecycle
@@ -132,15 +112,14 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// <returns></returns>
 		private Task decodeUrlText() {
 			try {
-				name = HttpUtility.UrlDecode(urlName);
-				location = HttpUtility.UrlDecode(urlLocation);
-				type = HttpUtility.UrlDecode(urlType);
-				deviceModel = new DeviceModel(name, location, type, new List<SubConnectionModel>());
-				//convert url object to object
-				string controlSubConnectionsJson = HttpUtility.UrlDecode(urlListSubconnections).TrimStart('\0').TrimEnd('\0');
-				List<SubConnectionModel> controlConnections = JsonSerializer.Deserialize<List<SubConnectionModel>>(controlSubConnectionsJson);
-				//Set list
-				controllerDeviceList = controlConnections;
+				string deviceModelJson = HttpUtility.UrlDecode(urlDeviceJson);
+
+				displayRemoteDeviceModel  = JsonSerializer.Deserialize<DisplayRemoteDeviceModel>(deviceModelJson);
+
+				name = displayRemoteDeviceModel.name;
+				location = displayRemoteDeviceModel.location;
+				type = displayRemoteDeviceModel.type;
+				hasCrestron = displayRemoteDeviceModel.hasCrestron;
 
 				return Task.CompletedTask;
 			}
@@ -195,31 +174,11 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// </summary>
 		/// <returns></returns>
 		protected async Task connectToCrestronControl() {
-			if (currentGuid is null) {
-				logger.LogDebug("connectToCrestronControl: no current sub connection is selected");
-				return;
-			}
-			else if (currentGuid.Equals(String.Empty)) {
-				logger.LogDebug("connectToCrestronControl: no current sub connection is selected");
-				return;
-			}
 
 			//Crestron connection
 			crestronWebsocket = new CrestronWebsocket(uriCrestron,this);
-			SubConnectionModel subConnectionModel = default;
 
-			foreach (var subConnection in controllerDeviceList) {
-				if (currentGuid.Equals(subConnection.guid.ToString())) {
-					subConnectionModel = subConnection;
-					break;
-				}
-			}
-			//Check if device from select is in list of devices
-			if (subConnectionModel is null) {
-				logger.LogDebug("connectToCrestron: Connection not found");
-				return;
-			}
-			currentConnectionTask = crestronWebsocket.startProtocol(deviceModel, subConnectionModel);
+			currentConnectionTask = crestronWebsocket.startProtocol(displayRemoteDeviceModel);
 			stateHasChanged();
 		}
 

@@ -52,7 +52,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			accessToken = new AccessToken("access");
 
 			//TODO: HARDOCDED RemoteDevice
-			addRemoteDevice(1,"127.0.0.1",6981,6980,"Hardcoded Name","Hardcoded location", "Hardcoded type");
+			addRemoteDevice(1,"192.168.50.62",6981,6980,"Hardcoded Name","Hardcoded location", "Hardcoded type");
 
 		}
 

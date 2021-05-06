@@ -240,7 +240,7 @@ namespace Remote_Server {
 		public async Task<DuplexClientAsync> setupVideoCommunicator(string ip, int port,string accessHash) {
 			AccessToken accessToken = new AccessToken(accessHash);
 			var videoClient = new DuplexClientAsync(ip, port, accessToken);
-			await videoClient.setup();
+			
 			return videoClient;
 		}
 

@@ -25,7 +25,7 @@
     private bool loading = false;
 
     public string pathToApi = "api/ConnectedDevices";
-    IEnumerable<DeviceModel> devices = null;
+    IEnumerable<DisplayRemoteDeviceModel> devices = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -43,7 +43,7 @@
         string path = uriBase + pathToApi;
         try
         {
-            devices = await Http.GetFromJsonAsync<IEnumerable<DeviceModel>>(new Uri(path));
+            devices = await Http.GetFromJsonAsync<IEnumerable<DisplayRemoteDeviceModel>>(new Uri(path));
         }
         catch (Exception ex)
         {

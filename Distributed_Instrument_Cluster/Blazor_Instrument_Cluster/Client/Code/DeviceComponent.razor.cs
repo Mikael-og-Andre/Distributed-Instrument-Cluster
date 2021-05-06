@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Blazor_Instrument_Cluster.Client.Code {
 	/// <summary>
-	/// Get DeviceModel passed in an use it to display info
+	/// Get DisplayRemoteDeviceModel passed in an use it to display info
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	public class DeviceComponent : ComponentBase{
@@ -20,31 +20,16 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		private NavigationManager navigationManager { get; set; }
 
 		[Parameter]
-		public DeviceModel deviceInfo { get; set; }
+		public DisplayRemoteDeviceModel displayRemoteDeviceInfo { get; set; }
 
 		private string basePath = "VideoAndControl";
 
 		protected void navigateToDevicePage() {
 
-			//Loop devices
-			List<SubConnectionModel> videoConnectionModels = new List<SubConnectionModel>();
-			List<SubConnectionModel> controllerConnections = new List<SubConnectionModel>();
-			foreach (var subConnectionModel in deviceInfo.subDevice) {
-				if (subConnectionModel.isVideoDevice) {
-					videoConnectionModels.Add(subConnectionModel);
-				}
-				else {
-					controllerConnections.Add(subConnectionModel);
-				}
-			}
-			//json for portsList
-			string videoJson = JsonSerializer.Serialize(videoConnectionModels);
-
-			//Json control devices
-			string controllerJson = JsonSerializer.Serialize(controllerConnections);
+			string jsonObject = JsonSerializer.Serialize(displayRemoteDeviceInfo);
 
 
-			string fullPath = basePath + "/" + HttpUtility.UrlEncode(deviceInfo.name) + "/" + HttpUtility.UrlEncode(deviceInfo.location) + "/" + HttpUtility.UrlEncode(deviceInfo.type) + "/" + HttpUtility.UrlEncode(controllerJson) + "/" + HttpUtility.UrlEncode(videoJson);
+			string fullPath = basePath + "/" + HttpUtility.UrlEncode(jsonObject);
 
 			navigationManager.NavigateTo(fullPath);
 		}

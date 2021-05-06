@@ -22,10 +22,15 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		protected ILogger<VideoMJPEG> logger { get; set; }
 
 		/// <summary>
-		/// URL encoded PortsList Object
+		/// URL encoded DisplayRemoteDeviceModel
 		/// </summary>
 		[Parameter]
-		public string urlJsonSubConnectionsList { set; get; }
+		public string urlDeviceJson { set; get; }
+
+		/// <summary>
+		/// Display device model
+		/// </summary>
+		protected DisplayRemoteDeviceModel displayRemoteDeviceModel { get; set; }
 
 		/// <summary>
 		/// List of all urls for video
@@ -37,25 +42,22 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// </summary>
 		protected string uri = default;
 
+		/// <summary>
+		/// linked list of video uris
+		/// </summary>
 		private LinkedListNode<string> currentUriNode = null;
 
 		protected override void OnInitialized() {
 			//Create http version of url
 			string httpBase = navigationManager.BaseUri.Replace("https://", "http://");
-			Uri olduriHttp = new Uri(httpBase);
+			Uri oldUriHttp = new Uri(httpBase);
 			try {
 				//Convert incoming url Json to object
-				string subconnetionsJson = HttpUtility.UrlDecode(urlJsonSubConnectionsList).TrimStart('\0').TrimEnd('\0');
-				List<SubConnectionModel> deserializedSubConnectionModels = JsonSerializer.Deserialize<List<SubConnectionModel>>(subconnetionsJson);
+				string deviceJson = HttpUtility.UrlDecode(urlDeviceJson).TrimStart('\0').TrimEnd('\0');
+				displayRemoteDeviceModel = JsonSerializer.Deserialize<DisplayRemoteDeviceModel>(deviceJson);
 				
 				listOfUrls = new LinkedList<string>();
-				foreach (var subConnection in deserializedSubConnectionModels) {
-
-					UriBuilder newUri = new UriBuilder(olduriHttp.AbsoluteUri);
-					newUri.Port = subConnection.port;
-					listOfUrls.AddLast(new LinkedListNode<string>(newUri.ToString()));
-					logger.LogDebug("Video Uri Created: "+newUri.ToString());
-				}
+				//TODO: Add video links
 
 				if (listOfUrls.Count>0) {
 					//Set first uri;

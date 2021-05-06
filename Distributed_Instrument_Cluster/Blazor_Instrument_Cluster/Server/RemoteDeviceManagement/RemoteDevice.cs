@@ -9,7 +9,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
-using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement.Interface;
+using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
 using Blazor_Instrument_Cluster.Shared.Websocket;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Video_Library;
@@ -20,7 +20,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 	/// A remote device connected to the server
 	/// Stores data about connections belonging to each device, and the providers
 	/// </summary>
-	public class RemoteDevice : IRemoteDeviceStatus{
+	public class RemoteDevice{
 
 		/// <summary>
 		/// Device id
@@ -56,9 +56,9 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		public AccessToken accessToken { get; private set; }
 
 		/// <summary>
-		/// Handles one time control of the crestron device
+		/// Handles control of the crestronClient
 		/// </summary>
-		private ControlHandler controlHandler { get; set; }
+		private CrestronUserHandler crestronUserHandler { get; set; }
 
 		/// <summary>
 		/// Crestron client
@@ -91,7 +91,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			this.accessToken = accessToken;
 			this._hasCrestron = true;
 			this.crestronClient = new CrestronClient(ip,crestronPort,accessToken);
-			this.controlHandler = new ControlHandler(crestronClient);
+			this.crestronUserHandler = new CrestronUserHandler(crestronClient);
 		}
 
 		/// <summary>
@@ -114,7 +114,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			this.accessToken = accessToken;
 			this._hasCrestron = false;
 			this.crestronClient = default;
-			this.controlHandler = default;
+			this.crestronUserHandler = default;
 		}
 
 		/// <summary>
@@ -128,10 +128,10 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <summary>
 		/// Create a controller instance for the crestronConnection
 		/// </summary>
-		/// <returns>ControllerInstance</returns>
-		public ControllerInstance createControllerInstance() {
-			lock (controlHandler) {
-				return controlHandler.createControllerInstance();
+		/// <returns>CrestronUser</returns>
+		public CrestronUser createControllerInstance() {
+			lock (crestronUserHandler) {
+				return crestronUserHandler.createCrestronUser();
 			}
 		}
 
@@ -143,30 +143,19 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			return crestronClient;
 		}
 
-#region Interface impl
-
-		public bool isConnected() {
-			return crestronClient.isSocketConnected();
-		}
-
-		public void disconnect() {
-			crestronClient.disconnect();
-		}
-
-		public async Task reconnect() {
-			await crestronClient.connectAsync();
-		}
-
-		public bool ping(int pingTimeout) {
+		/// <summary>
+		/// Ping server
+		/// </summary>
+		/// <returns></returns>
+		public bool ping(int timeout) {
 			Ping ping = new Ping();
-			PingReply reply = ping.Send(ip,pingTimeout);
+			PingReply reply = ping.Send(IPAddress.Parse(ip),timeout);
 			if (reply.Status==IPStatus.Success) {
 				return true;
 			}
-
-			return false;
+			else {
+				return false;
+			}
 		}
-
-#endregion
 	}
 }

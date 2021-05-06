@@ -90,10 +90,9 @@ namespace Remote_Server.Crestron {
 		/// Create a new connection with the type CrestronConnection
 		/// </summary>
 		/// <param name="socket">Socket for the connection</param>
-		/// <param name="accessToken">AccessToken of the connection</param>
 		/// <returns>CrestronConnection</returns>
-		protected override ConnectionBaseAsync createConnectionType(Socket socket, AccessToken accessToken) {
-			return new CrestronConnection(socket,accessToken,globalCT);
+		protected override ConnectionBaseAsync createConnectionType(Socket socket) {
+			return new CrestronConnection(socket,globalCT);
 		}
 	}
 }

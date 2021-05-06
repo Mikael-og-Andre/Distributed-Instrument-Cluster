@@ -13,21 +13,42 @@ using System.Threading.Tasks;
 namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 	/// <summary>
+	/// Backend Implementation of the Crestron websocket communication protocol
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	public class CrestronWebsocketBackend {
+		/// <summary>
+		/// Websocket the communication runs over
+		/// </summary>
 		public WebSocket webSocket { get; set; }
+		/// <summary>
+		/// Signals that the task is complete
+		/// </summary>
 		public TaskCompletionSource<object> tskCompletionSource { get; set; }
 
+		/// <summary>
+		/// Remote Device manager, Containing info relating to the remote devices
+		/// </summary>
 		private RemoteDeviceManager remoteDeviceManager { get; set; }
 
+		/// <summary>
+		/// The state the protocol is in
+		/// </summary>
 		private CrestronWebsocketState state { get; set; }
 
+		/// <summary>
+		/// Cancellation
+		/// </summary>
 		private CancellationTokenSource cancellationTokenSource { get; set; }
 
+		/// <summary>
+		/// Should the socket close, if anything wants to close, set this to true and in the next loop the connection will close
+		/// </summary>
 		private bool isClosing { get; set; }
-
-		private ControllerInstance controllerInstance { get; set; } = default;
+		/// <summary>
+		/// An instance of a crestronUser, used to queue for control, and send commands
+		/// </summary>
+		private CrestronUser crestronUser { get; set; } = default;
 
 		public CrestronWebsocketBackend(WebSocket webSocket, RemoteDeviceManager remoteDeviceManager, TaskCompletionSource<object> tskCompletionSource) {
 			this.webSocket = webSocket;
@@ -38,6 +59,10 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			this.isClosing = false;
 		}
 
+		/// <summary>
+		/// Start the protocol
+		/// </summary>
+		/// <returns></returns>
 		public async Task start() {
 			try {
 				while (!cancellationTokenSource.IsCancellationRequested) {
@@ -56,7 +81,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 						case CrestronWebsocketState.Disconnecting:
 							await handleDisconnecting();
-							controllerInstance?.delete();
+							crestronUser?.delete();
 							tskCompletionSource.SetResult(new object());
 							return;
 
@@ -69,10 +94,14 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				Console.WriteLine("Exception in CrestronWebsocketBackend: {0}", e.Message);
 			}
 			//remove device from list if it exists
-			controllerInstance?.delete();
+			crestronUser?.delete();
 			tskCompletionSource.SetResult(new object());
 		}
 
+		/// <summary>
+		/// Receive information about the device they want to control and check if it is online, and check if it exists
+		/// </summary>
+		/// <returns></returns>
 		private async Task<CrestronWebsocketState> handleRequesting() {
 			//Send state
 			await sendString(webSocket, CrestronWebsocketState.Requesting.ToString(), cancellationTokenSource.Token);
@@ -102,15 +131,30 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			}
 
 			if (remoteDevice is null) {
-				await sendString(webSocket, "not found", cancellationTokenSource.Token);
+				await sendString(webSocket, "Device not found", cancellationTokenSource.Token);
+				return CrestronWebsocketState.Disconnecting;
+			}
+			else if(!remoteDevice.hasCrestron()) {
+				await sendString(webSocket, "No Crestron", cancellationTokenSource.Token);
 				return CrestronWebsocketState.Disconnecting;
 			}
 
-			this.controllerInstance = remoteDevice.createControllerInstance(); ;
+			//Check if device is online
+			if (!remoteDevice.ping(500)) {
+				await sendString(webSocket, "Device is not online", cancellationTokenSource.Token);
+				return CrestronWebsocketState.Disconnecting;
+			}
+
+			this.crestronUser = remoteDevice.createControllerInstance(); ;
 			await sendString(webSocket, "True", cancellationTokenSource.Token);
 			return CrestronWebsocketState.InQueue;
 		}
 
+		/// <summary>
+		/// Get a CrestronUser object and enter a queue for and wait until you have the control of the device,
+		/// Also updates the position in queue to the client
+		/// </summary>
+		/// <returns></returns>
 		private async Task<CrestronWebsocketState> handleInQueue() {
 			//Send state
 			await sendString(webSocket, CrestronWebsocketState.InQueue.ToString(), cancellationTokenSource.Token);
@@ -124,7 +168,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 					return CrestronWebsocketState.Disconnecting;
 				}
 
-				int pos = controllerInstance.getPosition();
+				int pos = crestronUser.getPosition();
 
 				if (pos == 0) {
 					await sendString(webSocket, "Complete", cancellationTokenSource.Token);
@@ -145,15 +189,19 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			return CrestronWebsocketState.Disconnecting;
 		}
 
+		/// <summary>
+		/// Get commands from the client and send the to the remote device
+		/// </summary>
+		/// <returns></returns>
 		private async Task<CrestronWebsocketState> handleInControl() {
 			//Send state
 			await sendString(webSocket, CrestronWebsocketState.InControl.ToString(), cancellationTokenSource.Token);
 			//check if in control
-			bool controlling = controllerInstance.isControlling();
+			bool controlling = crestronUser.isControlling();
 			if (!controlling) {
 				await sendString(webSocket, "Not controlling", cancellationTokenSource.Token);
 				//abandon controller instance
-				controllerInstance.delete();
+				crestronUser.delete();
 				return CrestronWebsocketState.InQueue;
 			}
 
@@ -164,28 +212,39 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			while (!cancellationTokenSource.IsCancellationRequested) {
 				//check if remote endpoint closed
 				if (webSocket.State != WebSocketState.Open) {
-					controllerInstance.delete();
+					crestronUser.delete();
 					return CrestronWebsocketState.Disconnecting;
 				}
 
 				string receivedString = await receiveString(webSocket, cancellationTokenSource.Token);
-				//Attempt to send
-				if (!await controllerInstance.send(receivedString, cancellationTokenSource.Token)) {
+				//Attempt to send disconnect if it fails
+				if (!await crestronUser.send(receivedString, cancellationTokenSource.Token)) {
 					//Sending failed, disconnect
-					controllerInstance.delete();
+					crestronUser.delete();
 					return CrestronWebsocketState.Disconnecting;
 				}
 			}
-			controllerInstance.delete();
+			crestronUser.delete();
 			//Disconnect
 			return CrestronWebsocketState.Disconnecting;
 		}
 
+		/// <summary>
+		/// Disconnect
+		/// </summary>
+		/// <returns></returns>
 		private async Task handleDisconnecting() {
 			//Send state
 			await sendString(webSocket, CrestronWebsocketState.Disconnecting.ToString(), cancellationTokenSource.Token);
 		}
 
+		/// <summary>
+		/// Send a string on the websocket
+		/// </summary>
+		/// <param name="webSocket"></param>
+		/// <param name="s"></param>
+		/// <param name="token"></param>
+		/// <returns></returns>
 		private async Task sendString(WebSocket webSocket, string s, CancellationToken token) {
 			byte[] bytes = Encoding.UTF32.GetBytes(s);
 			//Get size
@@ -196,6 +255,12 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			await webSocket.SendAsync(bytes, WebSocketMessageType.Text, true, token);
 		}
 
+		/// <summary>
+		/// Receive a string with a websocket
+		/// </summary>
+		/// <param name="webSocket"></param>
+		/// <param name="token"></param>
+		/// <returns></returns>
 		private async Task<string> receiveString(WebSocket webSocket, CancellationToken token) {
 			byte[] sizeBytes = new byte[sizeof(int)];
 			await webSocket.ReceiveAsync(sizeBytes, token);

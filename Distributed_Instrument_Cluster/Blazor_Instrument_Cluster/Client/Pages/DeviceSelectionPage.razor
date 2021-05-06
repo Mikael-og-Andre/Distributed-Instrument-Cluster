@@ -24,8 +24,8 @@
     <div id="ListConnected" class="" style="list-style: none">
         <ul>
             @if (devices != null) {
-                @foreach (DeviceModel device in devices) {
-                    <DeviceComponent deviceInfo="device"></DeviceComponent>
+                @foreach (DisplayRemoteDeviceModel device in devices) {
+                    <DeviceComponent displayRemoteDeviceInfo="device"></DeviceComponent>
                 }
             }
             else {
@@ -45,7 +45,7 @@ else {
     private bool loading = false;
 
     public string pathToApi = "api/ConnectedDevices";
-    IEnumerable<DeviceModel> devices = null;
+    IEnumerable<DisplayRemoteDeviceModel> devices = null;
 
     protected override async Task OnInitializedAsync() {
         await fetchData();
@@ -57,7 +57,7 @@ else {
         string uriBase = navigationManager.BaseUri;
         string path = uriBase + pathToApi;
         try {
-            devices = await Http.GetFromJsonAsync<IEnumerable<DeviceModel>>(new Uri(path));
+            devices = await Http.GetFromJsonAsync<IEnumerable<DisplayRemoteDeviceModel>>(new Uri(path));
         }
         catch (Exception ex) {
             Console.WriteLine("Exception thrown: " + ex.Message);

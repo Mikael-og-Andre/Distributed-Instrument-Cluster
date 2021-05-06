@@ -18,10 +18,6 @@ namespace Blazor_Instrument_Cluster.Shared.Websocket {
 		/// Type value of the remote device
 		/// </summary>
 		public string type { get; set; }
-		/// <summary>
-		/// id of a specific connection
-		/// </summary>
-		public Guid id { get; set; }
 
 		/// <summary>
 		/// Constructor for json
@@ -36,12 +32,10 @@ namespace Blazor_Instrument_Cluster.Shared.Websocket {
 		/// <param name="name"></param>
 		/// <param name="location"></param>
 		/// <param name="type"></param>
-		/// <param name="subname"></param>
-		public RequestingDeviceModel(string name, string location, string type, Guid id) {
+		public RequestingDeviceModel(string name, string location, string type) {
 			this.name = name;
 			this.location = location;
 			this.type = type;
-			this.id = id;
 		}
 	}
 }

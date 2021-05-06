@@ -105,10 +105,9 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		/// <summary>
 		/// handle a connection to the Backend
 		/// </summary>
-		/// <param name="deviceModel"></param>
-		/// <param name="subConnection"></param>
+		/// <param name="displayRemoteDeviceModel"></param>
 		/// <returns></returns>
-		public async Task startProtocol(DeviceModel deviceModel, SubConnectionModel subConnection) {
+		public async Task startProtocol(DisplayRemoteDeviceModel displayRemoteDeviceModel) {
 			cancellationTokenSource?.Cancel();
 			cancellationTokenSource = new CancellationTokenSource();
 			CancellationToken ct = cancellationTokenSource.Token;
@@ -147,7 +146,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 						case CrestronWebsocketState.Requesting:
 							this.statusMsg = "Requesting Device";
 							updateState();
-							await handleRequestingAsync(deviceModel, subConnection, webSocket, ct);
+							await handleRequestingAsync(displayRemoteDeviceModel, webSocket, ct);
 							break;
 
 						case CrestronWebsocketState.InQueue:
@@ -190,11 +189,11 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		/// <param name="subConnectionModel"></param>
 		/// <param name="clientWebSocket"></param>
 		/// <param name="ct"></param>
-		/// <param name="deviceModel"></param>
+		/// <param name="displayRemoteDeviceModel"></param>
 		/// <returns>Should the connection close, True = yes</returns>
-		private async Task handleRequestingAsync(DeviceModel deviceModel, SubConnectionModel subConnectionModel, ClientWebSocket clientWebSocket, CancellationToken ct) {
+		private async Task handleRequestingAsync(DisplayRemoteDeviceModel displayRemoteDeviceModel, ClientWebSocket clientWebSocket, CancellationToken ct) {
 			//Send Requesting Device model
-			RequestingDeviceModel requestingDevice = new RequestingDeviceModel(deviceModel.name, deviceModel.location, deviceModel.type, subConnectionModel.guid);
+			RequestingDeviceModel requestingDevice = new RequestingDeviceModel(displayRemoteDeviceModel.name, displayRemoteDeviceModel.location, displayRemoteDeviceModel.type);
 			string requestingDeviceString = JsonSerializer.Serialize(requestingDevice);
 			await sendString(clientWebSocket, requestingDeviceString, ct);
 
@@ -202,7 +201,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 			string found = await receiveString(clientWebSocket, ct);
 			//if the returned string isn't true, close connection
 			if (!found.Equals("True")) {
-				Console.WriteLine("handleRequestingAsync: Device was not found");
+				Console.WriteLine($"handleRequestingAsync: Device was not found. And the msg was: {found}");
 				//Set to closing
 				isClosing = true;
 			}

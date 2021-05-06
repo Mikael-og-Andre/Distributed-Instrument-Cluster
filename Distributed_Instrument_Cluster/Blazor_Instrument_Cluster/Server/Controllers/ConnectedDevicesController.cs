@@ -57,11 +57,10 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 						
 						//check if it has a crestron
 						bool hasCrestron=device.hasCrestron();
-						
-
+						bool pingResult = device.ping(500);
 
 						enumerableDeviceModels =
-							enumerableDeviceModels.Append(new DisplayRemoteDeviceModel(deviceName,deviceLocation,deviceType,hasCrestron));
+							enumerableDeviceModels.Append(new DisplayRemoteDeviceModel(deviceName,deviceLocation,deviceType,hasCrestron,pingResult));
 					}
 				}
 
