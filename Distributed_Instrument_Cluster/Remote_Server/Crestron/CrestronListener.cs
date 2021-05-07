@@ -73,7 +73,7 @@ namespace Remote_Server.Crestron {
 					}
 
 					byte[] receivedBytes = await connection.receiveAsync();
-					string decoded = Encoding.UTF32.GetString(receivedBytes);
+					string decoded = Encoding.UTF8.GetString(receivedBytes);
 					await crestron.sendCommandToCrestron(decoded);
 				}
 			}
