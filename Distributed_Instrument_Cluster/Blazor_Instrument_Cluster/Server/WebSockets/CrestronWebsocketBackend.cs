@@ -297,7 +297,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// <param name="token"></param>
 		/// <returns></returns>
 		private async Task sendString(WebSocket webSocket, string s, CancellationToken token) {
-			byte[] bytes = Encoding.UTF32.GetBytes(s);
+			byte[] bytes = Encoding.UTF8.GetBytes(s);
 			//Get size
 			byte[] size = BitConverter.GetBytes(bytes.Length);
 			//Send size
@@ -318,7 +318,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			int size = BitConverter.ToInt32(sizeBytes);
 			byte[] stringBytes = new byte[size];
 			await webSocket.ReceiveAsync(stringBytes, token);
-			return Encoding.UTF32.GetString(stringBytes);
+			return Encoding.UTF8.GetString(stringBytes);
 		}
 	}
 }
