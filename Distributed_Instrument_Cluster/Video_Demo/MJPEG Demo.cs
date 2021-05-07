@@ -15,7 +15,6 @@ namespace Video_Demo {
 		public static void Main(string[] args) {
 			var thread = new Thread(startServer);
 			thread.Start();
-			Console.WriteLine("new thread?");
 			startClient();
 		}
 
@@ -101,29 +100,32 @@ namespace Video_Demo {
 					//	stream.Read(temp, 0, 1);
 					//	image[i] = temp[0];
 					//}
-					var segmentList = new List<byte[]>();
-					var segmentSize = 100;
 
-					for (int i = 0; i <= contentLength/segmentSize; i++) {
-						Thread.Sleep(10);
-						var segmentSizeL = segmentSize;
-						if (((i+1) * segmentSize) > contentLength) {
-							//Console.WriteLine("triggerd");
-							segmentSizeL = contentLength - segmentSize * i ;
-							//Console.WriteLine(segmentSizeL);
-						}
 
-						byte[] segment;
-						stream.Read(segment = new byte[segmentSizeL], 0, segmentSizeL);
-						segmentList.Add(segment);
-						//Console.WriteLine(string.Join(",", segment));
 
-					}
+					//var segmentList = new List<byte[]>();
+					//var segmentSize = 100;
 
-					var image = new byte[contentLength];
-					image = segmentList.SelectMany(byteArr => byteArr).ToArray();
+					//for (int i = 0; i <= contentLength / segmentSize; i++) {
+					//	Thread.Sleep(10);
+					//	var segmentSizeL = segmentSize;
+					//	if (((i + 1) * segmentSize) > contentLength) {
+					//		//Console.WriteLine("triggerd");
+					//		segmentSizeL = contentLength - segmentSize * i;
+					//		//Console.WriteLine(segmentSizeL);
+					//	}
 
-					
+					//	byte[] segment;
+					//	stream.Read(segment = new byte[segmentSizeL], 0, segmentSizeL);
+					//	segmentList.Add(segment);
+					//	//Console.WriteLine(string.Join(",", segment));
+
+					//}
+
+					//var image = new byte[contentLength];
+					//image = segmentList.SelectMany(byteArr => byteArr).ToArray();
+
+
 
 					//Console.WriteLine("ffs");
 
@@ -134,22 +136,34 @@ namespace Video_Demo {
 					//foreach (var segment in segmentList) {
 					//	index += segment.Length;
 					//	Array.Copy(segment,index,image,index ,segment.Length);
-						
+
 
 					//}
 
-					
+
+
+					//var image = new byte[contentLength];
 
 					//stream.Read(image[..50], 0, 50);
 					//stream.Read(image, 0, contentLength);
+					//stream.Read(image, 0, contentLength);
 					//Console.WriteLine("okokkokokokoko");
+
+					var rtTemp = new byte[2];
+					var rtTemp2 = new byte[contentLength - 2];
+					var image = new byte[contentLength];
+
+					//stream.Read(rtTemp, 0, 2);
+					//stream.Read(rtTemp2, 0, contentLength - 2);
+
+					Console.WriteLine(string.Join(",", rtTemp2));
 					//Console.WriteLine(string.Join(",", image));
 
 
 
 					JPGstream.Image = image.ToArray();
-
-					//return;
+					
+					return;
 				}
 				return;
 			}
@@ -162,7 +176,6 @@ namespace Video_Demo {
 
 
 				var reader = new StreamReader(stream);
-
 
 
 

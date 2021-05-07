@@ -20,10 +20,6 @@ namespace Crestron_Library
 			this.maxDelta = maxDelta;
 		}
 
-		public void sendCommandToCrestron(string msg) {
-			pars(msg);
-		}
-
 		/// <summary>
 		/// Pars commands from string to bytes and execute the commands by sending it to the serial port.
 		/// </summary>
@@ -140,7 +136,6 @@ namespace Crestron_Library
 				if (Math.Abs(dx + delta[0]) < maxDelta) dx += delta[0];
 				if (Math.Abs(dy + delta[1]) < maxDelta) dy += delta[1];
 			}
-
 			return (dx, dy);
 		}
 
@@ -157,15 +152,19 @@ namespace Crestron_Library
 			if(serialPort.isExecuting()) return (dx, dy);
 
 			var xScale = Math.Abs(dx) >= largeMagnitude ? largeMagnitude : smallMagnitude;
-			var yScale = Math.Abs(dy) >= smallMagnitude ? largeMagnitude : smallMagnitude;
+			var yScale = Math.Abs(dy) >= largeMagnitude ? largeMagnitude : smallMagnitude;
 
-			//Only change magnitude if deltas are above or bellow current magnitude threshold (scaleFactor).
-			if ((xScale == largeMagnitude || yScale==largeMagnitude) && !isMagnitudeLarge) {
-				serialPort.SendBytes(commands.getMakeByte("magnitude large"));
-				isMagnitudeLarge = true;
+			//Only change magnitude if deltas are above or bellow current magnitude threshold.
+			if ((xScale == largeMagnitude || yScale == largeMagnitude)) {
+				if (!isMagnitudeLarge) {
+					serialPort.SendBytes(commands.getMakeByte("magnitude large"));
+					isMagnitudeLarge = true;
+				}
 			} else {
-				serialPort.SendBytes(commands.getMakeByte("magnitude small"));
-				isMagnitudeLarge = false;
+				if (isMagnitudeLarge) {
+					serialPort.SendBytes(commands.getMakeByte("magnitude small"));
+					isMagnitudeLarge = false;
+				}
 			}
 
 			var executionScale = isMagnitudeLarge ? largeMagnitude : smallMagnitude;
@@ -177,6 +176,7 @@ namespace Crestron_Library
 				serialPort.SendBytes(commands.getMakeByte(dy > 0 ? "down" : "up"));
 				dy -= executionScale * (dy > 0 ? 1 : -1);
 			}
+
 			return (dx, dy);
 		}
 

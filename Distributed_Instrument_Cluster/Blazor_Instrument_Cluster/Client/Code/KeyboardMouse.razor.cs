@@ -8,6 +8,8 @@ using Microsoft.JSInterop;
 using Packet_Classes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -138,15 +140,16 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 		#region Sending commands
 
-		private async void sendData(string s) {
+		private async void sendData(string s, bool overwrite=false) {
 			//check if device is null
 			if (crestronWebsocket is null) {
 				return;
 			}
-			//if (!(await JS.InvokeAsync<bool>("isLocked"))) {
-			//	logger.LogDebug("sendData: Can not send data when not locked");
-			//	return;
-			//}
+
+			if (!(await JS.InvokeAsync<bool>("isLocked")) && !overwrite) {
+				logger.LogDebug("sendData: Can not send data when not locked");
+				return;
+			}
 			updateState();
 			if (crestronWebsocket.state is not (CrestronWebsocketState.InControl)) {
 				logger.LogDebug("sendData: CrestronWebsocket not in a state to receive data");
@@ -280,13 +283,14 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// TODO: refactor.
 		/// </summary>
 		public void virtualKeyboardHandler(string s) {
+			
 			if (s.StartsWith("up")) {
 				s = s[3..];
-				sendData("break " + s);
+				sendData("break " + s, true);
 			}
 			else if (s.StartsWith("down")) {
 				s = s[5..];
-				sendData("make " + s);
+				sendData("make " + s, true);
 			}
 
 		}
@@ -297,13 +301,24 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 			//Console.WriteLine(e.Detail);
 		}
 
+		private long sendTime = 0;
+		private long sendDelay = 100000000;
+		private int[] deltas = new int[2];
+
 		protected async void move(MouseEventArgs e) {
 			int[] deltas = await JS.InvokeAsync<int[]>("getPositionChange");
 
-			int x = deltas[0];
-			int y = deltas[1];
+			//int x = deltas[0];
+			//int y = deltas[1];
 
-			sendData("movecursor (" + x + "," + y + ")");
+			this.deltas[0] += deltas[0];
+			this.deltas[1] += deltas[1];
+
+			if (sendTime >= Stopwatch.GetTimestamp()) return;
+			sendTime = Stopwatch.GetTimestamp() + sendDelay;
+			sendData("movecursor (" + this.deltas[0] + "," + this.deltas[1] + ")");
+			this.deltas[0] = 0;
+			this.deltas[1] = 0;
 		}
 
 		#endregion Events

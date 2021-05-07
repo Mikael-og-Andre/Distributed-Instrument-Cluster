@@ -44,16 +44,20 @@ namespace Remote_Server {
 		}
 
 		private Program(string configFile) {
-
+			var json = parsConfigFile(configFile);
+			var cable = json.crestronCable;
 			//Testing class
-			TestCrestron crestron = new TestCrestron();
+			//TestCrestron crestron = new TestCrestron();
+			var cableInterface = new SerialPortInterface(cable.portName);
+			var crestron = new CrestronControl(new CommandParser(cableInterface, cable.largeMagnitude, cable.smallMagnitude, cable.maxDelta));
+
 			//Start crestron listener
 			crestronListener = new CrestronListener(new IPEndPoint(IPAddress.Parse("0.0.0.0"), 6981), crestron);
 			Task crestronListenerTask = crestronListener.run();
 
 
 
-			var json = parsConfigFile(configFile);
+
 
 			//while (!setupSerialCable(json.crestronCable).Result) {
 			//	Thread.Sleep(3000);
