@@ -125,7 +125,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 					Console.WriteLine("CrestronClient: tried to send on closed socket");
 					return false;
 				}
-				await sendAsync(Encoding.UTF32.GetBytes(msg));
+				await sendAsync(Encoding.UTF8.GetBytes(msg));
 				return true;
 			}
 			catch (Exception e) {
@@ -147,7 +147,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 					return String.Empty;
 				}
 				byte[] bytesReceived = await receiveAsync();
-				return Encoding.UTF32.GetString(bytesReceived);
+				return Encoding.UTF8.GetString(bytesReceived);
 			}
 			catch (Exception e) {
 				Console.WriteLine($"Exception in CrestronClient Send: {e.Message}");
