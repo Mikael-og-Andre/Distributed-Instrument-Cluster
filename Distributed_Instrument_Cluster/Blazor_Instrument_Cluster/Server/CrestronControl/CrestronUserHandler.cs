@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Server.CrestronControl.Interface;
-using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
 using Server_Library.Connection_Types.Async;
 
 namespace Blazor_Instrument_Cluster.Server.CrestronControl {
@@ -95,7 +94,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		public async Task<bool> sendAsync(string bytes, CrestronUser crestronUser) {
 			if (!connection.isReady()) {
 				Console.WriteLine("CrestronUserHandler: Connection is not ready, ensuringUP");
-				bool isUp =await connection.ensureUP();
+				bool isUp = connection.ensureUP();
 				if (!isUp) {
 					Console.WriteLine("CrestronUserHandler: Connection could not be made");
 					return false;
@@ -109,6 +108,14 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 			else {
 				return false;
 			}
+		}
+
+		/// <summary>
+		/// Check if the connection is up, if not check if it can be restarted
+		/// </summary>
+		/// <returns></returns>
+		public bool checkConnectionAvailable() {
+			return connection.ensureUP();
 		}
 	}
 }

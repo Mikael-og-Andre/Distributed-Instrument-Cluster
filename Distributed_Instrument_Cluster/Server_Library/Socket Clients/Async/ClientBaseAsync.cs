@@ -45,9 +45,20 @@ namespace Server_Library.Socket_Clients.Async {
 		/// Attempts to connect to the given host and ip
 		/// </summary>
 		/// <returns></returns>
-		protected async Task connectToServer() {
-			await connectionSocket.ConnectAsync(Ip,Port);
-			this.connectionNetworkStream = new NetworkStream(connectionSocket, false);
+		protected  bool connectToServer() {
+			try {
+				if (connectionSocket.Connected) {
+					connectionSocket.Disconnect(false);
+					connectionSocket = new Socket(AddressFamily.InterNetwork,SocketType.Stream,ProtocolType.Tcp);
+				}
+				connectionSocket.Connect(Ip,Port);
+				this.connectionNetworkStream = new NetworkStream(connectionSocket, false);
+				return true;
+			}
+			catch (Exception e) {
+				Console.WriteLine("Exception in ClientBaseAsync: {0}",e);
+				return false;
+			}
 		}
 
 
@@ -83,14 +94,17 @@ namespace Server_Library.Socket_Clients.Async {
 		/// Closes current connection if needed, Then tries to connect to the ip and port
 		/// </summary>
 		/// <returns>Returns true if connected</returns>
-		protected async Task<bool> reconnect() {
+		protected  bool reconnect() {
+
 			if (isSocketConnected()) {
-				connectionSocket.Close();
+				Console.WriteLine("ClientBaseAsync: Tried to reconnect when socket was connected");
+				return true;
 			}
 
 			try {
-				await connectToServer();
-				return true;
+				//Reconnect
+				bool connected=connectToServer();
+				return connected;
 			}
 			catch (Exception e) {
 				Console.WriteLine("ClientBaseAsync: Could not connect to {0}, {1}",Ip,Port);

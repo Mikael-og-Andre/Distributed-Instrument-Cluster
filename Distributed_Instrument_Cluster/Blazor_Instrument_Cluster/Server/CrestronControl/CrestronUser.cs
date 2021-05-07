@@ -51,6 +51,14 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		}
 
 		/// <summary>
+		/// Check if the connection to the remtoe device is okay, and if not checks if it can reconnect
+		/// </summary>
+		/// <returns></returns>
+		public bool checkConnectionAvailable() {
+			return crestronUserHandler.checkConnectionAvailable();
+		}
+
+		/// <summary>
 		/// Remove this object from its controlHandlers list of controllers
 		/// </summary>
 		public void delete() {

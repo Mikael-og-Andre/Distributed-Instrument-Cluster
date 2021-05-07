@@ -48,7 +48,7 @@ namespace Blazor_Instrument_Cluster.Server {
 			//Start Connection listeners as background services
 			//services.AddHostedService<VideoListenerService>();
 			//services.AddHostedService<CrestronListenerService>();
-			services.AddHostedService<RemoteDeviceMonitorService>();
+			//services.AddHostedService<RemoteDeviceMonitorService>();
 			//Add singletons for web socket handling
 			services.AddSingleton<CrestronWebsocketHandler>();
 

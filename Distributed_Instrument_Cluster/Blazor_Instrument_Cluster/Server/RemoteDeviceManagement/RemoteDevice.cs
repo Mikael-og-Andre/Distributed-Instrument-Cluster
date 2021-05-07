@@ -129,7 +129,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// Create a controller instance for the crestronConnection
 		/// </summary>
 		/// <returns>CrestronUser</returns>
-		public CrestronUser createControllerInstance() {
+		public CrestronUser createCrestronUser() {
 			lock (crestronUserHandler) {
 				return crestronUserHandler.createCrestronUser();
 			}
@@ -148,12 +148,18 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// </summary>
 		/// <returns></returns>
 		public bool ping(int timeout) {
-			Ping ping = new Ping();
-			PingReply reply = ping.Send(IPAddress.Parse(ip),timeout);
-			if (reply.Status==IPStatus.Success) {
-				return true;
+			try {
+				Ping ping = new Ping();
+				PingReply reply = ping.Send(IPAddress.Parse(ip), timeout);
+				if (reply.Status == IPStatus.Success) {
+					return true;
+				}
+				else {
+					return false;
+				}
 			}
-			else {
+			catch (Exception e) {
+				Console.WriteLine($"Exception in remoteDevice ping: {e.Message}");
 				return false;
 			}
 		}

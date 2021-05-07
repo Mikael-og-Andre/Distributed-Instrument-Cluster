@@ -18,10 +18,12 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	public class CrestronWebsocketBackend {
+
 		/// <summary>
 		/// Websocket the communication runs over
 		/// </summary>
 		public WebSocket webSocket { get; set; }
+
 		/// <summary>
 		/// Signals that the task is complete
 		/// </summary>
@@ -46,6 +48,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// Should the socket close, if anything wants to close, set this to true and in the next loop the connection will close
 		/// </summary>
 		private bool isClosing { get; set; }
+
 		/// <summary>
 		/// An instance of a crestronUser, used to queue for control, and send commands
 		/// </summary>
@@ -98,6 +101,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			}
 			catch (Exception e) {
 				Console.WriteLine("Exception in CrestronWebsocketBackend: {0}", e.Message);
+				
 			}
 			//remove device from list if it exists
 			crestronUser?.delete();
@@ -140,7 +144,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				await sendString(webSocket, "Device not found", cancellationTokenSource.Token);
 				return CrestronWebsocketState.Disconnecting;
 			}
-			else if(!remoteDevice.hasCrestron()) {
+			else if (!remoteDevice.hasCrestron()) {
 				await sendString(webSocket, "No Crestron", cancellationTokenSource.Token);
 				return CrestronWebsocketState.Disconnecting;
 			}
@@ -151,7 +155,14 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				return CrestronWebsocketState.Disconnecting;
 			}
 
-			this.crestronUser = remoteDevice.createControllerInstance(); ;
+			this.crestronUser = remoteDevice.createCrestronUser();
+
+			if (!crestronUser.checkConnectionAvailable()) {
+				await sendString(webSocket, "Device is not online", cancellationTokenSource.Token);
+				crestronUser.delete();
+				return CrestronWebsocketState.Disconnecting;
+			}
+
 			await sendString(webSocket, "True", cancellationTokenSource.Token);
 			return CrestronWebsocketState.InQueue;
 		}
@@ -200,66 +211,72 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// </summary>
 		/// <returns></returns>
 		private async Task<CrestronWebsocketState> handleInControl() {
-			//Send state
-			await sendString(webSocket, CrestronWebsocketState.InControl.ToString(), cancellationTokenSource.Token);
-			//check if in control
-			bool controlling = crestronUser.isControlling();
-			if (!controlling) {
-				await sendString(webSocket, "Not controlling", cancellationTokenSource.Token);
-				//abandon controller instance
+			try {
+				//Send state
+				await sendString(webSocket, CrestronWebsocketState.InControl.ToString(), cancellationTokenSource.Token);
+				//check if in control
+				bool controlling = crestronUser.isControlling();
+				if (!controlling) {
+					await sendString(webSocket, "Not controlling", cancellationTokenSource.Token);
+					//abandon controller instance
+					crestronUser.delete();
+					return CrestronWebsocketState.InQueue;
+				}
+
+				//In control
+				await sendString(webSocket, "Controlling", cancellationTokenSource.Token);
+				//Tack time between receives
+				Stopwatch stopwatch = new Stopwatch();
+				stopwatch.Start();
+				bool hasExceeded = false;
+				CancellationToken ct = cancellationTokenSource.Token;
+
+				//If no command is received in 2 minutes close the connection
+				Task timeTracker = Task.Run(async () => {
+					while (stopwatch.ElapsedMilliseconds < TimeOutConnectionMillis) {
+						await Task.Delay(100, ct);
+					}
+					//if canceled just leave the task
+					if (ct.IsCancellationRequested) {
+						return;
+					}
+					//Close connection due to time exceeded
+					hasExceeded = true;
+					cancellationTokenSource.Cancel();
+				}, ct);
+
+				//Receive commands
+				while (!cancellationTokenSource.IsCancellationRequested) {
+					if (hasExceeded) {
+						crestronUser.delete();
+						return CrestronWebsocketState.Disconnecting;
+					}
+
+					//check if remote endpoint closed
+					if (webSocket.State != WebSocketState.Open) {
+						crestronUser.delete();
+						return CrestronWebsocketState.Disconnecting;
+					}
+
+					string receivedString = await receiveString(webSocket, cancellationTokenSource.Token);
+					//Command received reset clock
+					stopwatch.Restart();
+					//Attempt to send disconnect if it fails
+					if (!await crestronUser.send(receivedString, cancellationTokenSource.Token)) {
+						//Sending failed, disconnect
+						crestronUser.delete();
+						return CrestronWebsocketState.Disconnecting;
+					}
+				}
 				crestronUser.delete();
-				return CrestronWebsocketState.InQueue;
+				//Disconnect
+				return CrestronWebsocketState.Disconnecting;
 			}
-
-			//In control
-			await sendString(webSocket, "Controlling", cancellationTokenSource.Token);
-			//Tack time between receives
-			Stopwatch stopwatch = new Stopwatch();
-			stopwatch.Start();
-			bool hasExceeded = false;
-			CancellationToken ct = cancellationTokenSource.Token;
-
-			//If no command is received in 2 minutes close the connection
-			Task timeTracker = Task.Run(async () => {
-				while (stopwatch.ElapsedMilliseconds<TimeOutConnectionMillis) {
-					await Task.Delay(100, ct);
-				}
-				//if canceled just leave the task
-				if (ct.IsCancellationRequested) {
-					return;
-				}
-				//Close connection due to time exceeded
-				hasExceeded = true;
-				cancellationTokenSource.Cancel();
-			}, ct);
-
-			//Receive commands
-			while (!cancellationTokenSource.IsCancellationRequested) {
-
-				if (hasExceeded) {
-					crestronUser.delete();
-					return CrestronWebsocketState.Disconnecting;
-				}
-
-				//check if remote endpoint closed
-				if (webSocket.State != WebSocketState.Open) {
-					crestronUser.delete();
-					return CrestronWebsocketState.Disconnecting;
-				}
-
-				string receivedString = await receiveString(webSocket, cancellationTokenSource.Token);
-				//Command received reset clock
-				stopwatch.Restart();
-				//Attempt to send disconnect if it fails
-				if (!await crestronUser.send(receivedString, cancellationTokenSource.Token)) {
-					//Sending failed, disconnect
-					crestronUser.delete();
-					return CrestronWebsocketState.Disconnecting;
-				}
+			catch (Exception e) {
+				crestronUser?.delete();
+				Console.WriteLine("Exception in handle in control");
+				throw;
 			}
-			crestronUser.delete();
-			//Disconnect
-			return CrestronWebsocketState.Disconnecting;
 		}
 
 		/// <summary>
@@ -269,6 +286,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		private async Task handleDisconnecting() {
 			//Send state
 			await sendString(webSocket, CrestronWebsocketState.Disconnecting.ToString(), cancellationTokenSource.Token);
+			await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure,"disconnecting",cancellationTokenSource.Token);
 		}
 
 		/// <summary>

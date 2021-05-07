@@ -15,6 +15,6 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl.Interface {
 
 		public bool isReady();
 
-		public Task<bool> ensureUP();
+		public bool ensureUP();
 	}
 }

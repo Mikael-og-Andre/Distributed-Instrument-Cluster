@@ -52,8 +52,9 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			accessToken = new AccessToken("access");
 
 			//TODO: HARDOCDED RemoteDevice
-			addRemoteDevice(1,"192.168.50.160",6981,6980,"Hardcoded Name","Hardcoded location", "Hardcoded type");
-
+			addRemoteDevice(1,"192.168.1.164",6981,6980,"andre","Hardcoded location", "Hardcoded type");
+			addRemoteDevice(2,"192.168.50.160",6981,6980,"mikael laptop","Stua", "crestron");
+			addRemoteDevice(3,"192.168.50.62",7981,7980,"mikael desktop","rom", "crestron");
 		}
 
 		/// <summary>

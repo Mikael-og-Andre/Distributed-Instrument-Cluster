@@ -41,11 +41,11 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// </summary>
 		/// <returns></returns>
 		public async Task connect() {
-			if (isSocketConnected()) {
-				Console.WriteLine("CrestronClient: Socket that was already connected tried to connect");
+			if (ready()) {
+				Console.WriteLine("CrestronClient: Connect was called but socket was ready");
 				return;
 			}
-			await connectToServer();
+			connectToServer();
 			isConnected = true;
 		}
 
@@ -98,27 +98,41 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// </summary>
 		/// <returns>True if success</returns>
 		public bool ping() {
-			Ping ping = new Ping();
-			PingReply rply = ping.Send(Ip, PingTimeout);
-			//If the ping was a success return true
-			if (rply.Status == IPStatus.Success) {
+			try {
+				Ping ping = new Ping();
+				PingReply rply = ping.Send(Ip, PingTimeout);
+				//If the ping was a success return true
+				if (rply.Status == IPStatus.Success) {
+					return false;
+				}
 				return false;
 			}
-			return false;
+			catch (Exception e) {
+				Console.WriteLine("Ping failed deu to exception: {0}",e);
+				return false;
+			}
 		}
 
 		/// <summary>
 		/// Send string
 		/// </summary>
 		/// <param name="msg"></param>
-		/// <returns></returns>
+		/// <returns>Was sent</returns>
 		public async Task<bool> send(string msg) {
-			if (!isSocketConnected()) {
-				Console.WriteLine("CrestronClient: tried to send on closed socket");
+			try {
+				if (!isSocketConnected()) {
+					isConnected = false;
+					Console.WriteLine("CrestronClient: tried to send on closed socket");
+					return false;
+				}
+				await sendAsync(Encoding.UTF32.GetBytes(msg));
+				return true;
+			}
+			catch (Exception e) {
+				Console.WriteLine($"Exception in CrestronClient Send: {e.Message}");
+				isConnected = false;
 				return false;
 			}
-			await sendAsync(Encoding.UTF32.GetBytes(msg));
-			return true;
 		}
 
 		/// <summary>
@@ -126,12 +140,20 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// </summary>
 		/// <returns></returns>
 		public async Task<string> receive() {
-			if (!isSocketConnected()) {
-				Console.WriteLine("CrestronClient: tried to receive on closed socket");
+			try {
+				if (!isSocketConnected()) {
+					isConnected = false;
+					Console.WriteLine("CrestronClient: tried to receive on closed socket");
+					return String.Empty;
+				}
+				byte[] bytesReceived = await receiveAsync();
+				return Encoding.UTF32.GetString(bytesReceived);
+			}
+			catch (Exception e) {
+				Console.WriteLine($"Exception in CrestronClient Send: {e.Message}");
+				isConnected = false;
 				return String.Empty;
 			}
-			byte[] bytesReceived = await receiveAsync();
-			return Encoding.UTF32.GetString(bytesReceived);
 		}
 
 		/// <summary>
@@ -146,7 +168,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// Make sure the connection is up, if possible
 		/// </summary>
 		/// <returns></returns>
-		public async Task<bool> ensureUP() {
+		public bool ensureUP() {
 			try {
 				//Check if connection is ok
 				if (ready()) {
@@ -154,17 +176,14 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 				}
 				//if not reconnect
 				Console.WriteLine("Crestron Client is reconnecting");
-				bool connected = await reconnect();
+				bool connected = reconnect();
 				isConnected = connected;
-				if (connected) {
-					return true;
-				}
-
-				return false;
+				return connected;
 			}
 			catch (Exception e) {
 				Console.WriteLine("CrestronClient: Exception in ensureUP");
 				Console.WriteLine($"CrestronClient Exception: {e.Message}");
+				isConnected = false;
 				return false;
 			}
 		}
