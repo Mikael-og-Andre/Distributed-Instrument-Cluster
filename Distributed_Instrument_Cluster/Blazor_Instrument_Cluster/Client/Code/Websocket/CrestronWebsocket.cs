@@ -314,7 +314,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 				}
 			}
 		}
-		
+
 		/// <summary>
 		/// Handles the Disconnecting state
 		/// </summary>
@@ -454,7 +454,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		/// Call update function on the passed in IUpdate if it is not null
 		/// </summary>
 		private void updateState() {
-			stateUpdater?.stateHasChanged();
+			stateUpdater?.updateState();
 		}
 
 		/// <summary>
@@ -471,8 +471,8 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 		/// <param name="msg"></param>
 		/// <returns>True if message was sent, False if not</returns>
 		public async Task<bool> sendExternal(string msg) {
-			if (inControlLoop&&state == CrestronWebsocketState.InControl) {
-				await sendString(webSocket,msg,cancellationTokenSource.Token);
+			if (inControlLoop && state == CrestronWebsocketState.InControl) {
+				await sendString(webSocket, msg, cancellationTokenSource.Token);
 				return true;
 			}
 

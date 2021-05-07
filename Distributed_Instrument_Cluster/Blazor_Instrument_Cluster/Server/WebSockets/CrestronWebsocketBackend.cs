@@ -4,6 +4,7 @@ using Blazor_Instrument_Cluster.Shared.Websocket;
 using Blazor_Instrument_Cluster.Shared.Websocket.Enum;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -49,6 +50,11 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 		/// An instance of a crestronUser, used to queue for control, and send commands
 		/// </summary>
 		private CrestronUser crestronUser { get; set; } = default;
+
+		/// <summary>
+		/// How long does the controller loop run without receiving commands before it closes
+		/// </summary>
+		private const int TimeOutConnectionMillis = 1000 * 60 * 2;
 
 		public CrestronWebsocketBackend(WebSocket webSocket, RemoteDeviceManager remoteDeviceManager, TaskCompletionSource<object> tskCompletionSource) {
 			this.webSocket = webSocket;
@@ -207,9 +213,34 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 
 			//In control
 			await sendString(webSocket, "Controlling", cancellationTokenSource.Token);
+			//Tack time between receives
+			Stopwatch stopwatch = new Stopwatch();
+			stopwatch.Start();
+			bool hasExceeded = false;
+			CancellationToken ct = cancellationTokenSource.Token;
+
+			//If no command is received in 2 minutes close the connection
+			Task timeTracker = Task.Run(async () => {
+				while (stopwatch.ElapsedMilliseconds<TimeOutConnectionMillis) {
+					await Task.Delay(100, ct);
+				}
+				//if canceled just leave the task
+				if (ct.IsCancellationRequested) {
+					return;
+				}
+				//Close connection due to time exceeded
+				hasExceeded = true;
+				cancellationTokenSource.Cancel();
+			}, ct);
 
 			//Receive commands
 			while (!cancellationTokenSource.IsCancellationRequested) {
+
+				if (hasExceeded) {
+					crestronUser.delete();
+					return CrestronWebsocketState.Disconnecting;
+				}
+
 				//check if remote endpoint closed
 				if (webSocket.State != WebSocketState.Open) {
 					crestronUser.delete();
@@ -217,6 +248,8 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				}
 
 				string receivedString = await receiveString(webSocket, cancellationTokenSource.Token);
+				//Command received reset clock
+				stopwatch.Restart();
 				//Attempt to send disconnect if it fails
 				if (!await crestronUser.send(receivedString, cancellationTokenSource.Token)) {
 					//Sending failed, disconnect

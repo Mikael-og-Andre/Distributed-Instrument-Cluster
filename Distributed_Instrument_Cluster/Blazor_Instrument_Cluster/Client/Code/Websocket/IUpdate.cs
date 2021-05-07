@@ -9,6 +9,6 @@ namespace Blazor_Instrument_Cluster.Client.Code.Websocket {
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	public interface IUpdate {
-		public void stateHasChanged();
+		public void updateState();
 	}
 }

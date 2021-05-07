@@ -38,7 +38,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// </summary>
 		[Parameter]
 		public string urlDeviceJson { get; set; }                                        //Name of the wanted device
-		
+
 
 		public string name { get; set; }
 		public string location { get; set; }
@@ -133,12 +133,6 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 		#region UI Updating
 
-		/// <summary>
-		/// If anything happens to the socket like closing or receiving a close request update the bool values
-		/// </summary>
-		/// <returns></returns>
-		protected async Task updateQueueState() {
-		}
 
 		#endregion UI Updating
 
@@ -153,7 +147,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 			//	logger.LogDebug("sendData: Can not send data when not locked");
 			//	return;
 			//}
-			StateHasChanged();
+			updateState();
 			if (crestronWebsocket.state is not (CrestronWebsocketState.InControl)) {
 				logger.LogDebug("sendData: CrestronWebsocket not in a state to receive data");
 				return;
@@ -165,7 +159,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 				//Create json
 				string json = JsonSerializer.Serialize(sendingObject);
 
-				bool wasSent=await crestronWebsocket.sendExternal(json);
+				bool wasSent = await crestronWebsocket.sendExternal(json);
 			}
 			catch (Exception e) {
 				Console.WriteLine(e.Message);
@@ -183,10 +177,10 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		protected async Task connectToCrestronControl() {
 
 			//Crestron connection
-			crestronWebsocket = new CrestronWebsocket(uriCrestron,this);
+			crestronWebsocket = new CrestronWebsocket(uriCrestron, this);
 
 			currentConnectionTask = crestronWebsocket.startProtocol(displayRemoteDeviceModel);
-			stateHasChanged();
+			updateState();
 		}
 
 		protected async Task stopCurrentConnection() {
@@ -219,10 +213,10 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 				Console.WriteLine("Task ended");
 				crestronWebsocket.Dispose();
 			}
-			stateHasChanged();
+			updateState();
 		}
 
-#endregion Websokcet Communication
+		#endregion Websokcet Communication
 
 		#region Events
 
@@ -289,7 +283,8 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 			if (s.StartsWith("up")) {
 				s = s[3..];
 				sendData("break " + s);
-			} else if(s.StartsWith("down")) {
+			}
+			else if (s.StartsWith("down")) {
 				s = s[5..];
 				sendData("make " + s);
 			}
@@ -316,7 +311,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// <summary>
 		/// IUpdate implementation that allows other classes to update the state of this class
 		/// </summary>
-		public void stateHasChanged() {
+		public void updateState() {
 			StateHasChanged();
 		}
 	}
