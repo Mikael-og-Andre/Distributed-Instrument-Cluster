@@ -1,8 +1,8 @@
 {
   "serverSettings": {
-    "ip": "https://zretzy.asuscomm.com",
+    "ip": "0.0.0.0",
     "crestronPort": 6981,
-    "videoPort": 6980
+    "videoPort": 8080
   },
   "crestronCable": {
     "portName": "com5",
