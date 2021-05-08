@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -36,6 +37,9 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		[Inject]
 		public ILogger<KeyboardMouse> logger { get; set; }
 
+		[Inject]
+		public HttpClient client { get; set; }
+
 		/// <summary>
 		/// Url encoded string with location
 		/// </summary>
@@ -43,10 +47,11 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		public string urlDeviceJson { get; set; }                                        //Name of the wanted device
 
 
-		public string name { get; set; }
-		public string location { get; set; }
-		public string type { get; set; }
-		public bool hasCrestron { get; set; }
+		private string name { get; set; }
+		private string location { get; set; }
+		private string type { get; set; }
+		private bool hasCrestron { get; set; }
+		private Dictionary<string, KeyDictionary.key> keyDictionary = new();
 
 		/// <summary>
 		/// Device name location type
@@ -94,6 +99,11 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		protected override async Task OnInitializedAsync() {
 			await decodeUrlText();
 			await setupUri();
+			var file = await client.GetByteArrayAsync("Json/KeyDictionary.json");
+			var json = JsonSerializer.Deserialize<KeyDictionary>(file[3..]);	//BUG: JSON file starts with "." for some fucking reason!? Removed using [3..].
+			foreach (var key in json.dictionary) {
+				keyDictionary.Add(key.keyCode, key);
+			}
 			//updateQueueState();
 		}
 
@@ -233,45 +243,26 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 			sendData("mouseClick (" + e.Button + ",0)");    // 0=break/up.
 		}
 
+
+		private readonly Dictionary<string, bool> downedKeys = new();
+
 		protected void keyDown(KeyboardEventArgs e) {
-			Console.WriteLine(e.Code);
-			Console.WriteLine(e.Key);
-			switch (e.Code) {
-				case "Space":
-					if (downedKeys.ContainsKey(e.Code)) break;
-					sendData("make space");
-					downedKeys.Add(e.Code, true);
-					return;
+			if (!keyDictionary.TryGetValue(e.Code, out var key)) return;
+			if (key==null) return;
+			if (downedKeys.TryGetValue(key.keyValue, out _)) return;
+			if (key.breaks) return;
 
-				case "Tab":
-					return;
-
-				default:
-					if (downedKeys.ContainsKey(e.Code)) break;
-					sendData("make " + e.Key);
-					downedKeys.Add(e.Code, true);
-					break;
-			}
+			sendData($"make {key.keyValue}");
+			downedKeys.Add(key.keyValue, true);
 		}
 
-		private Dictionary<string, bool> downedKeys = new();
-
 		protected void keyUp(KeyboardEventArgs e) {
-			Console.WriteLine(e.Code);
-			switch (e.Code) {
-				case "Space":
-					sendData("break space");
-					downedKeys.Remove(e.Code);
-					return;
+			if (!keyDictionary.TryGetValue(e.Code, out var key)) return;
+			if (key == null) return;
+			if (key.breaks) return;
 
-				case "Tab":
-					return;
-
-				default:
-					sendData("break " + e.Key);
-					downedKeys.Remove(e.Code);
-					break;
-			}
+			sendData($"break {key.keyValue}");
+			downedKeys.Remove(key.keyValue);
 		}
 
 		/// <summary>
@@ -319,11 +310,25 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 		#endregion Events
 
+
 		/// <summary>
 		/// IUpdate implementation that allows other classes to update the state of this class
 		/// </summary>
 		public void updateState() {
 			StateHasChanged();
+		}
+	}
+
+	/// <summary>
+	/// Json class for storing key translation from frontend web values to backend crestron e.g. KeyL => L, Digit3 => 3.
+	/// </summary>
+	public class KeyDictionary {
+		public List<key> dictionary { get; set; }
+
+		public class key {
+			public string keyCode { get; set; }
+			public string keyValue { get; set; }
+			public bool breaks { get; set; }
 		}
 	}
 }

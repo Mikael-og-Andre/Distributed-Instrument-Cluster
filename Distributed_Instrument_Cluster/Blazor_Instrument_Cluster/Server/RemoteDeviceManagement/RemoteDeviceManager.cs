@@ -44,8 +44,8 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			this.logger = logger;
 			listRemoteDevices = new List<RemoteDevice>();
 
-			//TODO: HARDOCDED RemoteDevice
-			addRemoteDevice(1,"ooof.asuscomm.com",6981,8080,1,"andre","Hardcoded location", "Hardcoded type");
+			//TODO: HARDCODED RemoteDevice
+			addRemoteDevice(1,"127.0.0.1",6981,8080,1,"andre","Hardcoded location", "Hardcoded type");
 			addRemoteDevice(2,"zretzy.asuscomm.com",6981,8080,1,"mikael laptop","Stua", "crestron");
 			addRemoteDevice(3,"zretzy.asuscomm.com",7981,7080,1,"mikael desktop","rom", "crestron");
 
