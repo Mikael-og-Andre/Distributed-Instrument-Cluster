@@ -3,6 +3,8 @@ using Networking_Library;
 using Server_Library.Authorization;
 using Server_Library.Socket_Clients.Async;
 using System;
+using System.Linq;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
@@ -99,12 +101,20 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// <returns>True if success</returns>
 		public bool ping() {
 			try {
-				Ping ping = new Ping();
-				PingReply rply = ping.Send(Ip, PingTimeout);
-				//If the ping was a success return true
-				if (rply.Status == IPStatus.Success) {
-					return false;
+				IPHostEntry hostInfo = Dns.GetHostEntry(Ip);
+				IPAddress[] addresses = hostInfo.AddressList;
+
+				if (addresses.Any()) {
+					Ping ping = new Ping();
+					PingReply reply = ping.Send(IPAddress.Parse(addresses.First().ToString()), PingTimeout);
+					if (reply.Status == IPStatus.Success) {
+						return true;
+					}
+					else {
+						return false;
+					}
 				}
+
 				return false;
 			}
 			catch (Exception e) {

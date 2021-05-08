@@ -56,7 +56,7 @@ namespace Server_Library.Socket_Clients.Async {
 				return true;
 			}
 			catch (Exception e) {
-				Console.WriteLine("Exception in ClientBaseAsync: {0}",e);
+				Console.WriteLine("Exception in ClientBaseAsync: {0}",e.Message);
 				return false;
 			}
 		}

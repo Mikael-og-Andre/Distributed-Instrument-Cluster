@@ -1,2 +1,13 @@
 ﻿@inherits Blazor_Instrument_Cluster.Client.Code.VideoMJPEG
-<img src="@uri" style="width: 100%; height: 100%; position: relative; top: 0; left: 0" alt="Failed to load video stream"/>
+
+<div class="container border-info">
+    <div class="row">
+        <div class="col">
+            <button class="btn btn-outline-info" @onclick="prevUri">Prev</button>
+            <button class="btn btn-outline-info" @onclick="nextUri">Next</button>
+        </div>
+    </div>
+    <div class="row">
+        <img src="@uri" style="width: 100%; height: 100%; position: relative; top: 0; left: 0" alt="Failed to load video stream" />
+    </div>
+</div>

@@ -35,17 +35,17 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// <summary>
 		/// List of all urls for video
 		/// </summary>
-		private LinkedList<string> listOfUrls;
+		private LinkedList<Uri> listOfUrls;
 
 		/// <summary>
 		/// Uri to get the image from
 		/// </summary>
-		protected string uri = default;
+		protected Uri uri = default;
 
 		/// <summary>
 		/// linked list of video uris
 		/// </summary>
-		private LinkedListNode<string> currentUriNode = null;
+		private LinkedListNode<Uri> currentUriNode = null;
 
 		protected override void OnInitialized() {
 			//Create http version of url
@@ -53,11 +53,20 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 			Uri oldUriHttp = new Uri(httpBase);
 			try {
 				//Convert incoming url Json to object
-				string deviceJson = HttpUtility.UrlDecode(urlDeviceJson).TrimStart('\0').TrimEnd('\0');
+				string deviceJson = HttpUtility.UrlDecode(urlDeviceJson,Encoding.Unicode).TrimStart('\0').TrimEnd('\0');
 				displayRemoteDeviceModel = JsonSerializer.Deserialize<DisplayRemoteDeviceModel>(deviceJson);
 				
-				listOfUrls = new LinkedList<string>();
-				//TODO: Add video links
+				listOfUrls = new LinkedList<Uri>();
+
+				var videoIp = displayRemoteDeviceModel.ip;
+				var videoPorts = displayRemoteDeviceModel.videoPorts;
+
+				foreach (var port in videoPorts) {
+					UriBuilder builder = new UriBuilder(videoIp);
+					builder.Port = port;
+					Uri uri = builder.Uri;
+					listOfUrls.AddLast(uri);
+				}
 
 				if (listOfUrls.Count>0) {
 					//Set first uri;
@@ -74,16 +83,14 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// Set uri to the next uri in the list
 		/// </summary>
 		/// <returns></returns>
-		protected bool nextUri() {
-			LinkedListNode<string> nextNode = currentUriNode.Next;
+		protected void nextUri() {
+			LinkedListNode<Uri> nextNode = currentUriNode.Next;
 			if (nextNode is null) {
-				return false;
 			}
 			else {
 				//set new currentNode and new uri
 				currentUriNode = nextNode;
 				uri = currentUriNode.Value;
-				return true;
 			}
 		}
 
@@ -91,16 +98,15 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// Set uri to the previous node in the list
 		/// </summary>
 		/// <returns></returns>
-		protected bool prevUri() {
-			LinkedListNode<string> prevNode = currentUriNode.Previous;
+		protected void prevUri() {
+			LinkedListNode<Uri> prevNode = currentUriNode.Previous;
 			if (prevNode is null) {
-				return false;
+				
 			}
 			else {
 				//set new currentNode and new uri
 				currentUriNode = prevNode;
 				uri = currentUriNode.Value;
-				return true;
 			}
 		}
 

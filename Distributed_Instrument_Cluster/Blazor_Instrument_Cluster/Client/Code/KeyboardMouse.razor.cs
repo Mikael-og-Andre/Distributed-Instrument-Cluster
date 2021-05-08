@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -114,7 +115,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// <returns></returns>
 		private Task decodeUrlText() {
 			try {
-				string deviceModelJson = HttpUtility.UrlDecode(urlDeviceJson);
+				string deviceModelJson = HttpUtility.UrlDecode(urlDeviceJson,Encoding.Unicode);
 
 				displayRemoteDeviceModel  = JsonSerializer.Deserialize<DisplayRemoteDeviceModel>(deviceModelJson);
 
@@ -133,12 +134,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 		#endregion Lifecycle
 
-		#region UI Updating
-
-
-		#endregion UI Updating
-
-		#region Sending commands
+#region Sending commands
 
 		private async void sendData(string s, bool overwrite=false) {
 			//check if device is null

@@ -29,7 +29,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 			string jsonObject = JsonSerializer.Serialize(displayRemoteDeviceInfo);
 
 
-			string fullPath = basePath + "/" + HttpUtility.UrlEncode(jsonObject);
+			string fullPath = basePath + "/" + HttpUtility.UrlEncode(jsonObject,Encoding.Unicode);
 
 			navigationManager.NavigateTo(fullPath);
 		}

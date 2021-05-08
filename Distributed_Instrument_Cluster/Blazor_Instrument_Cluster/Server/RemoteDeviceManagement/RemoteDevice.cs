@@ -5,6 +5,7 @@ using Server_Library.Authorization;
 using Server_Library.Connection_Types.Async;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading;
@@ -30,25 +31,36 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <summary>
 		/// Internet address of the remote device
 		/// </summary>
-		private string ip { get; set; }
-
+		public string ip { get; private set; }
+		/// <summary>
+		/// Port where the crestron server is located
+		/// </summary>
 		private int crestronPort { get; set; }
-		private int videoPort { get; set; }
+
+		/// <summary>
+		/// List of ports where mjpeg servers are located
+		/// </summary>
+		public int videoPort { get; private set; }
+
+		/// <summary>
+		/// The number of video devices
+		/// </summary>
+		public int videoDeviceNumber { get; private set; }
 
 		/// <summary>
 		/// name of the device
 		/// </summary>
-		public string name { get; set; }
+		public string name { get; private set; }
 
 		/// <summary>
 		/// location of the device
 		/// </summary>
-		public string location { get; set; }
+		public string location { get; private set; }
 
 		/// <summary>
 		/// type of the device
 		/// </summary>
-		public string type { get; set; }
+		public string type { get; private set; }
 
 		/// <summary>
 		/// Access token sent when establishing a connection
@@ -75,20 +87,21 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// </summary>
 		/// <param name="crestronPort"></param>
 		/// <param name="videoPort"></param>
+		/// <param name="videoDeviceNumber">The number of video devices</param>
 		/// <param name="name"></param>
 		/// <param name="location"></param>
 		/// <param name="type"></param>
 		/// <param name="id"></param>
 		/// <param name="ip"></param>
-		public RemoteDevice(int id,string ip,int crestronPort,int videoPort,string name, string location, string type, AccessToken accessToken) {
+		public RemoteDevice(int id,string ip,int crestronPort,int videoPort,int videoDeviceNumber,string name, string location, string type) {
 			this.id = id;
 			this.ip = ip;
 			this.crestronPort = crestronPort;
 			this.videoPort = videoPort;
+			this.videoDeviceNumber = videoDeviceNumber;
 			this.name = name;
 			this.location = location;
 			this.type = type;
-			this.accessToken = accessToken;
 			this._hasCrestron = true;
 			this.crestronClient = new CrestronClient(ip,crestronPort,accessToken);
 			this.crestronUserHandler = new CrestronUserHandler(crestronClient);
@@ -98,20 +111,21 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// Constructor without crestron
 		/// </summary>
 		/// <param name="videoPort"></param>
+		/// <param name="videoDeviceNumber">Number of video devices</param>
 		/// <param name="name"></param>
 		/// <param name="location"></param>
 		/// <param name="type"></param>
 		/// <param name="id"></param>
 		/// <param name="ip"></param>
-		public RemoteDevice(int id,string ip,int videoPort,string name, string location, string type, AccessToken accessToken) {
+		public RemoteDevice(int id,string ip,int videoPort,int videoDeviceNumber,string name, string location, string type) {
 			this.id = id;
 			this.ip = ip;
-			this.crestronPort = crestronPort;
+			this.crestronPort = default;
 			this.videoPort = videoPort;
+			this.videoDeviceNumber = videoDeviceNumber;
 			this.name = name;
 			this.location = location;
 			this.type = type;
-			this.accessToken = accessToken;
 			this._hasCrestron = false;
 			this.crestronClient = default;
 			this.crestronUserHandler = default;
@@ -149,14 +163,18 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <returns></returns>
 		public bool ping(int timeout) {
 			try {
-				Ping ping = new Ping();
-				PingReply reply = ping.Send(IPAddress.Parse(ip), timeout);
-				if (reply.Status == IPStatus.Success) {
-					return true;
+
+				IPHostEntry hostInfo = Dns.GetHostEntry(ip);
+				IPAddress[] addresses = hostInfo.AddressList;
+
+				foreach (var address in addresses) {
+					Ping ping = new Ping();
+					PingReply reply = ping.Send(address, timeout);
+					if (reply.Status == IPStatus.Success) {
+						return true;
+					}
 				}
-				else {
-					return false;
-				}
+				return false;
 			}
 			catch (Exception e) {
 				Console.WriteLine($"Exception in remoteDevice ping: {e.Message}");

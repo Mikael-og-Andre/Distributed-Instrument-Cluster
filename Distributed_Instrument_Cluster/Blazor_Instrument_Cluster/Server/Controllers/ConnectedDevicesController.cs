@@ -22,6 +22,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 	public class ConnectedDevicesController : ControllerBase {
 		/// <summary>
 		/// Remote Device connections
+		/// <author>Mikael Nilssen</author>
 		/// </summary>
 		private RemoteDeviceManager remoteDeviceManager;
 
@@ -51,16 +52,25 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 				lock (listOfRemoteDevices) {
 					foreach (var device in listOfRemoteDevices) {
 
+						string deviceIp = device.ip;
 						string deviceName = device.name;
 						string deviceLocation = device.location;
 						string deviceType = device.type;
-						
+
+						//Create ports list, each server is incremented by 1 from the base port
+						int basePort = device.videoPort;
+						int numDevices = device.videoDeviceNumber;
+						List<int> videoPorts = new List<int>();
+						for (int i = 0; i < numDevices; i++) {
+							videoPorts.Add(basePort+i);
+						}
+
 						//check if it has a crestron
 						bool hasCrestron=device.hasCrestron();
 						bool pingResult = device.ping(500);
 
 						enumerableDeviceModels =
-							enumerableDeviceModels.Append(new DisplayRemoteDeviceModel(deviceName,deviceLocation,deviceType,hasCrestron,pingResult));
+							enumerableDeviceModels.Append(new DisplayRemoteDeviceModel(deviceIp,deviceName,deviceLocation,deviceType,videoPorts,hasCrestron,pingResult));
 					}
 				}
 
