@@ -2,12 +2,10 @@
 
 FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
 WORKDIR /app
-EXPOSE 5000
-EXPOSE 5001
-ENV ASPNETCORE_URLS=http://+:5000;https://+:5001
+EXPOSE 80
+EXPOSE 443
+ENV ASPNETCORE_URLS=http://+80;https://+443
 
-RUN dotnet dev-certs https
-RUN dotnet dev-certs htpps --trust
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src

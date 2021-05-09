@@ -53,12 +53,6 @@ namespace Blazor_Instrument_Cluster.Server {
 			services.AddSingleton<CrestronWebsocketHandler>();
 
 			//Use controller
-			services.AddHttpsRedirection(options => {
-				options.HttpsPort = 443;
-			});
-			services.AddHsts(options => {
-				options.Preload = true;
-			});
 			services.AddControllers();
 			services.AddResponseCompression(opts => {
 				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
@@ -80,12 +74,14 @@ namespace Blazor_Instrument_Cluster.Server {
 			else {
 				app.UseExceptionHandler("/Error");
 				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-				app.UseHsts();
+				//app.UseHsts();
 			}
 			//Websocket setup
 			var webSocketOptions = new WebSocketOptions() {
 				KeepAliveInterval = TimeSpan.FromSeconds(360),
 			};
+			//HTTPS
+			//app.UseHttpsRedirection();
 
 			app.UseWebSockets(webSocketOptions);
 
@@ -111,7 +107,6 @@ namespace Blazor_Instrument_Cluster.Server {
 				}
 			});
 
-			app.UseHttpsRedirection();
 			app.UseBlazorFrameworkFiles();
 			app.UseStaticFiles();
 			app.UseRouting();
