@@ -149,11 +149,6 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				return CrestronWebsocketState.Disconnecting;
 			}
 
-			if (!remoteDevice.ping(2000)) {
-				await sendString(webSocket, "Device is not online", cancellationTokenSource.Token);
-				return CrestronWebsocketState.Disconnecting;
-			}
-
 			this.crestronUser = remoteDevice.createCrestronUser();
 
 			if (!crestronUser.checkConnectionAvailable()) {
