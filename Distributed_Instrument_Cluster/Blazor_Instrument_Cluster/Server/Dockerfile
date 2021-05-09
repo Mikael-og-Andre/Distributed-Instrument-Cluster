@@ -6,6 +6,9 @@ EXPOSE 5000
 EXPOSE 5001
 ENV ASPNETCORE_URLS=http://+:5000;https://+:5001
 
+RUN dotnet dev-certs https
+RUN dotnet dev-certs htpps --trust
+
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
 COPY ["Blazor_Instrument_Cluster/Server/Blazor_Instrument_Cluster.Server.csproj", "Blazor_Instrument_Cluster/Server/"]
