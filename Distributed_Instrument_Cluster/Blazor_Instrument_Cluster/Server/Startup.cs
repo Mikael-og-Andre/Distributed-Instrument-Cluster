@@ -53,6 +53,12 @@ namespace Blazor_Instrument_Cluster.Server {
 			services.AddSingleton<CrestronWebsocketHandler>();
 
 			//Use controller
+			services.AddHttpsRedirection(options => {
+				options.HttpsPort = 443;
+			});
+			services.AddHsts(options => {
+				options.Preload = true;
+			});
 			services.AddControllers();
 			services.AddResponseCompression(opts => {
 				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
@@ -79,7 +85,6 @@ namespace Blazor_Instrument_Cluster.Server {
 			//Websocket setup
 			var webSocketOptions = new WebSocketOptions() {
 				KeepAliveInterval = TimeSpan.FromSeconds(360),
-				
 			};
 
 			app.UseWebSockets(webSocketOptions);
