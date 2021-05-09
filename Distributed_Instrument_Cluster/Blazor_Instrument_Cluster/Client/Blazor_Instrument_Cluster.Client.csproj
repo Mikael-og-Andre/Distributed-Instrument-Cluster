@@ -42,6 +42,9 @@
     <Content Update="wwwroot\Json\DefaultKeyboard.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Update="wwwroot\Json\KeyDictionary.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

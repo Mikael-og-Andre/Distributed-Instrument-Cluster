@@ -18,7 +18,7 @@ namespace Remote_Server.Crestron {
 		public Task sendCommandToCrestron(string msg) {
 			try {
 				var obj = JsonSerializer.Deserialize<CrestronCommand>(msg);
-				parser.pars(obj.msg);
+				parser?.pars(obj?.msg);
 			}
 			catch (Exception e) {
 				Console.WriteLine(e);

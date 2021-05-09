@@ -1,0 +1,428 @@
+﻿{
+  "dictionary": [
+    {
+      "keyCode": "F1",
+      "keyValue": "F1",
+      "breaks": true
+    },
+    {
+      "keyCode": "F2",
+      "keyValue": "F2",
+      "breaks": true
+    },
+    {
+      "keyCode": "F3",
+      "keyValue": "F3",
+      "breaks": true
+    },
+    {
+      "keyCode": "F4",
+      "keyValue": "F4",
+      "breaks": true
+    },
+    {
+      "keyCode": "F5",
+      "keyValue": "F5",
+      "breaks": true
+    },
+    {
+      "keyCode": "F6",
+      "keyValue": "F6",
+      "breaks": true
+    },
+    {
+      "keyCode": "F7",
+      "keyValue": "F7",
+      "breaks": true
+    },
+    {
+      "keyCode": "F8",
+      "keyValue": "F8",
+      "breaks": true
+    },
+    {
+      "keyCode": "F9",
+      "keyValue": "F9",
+      "breaks": true
+    },
+    {
+      "keyCode": "F10",
+      "keyValue": "F10",
+      "breaks": true
+    },
+    {
+      "keyCode": "F11",
+      "keyValue": "F11",
+      "breaks": true
+    },
+    {
+      "keyCode": "F12",
+      "keyValue": "F12"
+    },
+    {
+      "keyCode": "PrintScreen",
+      "keyValue": "Prt Scr"
+    },
+    {
+      "keyCode": "ScrollLock",
+      "keyValue": "Scrl Lk"
+    },
+
+    {
+      "keyCode": "Backquote",
+      "keyValue": "`"
+    },
+    {
+      "keyCode": "Digit1",
+      "keyValue": "1"
+    },
+    {
+      "keyCode": "Digit2",
+      "keyValue": "2"
+    },
+    {
+      "keyCode": "Digit3",
+      "keyValue": "3"
+    },
+    {
+      "keyCode": "Digit4",
+      "keyValue": "4"
+    },
+    {
+      "keyCode": "Digit5",
+      "keyValue": "5"
+    },
+    {
+      "keyCode": "Digit6",
+      "keyValue": "6"
+    },
+    {
+      "keyCode": "Digit7",
+      "keyValue": "7"
+    },
+    {
+      "keyCode": "Digit8",
+      "keyValue": "8"
+    },
+    {
+      "keyCode": "Digit9",
+      "keyValue": "9"
+    },
+    {
+      "keyCode": "Digit0",
+      "keyValue": "0"
+    },
+    {
+      "keyCode": "Minus",
+      "keyValue": "-"
+    },
+    {
+      "keyCode": "Equal",
+      "keyValue": "="
+    },
+    {
+      "keyCode": "Backspace",
+      "keyValue": "backspace"
+    },
+    {
+      "keyCode": "Insert",
+      "keyValue": "Insert"
+    },
+    {
+      "keyCode": "Home",
+      "keyValue": "Home"
+    },
+    {
+      "keyCode": "PageUp",
+      "keyValue": "PageUp"
+    },
+    {
+      "keyCode": "NumLock",
+      "keyValue": "NumLock"
+    },
+    {
+      "keyCode": "NumpadDivide",
+      "keyValue": "/ (Num)"
+    },
+    {
+      "keyCode": "NumpadMultiply",
+      "keyValue": "* (Num)"
+    },
+    {
+      "keyCode": "NumpadSubtract",
+      "keyValue": "- (Num)"
+    },
+
+
+    {
+      "keyCode": "Tab",
+      "keyValue": "Tab",
+      "breaks": true
+    },
+    {
+      "keyCode": "KeyQ",
+      "keyValue": "Q"
+    },
+    {
+      "keyCode": "KeyW",
+      "keyValue": "W"
+    },
+    {
+      "keyCode": "KeyE",
+      "keyValue": "E"
+    },
+    {
+      "keyCode": "KeyR",
+      "keyValue": "R"
+    },
+    {
+      "keyCode": "KeyT",
+      "keyValue": "T"
+    },
+    {
+      "keyCode": "KeyY",
+      "keyValue": "Y"
+    },
+    {
+      "keyCode": "KeyU",
+      "keyValue": "U"
+    },
+    {
+      "keyCode": "KeyI",
+      "keyValue": "I"
+    },
+    {
+      "keyCode": "KeyO",
+      "keyValue": "O"
+    },
+    {
+      "keyCode": "KeyP",
+      "keyValue": "P"
+    },
+    {
+      "keyCode": "BracketLeft",
+      "keyValue": "["
+    },
+    {
+      "keyCode": "BracketRight",
+      "keyValue": "]"
+    },
+    {
+      "keyCode": "Backslash",
+      "keyValue": "\\"
+    },
+    {
+      "keyCode": "Delete",
+      "keyValue": "Delete"
+    },
+    {
+      "keyCode": "End",
+      "keyValue": "End"
+    },
+    {
+      "keyCode": "PageDown",
+      "keyValue": "PageDown"
+    },
+    {
+      "keyCode": "Numpad7",
+      "keyValue": "7 (Num)"
+    },
+    {
+      "keyCode": "Numpad8",
+      "keyValue": "8 (Num)"
+    },
+    {
+      "keyCode": "Numpad9",
+      "keyValue": "9 (Num)"
+    },
+    {
+      "keyCode": "NumpadAdd",
+      "keyValue": "+ (Num)"
+    },
+
+    {
+      "keyCode": "CapsLock",
+      "keyValue": "CapsLock"
+    },
+    {
+      "keyCode": "KeyA",
+      "keyValue": "A"
+    },
+    {
+      "keyCode": "KeyS",
+      "keyValue": "S"
+    },
+    {
+      "keyCode": "KeyD",
+      "keyValue": "D"
+    },
+    {
+      "keyCode": "KeyF",
+      "keyValue": "F"
+    },
+    {
+      "keyCode": "KeyG",
+      "keyValue": "G"
+    },
+    {
+      "keyCode": "KeyH",
+      "keyValue": "H"
+    },
+    {
+      "keyCode": "KeyJ",
+      "keyValue": "J"
+    },
+    {
+      "keyCode": "KeyK",
+      "keyValue": "K"
+    },
+    {
+      "keyCode": "KeyL",
+      "keyValue": "L"
+    },
+    {
+      "keyCode": "Semicolon",
+      "keyValue": ";"
+    },
+    {
+      "keyCode": "Quote",
+      "keyValue": ":"
+    },
+    {
+      "keyCode": "Enter",
+      "keyValue": "Enter"
+    },
+    {
+      "keyCode": "Numpad4",
+      "keyValue": "4 (Num)"
+    },
+    {
+      "keyCode": "Numpad5",
+      "keyValue": "5 (Num)"
+    },
+    {
+      "keyCode": "Numpad6",
+      "keyValue": "6 (Num)"
+    },
+
+    {
+      "keyCode": "ShiftLeft",
+      "keyValue": "Shift"
+    },
+    {
+      "keyCode": "KeyZ",
+      "keyValue": "Z"
+    },
+    {
+      "keyCode": "KeyX",
+      "keyValue": "X"
+    },
+    {
+      "keyCode": "KeyC",
+      "keyValue": "C"
+    },
+    {
+      "keyCode": "KeyV",
+      "keyValue": "V"
+    },
+    {
+      "keyCode": "KeyB",
+      "keyValue": "B"
+    },
+    {
+      "keyCode": "KeyN",
+      "keyValue": "N"
+    },
+    {
+      "keyCode": "KeyM",
+      "keyValue": "M"
+    },
+    {
+      "keyCode": "Comma",
+      "keyValue": ","
+    },
+    {
+      "keyCode": "Period",
+      "keyValue": "."
+    },
+    {
+      "keyCode": "Slash",
+      "keyValue": "/"
+    },
+    {
+      "keyCode": "ShiftRight",
+      "keyValue": "R Shift"
+    },
+    {
+      "keyCode": "ArrowUp",
+      "keyValue": "ArrowUp"
+    },
+    {
+      "keyCode": "Numpad1",
+      "keyValue": "1 (Num)"
+    },
+    {
+      "keyCode": "Numpad2",
+      "keyValue": "2 (Num)"
+    },
+    {
+      "keyCode": "Numpad3",
+      "keyValue": "3 (Num)"
+    },
+    {
+      "keyCode": "NumpadDecimal",
+      "keyValue": ". (Num)"
+    },
+
+    {
+      "keyCode": "ControlLeft",
+      "keyValue": "Control"
+    },
+    {
+      "keyCode": "MetaLeft",
+      "keyValue": "L Win",
+      "breaks": true
+    },
+    {
+      "keyCode": "AltLeft",
+      "keyValue": "L Alt"
+    },
+    {
+      "keyCode": "Space",
+      "keyValue": "space"
+    },
+    {
+      "keyCode": "AltRight",
+      "keyValue": "R Alt"
+    },
+    {
+      "keyCode": "ContextMenu",
+      "keyValue": "Win APL",
+      "breaks": true 
+    },
+    {
+      "keyCode": "ControlRight",
+      "keyValue": "R Ctrl"
+    },
+    {
+      "keyCode": "ArrowLeft",
+      "keyValue": "ArrowLeft"
+    },
+    {
+      "keyCode": "ArrowDown",
+      "keyValue": "ArrowDown"
+    },
+    {
+      "keyCode": "ArrowRight",
+      "keyValue": "ArrowRight"
+    },
+    {
+      "keyCode": "Numpad0",
+      "keyValue": "0 (Num)"
+    }, 
+    {
+      "keyCode": "NumpadEnter",
+      "keyValue": "Enter (Num)"
+    }
+  ]
+}
