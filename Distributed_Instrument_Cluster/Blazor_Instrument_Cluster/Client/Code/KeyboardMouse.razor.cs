@@ -144,7 +144,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 
 		#endregion Lifecycle
 
-#region Sending commands
+		#region Sending commands
 
 		private async void sendData(string s, bool overwrite=false) {
 			//check if device is null
