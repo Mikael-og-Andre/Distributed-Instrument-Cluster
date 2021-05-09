@@ -79,6 +79,7 @@ namespace Blazor_Instrument_Cluster.Server {
 			//Websocket setup
 			var webSocketOptions = new WebSocketOptions() {
 				KeepAliveInterval = TimeSpan.FromSeconds(360),
+				
 			};
 
 			app.UseWebSockets(webSocketOptions);
