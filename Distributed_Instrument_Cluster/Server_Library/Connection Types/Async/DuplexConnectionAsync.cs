@@ -3,8 +3,8 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Networking_Library;
 using Server_Library.Authorization;
+using Socket_Library;
 
 namespace Server_Library.Connection_Types.Async {
 	/// <summary>

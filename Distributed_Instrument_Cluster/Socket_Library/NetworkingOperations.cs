@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Networking_Library {
+namespace Socket_Library {
 
 	/// <summary>
 	/// Class with different Socket operations

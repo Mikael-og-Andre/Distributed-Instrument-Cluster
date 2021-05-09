@@ -1,13 +1,14 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Networking_Library;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Networking_Library_Test;
+using Socket_Library;
 
-namespace Networking_Library_Test {
+namespace Socket_Library_Test {
 
 	[TestClass]
 	public class SocketTest {

@@ -1,9 +1,9 @@
-﻿using Networking_Library;
-using Server_Library.Authorization;
+﻿using Server_Library.Authorization;
 using Server_Library.Connection_Classes;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
+using Socket_Library;
 
 namespace Server_Library.Connection_Types {
 
