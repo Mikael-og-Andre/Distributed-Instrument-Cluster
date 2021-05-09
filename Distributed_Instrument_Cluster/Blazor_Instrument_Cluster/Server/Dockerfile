@@ -4,9 +4,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
-expose 5001
-expose 5000
-expose 1220
+ENV ASPNET_VERSION=5.0.5
+ENV ASNETCORE_URLS=http://+:80;https://+:443
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
