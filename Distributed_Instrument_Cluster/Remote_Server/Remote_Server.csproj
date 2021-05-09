@@ -9,7 +9,7 @@
     <ProjectReference Include="..\Crestron_Library\Crestron_Library.csproj" />
     <ProjectReference Include="..\Packet_Classes\Packet_Classes.csproj" />
     <ProjectReference Include="..\Server_Library\Server_Library.csproj" />
-    <ProjectReference Include="..\Video Library\Video Library.csproj" />
+    <ProjectReference Include="..\Video_Library\Video_Library.csproj" />
   </ItemGroup>
 
   <ItemGroup>

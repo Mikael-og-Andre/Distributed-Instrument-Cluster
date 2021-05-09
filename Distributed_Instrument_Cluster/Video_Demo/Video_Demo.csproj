@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Video Library\Video Library.csproj" />
+    <ProjectReference Include="..\Video_Library\Video_Library.csproj" />
   </ItemGroup>
 
 </Project>

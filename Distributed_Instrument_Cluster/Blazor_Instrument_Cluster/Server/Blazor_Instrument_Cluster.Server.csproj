@@ -47,7 +47,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Packet_Classes\Packet_Classes.csproj" />
     <ProjectReference Include="..\..\Server_Library\Server_Library.csproj" />
-    <ProjectReference Include="..\..\Video Library\Video Library.csproj" />
+    <ProjectReference Include="..\..\Video_Library\Video_Library.csproj" />
     <ProjectReference Include="..\Client\Blazor_Instrument_Cluster.Client.csproj" />
     <ProjectReference Include="..\Shared\Blazor_Instrument_Cluster.Shared.csproj" />
   </ItemGroup>
