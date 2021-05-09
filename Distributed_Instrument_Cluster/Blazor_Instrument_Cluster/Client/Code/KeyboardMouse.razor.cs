@@ -112,7 +112,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// </summary>
 		/// <returns></returns>
 		private Task setupUri() {
-			string path = navigationManager.BaseUri.Replace("https://", "wss://").Replace("http://", "wss://");
+			string path = navigationManager.BaseUri.Replace("https://", "wss://").Replace("http://", "ws://");
 			string pathCrestron = path + PathToCrestronWebsocket;
 			UriBuilder uriBuilder = new UriBuilder(pathCrestron);
 			uriCrestron = uriBuilder.Uri;
