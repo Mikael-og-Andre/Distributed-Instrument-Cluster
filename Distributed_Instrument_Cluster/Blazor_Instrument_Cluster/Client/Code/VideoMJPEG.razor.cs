@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -33,30 +34,22 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		protected DisplayRemoteDeviceModel displayRemoteDeviceModel { get; set; }
 
 		/// <summary>
-		/// List of all urls for video
-		/// </summary>
-		private LinkedList<Uri> listOfUrls;
-
-		/// <summary>
 		/// Uri to get the image from
 		/// </summary>
 		protected Uri uri = default;
 
 		/// <summary>
-		/// linked list of video uris
+		/// List of uris
 		/// </summary>
-		private LinkedListNode<Uri> currentUriNode = null;
+		protected List<Uri> uris = null;
 
 		protected override void OnInitialized() {
-			//Create http version of url
-			string httpBase = navigationManager.BaseUri.Replace("https://", "http://");
-			Uri oldUriHttp = new Uri(httpBase);
 			try {
 				//Convert incoming url Json to object
-				string deviceJson = HttpUtility.UrlDecode(urlDeviceJson,Encoding.Unicode).TrimStart('\0').TrimEnd('\0');
+				string deviceJson = HttpUtility.UrlDecode(urlDeviceJson,Encoding.UTF8).TrimStart('\0').TrimEnd('\0');
 				displayRemoteDeviceModel = JsonSerializer.Deserialize<DisplayRemoteDeviceModel>(deviceJson);
 				
-				listOfUrls = new LinkedList<Uri>();
+				uris = new List<Uri>();
 
 				var videoIp = displayRemoteDeviceModel.ip;
 				var videoPorts = displayRemoteDeviceModel.videoPorts;
@@ -65,51 +58,19 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 					UriBuilder builder = new UriBuilder(videoIp);
 					builder.Port = port;
 					Uri uri = builder.Uri;
-					listOfUrls.AddLast(uri);
+					uris.Add(uri);
 				}
 
-				if (listOfUrls.Count>0) {
-					//Set first uri;
-					currentUriNode = listOfUrls.First;
-					uri = currentUriNode.Value;
+				if (uris.Any()) {
+					uri = uris[0];
 				}
+
 			}
 			catch (Exception e) {
-				throw;
-			}
-		}
-
-		/// <summary>
-		/// Set uri to the next uri in the list
-		/// </summary>
-		/// <returns></returns>
-		protected void nextUri() {
-			LinkedListNode<Uri> nextNode = currentUriNode.Next;
-			if (nextNode is null) {
-			}
-			else {
-				//set new currentNode and new uri
-				currentUriNode = nextNode;
-				uri = currentUriNode.Value;
-			}
-		}
-
-		/// <summary>
-		/// Set uri to the previous node in the list
-		/// </summary>
-		/// <returns></returns>
-		protected void prevUri() {
-			LinkedListNode<Uri> prevNode = currentUriNode.Previous;
-			if (prevNode is null) {
+				Console.WriteLine("Error While initializing {0}",e.Message);
 				
 			}
-			else {
-				//set new currentNode and new uri
-				currentUriNode = prevNode;
-				uri = currentUriNode.Value;
-			}
 		}
-
 		public void Dispose() {
 			disposalTokenSource.Cancel();
 		}

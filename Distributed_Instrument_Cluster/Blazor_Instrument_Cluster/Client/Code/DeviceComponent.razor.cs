@@ -25,13 +25,14 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		private string basePath = "VideoAndControl";
 
 		protected void navigateToDevicePage() {
-
-			string jsonObject = JsonSerializer.Serialize(displayRemoteDeviceInfo);
-
-
-			string fullPath = basePath + "/" + HttpUtility.UrlEncode(jsonObject,Encoding.Unicode);
-
-			navigationManager.NavigateTo(fullPath);
+			try {
+				string jsonObject = JsonSerializer.Serialize(displayRemoteDeviceInfo);
+				string fullPath = basePath + "/" + HttpUtility.UrlEncode(jsonObject,Encoding.UTF8);
+				navigationManager.NavigateTo(fullPath);
+			}
+			catch (Exception e) {
+				Console.WriteLine("Navigation Failed");
+			}
 		}
 	}
 }

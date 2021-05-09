@@ -115,7 +115,7 @@ namespace Blazor_Instrument_Cluster.Client.Code {
 		/// <returns></returns>
 		private Task decodeUrlText() {
 			try {
-				string deviceModelJson = HttpUtility.UrlDecode(urlDeviceJson,Encoding.Unicode);
+				string deviceModelJson = HttpUtility.UrlDecode(urlDeviceJson,Encoding.UTF8);
 
 				displayRemoteDeviceModel  = JsonSerializer.Deserialize<DisplayRemoteDeviceModel>(deviceModelJson);
 

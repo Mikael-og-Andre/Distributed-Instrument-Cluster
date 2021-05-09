@@ -3,8 +3,13 @@
 <div class="container border-info">
     <div class="row">
         <div class="col">
-            <button class="btn btn-outline-info" @onclick="prevUri">Prev</button>
-            <button class="btn btn-outline-info" @onclick="nextUri">Next</button>
+            <select @bind="@uri">
+                @{ int i = 0;}
+                @foreach (Uri uri in uris) {
+                    <option value="@uri">Device @i</option>
+                    i++;
+                }
+            </select>
         </div>
     </div>
     <div class="row">
