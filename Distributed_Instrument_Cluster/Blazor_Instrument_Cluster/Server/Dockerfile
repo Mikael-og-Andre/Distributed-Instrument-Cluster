@@ -6,6 +6,7 @@ EXPOSE 80
 EXPOSE 443
 EXPOSE 5001
 EXPOSE 5000
+ENV ASPNETCORE_URLS=http://+:80;https://+:443
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
