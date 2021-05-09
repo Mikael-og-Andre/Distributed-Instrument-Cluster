@@ -6,6 +6,8 @@ EXPOSE 80
 EXPOSE 443
 ENV ASPNET_VERSION=5.0.5
 ENV ASPNETCORE_URLS=http://+:80;https://+:443
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+ENV ASPNETCORE_ENVIRONMENT=Production
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
@@ -23,6 +25,9 @@ RUN dotnet build "Blazor_Instrument_Cluster.Server.csproj" -c Release -o /app/bu
 
 FROM build AS publish
 RUN dotnet publish "Blazor_Instrument_Cluster.Server.csproj" -c Release -o /app/publish
+
+run dotnet dev-certs https --clean
+run dotnet dev-certs https -t
 
 FROM base AS final
 WORKDIR /app
