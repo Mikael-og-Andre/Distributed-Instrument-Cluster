@@ -1,0 +1,18 @@
+﻿@inherits Blazor_Instrument_Cluster.Client.Code.VideoMJPEG
+
+<div class="container border-info">
+    <div class="row">
+        <div class="col">
+            <select @bind="@uri">
+                @{ int i = 0;}
+                @foreach (Uri uri in uris) {
+                    <option value="@uri">Device @i</option>
+                    i++;
+                }
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <img src="@uri" style="width: 100%; height: 100%; position: relative; top: 0; left: 0" alt="Failed to load video stream" />
+    </div>
+</div>

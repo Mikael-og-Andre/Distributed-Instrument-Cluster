@@ -1,0 +1,23 @@
+{
+  "serverSettings": {
+    "ip": "0.0.0.0",
+    "crestronPort": 6981,
+    "videoPort": 8080
+  },
+  "crestronCable": {
+    "portName": "com5",
+    "largeMagnitude": 20,
+    "smallMagnitude": 1,
+    "maxDelta": 1000
+  },
+  "videoDevices": [
+    {
+      "deviceIndex": 0,
+      "apiIndex": 700,
+      "width": 1920,
+      "height": 1080,
+      "quality": 40,
+      "fps": 30
+    }
+  ]
+}

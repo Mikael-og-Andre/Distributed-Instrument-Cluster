@@ -1,0 +1,25 @@
+﻿@using Blazor_Instrument_Cluster.Client.Components.VirtualKeyboard
+@page "/VideoAndControl/{urlDeviceJson}"
+@layout TopBarLayout
+
+<div style="width: 90%; height: 90%; position: relative" class="container">
+    <div class="row" style="width: 75%; height: 75%;">
+        <VideoMJPEG urlDeviceJson="@urlDeviceJson"></VideoMJPEG>
+    </div>
+    <div class="row">
+        <KeyboardMouse urlDeviceJson="@urlDeviceJson" @ref="keyboardMouse"></KeyboardMouse>
+        <VirtualKeyboard keyEvent="@handleKeyEvent"></VirtualKeyboard>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public string urlDeviceJson { get; set; }
+
+    private KeyboardMouse keyboardMouse;
+
+    private void handleKeyEvent(string s)
+    {
+        keyboardMouse.virtualKeyboardHandler(s);
+    } }

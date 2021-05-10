@@ -1,0 +1,52 @@
+﻿@layout NothingLayout
+@using Blazor_Instrument_Cluster.Shared.Websocket.Enum
+@using Blazor_Instrument_Cluster.Shared.DeviceSelection
+@inherits Blazor_Instrument_Cluster.Client.Code.KeyboardMouse
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <button class="btn btn-dark" style="width: 100%;">
+                <input id="canvas" autocomplete="off"
+                       style="width: 100%; height: 100%; border: 1px solid black; position: absolute; top: 0; left: 0; z-index: 100; opacity: 0; cursor: pointer"
+                       @onclick="click"
+                       @onmousemove="move"
+                       @onmousedown="mouseDown"
+                       @onmouseup="mouseUp"
+                       @onkeydown="keyDown"
+                       @onkeyup="keyUp" />
+                Lock Mouse
+            </button>
+        </div>
+        @if (crestronWebsocket is null) {
+            <div class="col">
+                <button @onclick="this.connectToCrestronControl" class="btn btn-dark" style="width: 100%;">
+                    Request Control
+                </button>
+            </div>
+        }
+        else if (@crestronWebsocket.isStopped) {
+            <div class="col">
+                <button @onclick="this.connectToCrestronControl" class="btn btn-dark" style="width: 100%;">
+                    Request Control
+                </button>
+            </div>
+        }
+        else {
+            <div class="col">
+                <button @onclick="this.stopCurrentConnection" class="btn btn-dark" style="width: 100%;">
+                    Disconnect
+                </button>
+            </div>
+        }
+
+        <div class="col">
+            @if (crestronWebsocket is null) {
+                <p><b>Status: </b> None</p>
+            }
+            else {
+                <p><b>Status:</b>@crestronWebsocket.statusMsg</p>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  blazor_instrument_cluster.server:
+    image: ${DOCKER_REGISTRY-}blazorinstrumentclusterserver
+    build:
+      context: .
+      dockerfile: Blazor_Instrument_Cluster/Server/Dockerfile

@@ -1,0 +1,38 @@
+﻿@using Blazor_Instrument_Cluster.Client.Code.UrlObjects
+@using System.Text.Json
+@inject HttpClient client
+
+
+@foreach (var keyRow in keyList) {
+    <div style="margin-bottom: -0.5em">
+        @foreach (var key in keyRow) {
+            <KeyboardKey key="@key" keyEvent="@keyEventHandler"></KeyboardKey>
+        }
+    </div>
+}
+
+
+
+
+
+
+@code {
+
+    [Parameter]
+    public EventCallback<string> keyEvent { get; set; }
+
+
+    List<List<KeyProperties>> keyList = new();
+
+
+    protected override async Task OnInitializedAsync() {
+        var file = await client.GetByteArrayAsync("Json/DefaultKeyboard.json");
+        var json = JsonSerializer.Deserialize<KeyboardJson>(file);
+        keyList = json.keyList;
+    }
+
+    private async void keyEventHandler(string s) {
+        await keyEvent.InvokeAsync(s);
+    }
+
+}
