@@ -8,15 +8,7 @@
     "portName": "com5",
     "largeMagnitude": 20,
     "smallMagnitude": 1,
-    "maxDelta": 1000,
-
-    "deviceInfo": {
-      "name": "Radar1",
-      "location": "device location",
-      "type": "device type",
-      "subName": "crestronControl",
-      "accessHash": "access"
-    }
+    "maxDelta": 1000
   },
   "videoDevices": [
     {
@@ -25,15 +17,7 @@
       "width": 1920,
       "height": 1080,
       "quality": 40,
-      "fps": 30,
-
-      "deviceInfo": {
-        "name": "Radar1",
-        "location": "device location",
-        "type": "device type",
-        "subName": "videoStream",
-        "accessHash": "access"
-      }
+      "fps": 30
     }
   ]
 }

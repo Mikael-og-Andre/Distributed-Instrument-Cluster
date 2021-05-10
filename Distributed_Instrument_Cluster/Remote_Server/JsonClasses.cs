@@ -17,7 +17,6 @@ namespace MAIN_Program {
 			public int largeMagnitude { get; set; }
 			public int smallMagnitude { get; set; }
 			public int maxDelta { get; set; }
-			public DeviceInfo deviceInfo { get; set; }
 		}
 
 		public class VideoDevice {
@@ -27,7 +26,6 @@ namespace MAIN_Program {
 			public int height { get; set; }
 			public int quality { get; set; }
 			public int fps { get; set; }
-			public DeviceInfo deviceInfo { get; set; }
 
 		}
 
@@ -36,14 +34,6 @@ namespace MAIN_Program {
 			public int crestronPort { get; set; }
 			public int videoPort { get; set; }
 
-		}
-
-		public class DeviceInfo {
-			public string name { get; set; }
-			public string location { get; set; }
-			public string type { get; set; }
-			public string subName { get; set; }
-			public string accessHash { get; set; }
 		}
 	}
 }
