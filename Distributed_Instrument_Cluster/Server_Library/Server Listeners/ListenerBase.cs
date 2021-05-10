@@ -1,18 +1,18 @@
-﻿using Server_Library.Authorization;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Server_Library.Connection_Classes;
+using Server_Library.Connection_Types;
 using Socket_Library;
 
 namespace Server_Library.Server_Listeners {
 
 	/// <summary>
 	/// Base class for a server listening for incoming connections
+	/// Inherit and implement how to handle the connection
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	public abstract class ListenerBase {
@@ -47,10 +47,6 @@ namespace Server_Library.Server_Listeners {
 		/// </summary>
 		private int currentConnectionCount;
 
-		/// <summary>
-		/// Queue containing incoming connections
-		/// </summary>
-		private ConcurrentQueue<ConnectionBase> queueOfIncomingConnections;
 
 		/// <summary>
 		/// Constructor
@@ -64,9 +60,6 @@ namespace Server_Library.Server_Listeners {
 			this.maxPendingConnections = maxPendingConnections;
 			cancellationTokenSource = new CancellationTokenSource();
 			currentConnectionCount = 0;
-
-			//Init queue
-			queueOfIncomingConnections = new ConcurrentQueue<ConnectionBase>();
 		}
 
 		/// <summary>
@@ -117,7 +110,7 @@ namespace Server_Library.Server_Listeners {
 		/// </summary>
 		/// <param name="socket">Socket Of the incoming connection</param>
 		/// <returns> a Connection of one of the child types of ConnectionBase</returns>
-		protected abstract object createConnectionType(Socket socket, AccessToken accessToken, ClientInformation info);
+		protected abstract object createConnectionType(Socket socket);
 
 		/// <summary>
 		/// Gets authorization instrument information from connecting client
@@ -125,42 +118,8 @@ namespace Server_Library.Server_Listeners {
 		/// <param name="socket"></param>
 		/// <returns>Connection object</returns>
 		private object setupConnection(Socket socket) {
-			//Send start Auth signal
-			NetworkingOperations.sendStringWithSocket("auth", socket);
-
-			//Get Authorization Token info
-			//TODO: Add encryption for auth token
-			string connectionHash = NetworkingOperations.receiveStringWithSocket(socket);
-			AccessToken accessToken = new AccessToken(connectionHash);
-
-			//Get Client information
-			ClientInformation info = NetworkingOperations.receiveJsonObjectWithSocket<ClientInformation>(socket);
-
 			//Create connection and return
-			return createConnectionType(socket, accessToken, info);
-		}
-
-		/// <summary>
-		/// Queue the incoming connection
-		/// </summary>
-		/// <param name="connection"></param>
-		protected void addConnectionToQueueOfIncomingConnections(ConnectionBase connection) {
-			queueOfIncomingConnections.Enqueue(connection);
-		}
-
-		/// <summary>
-		/// Get a connection from the queue of incoming accepted connections
-		/// </summary>
-		/// <param name="output">Connection of a child class of ConnectionBase</param>
-		/// <returns>True if object was found</returns>
-		public bool getIncomingConnection(out ConnectionBase output) {
-			if (queueOfIncomingConnections.TryDequeue(out ConnectionBase result)) {
-				output = result;
-				return true;
-			}
-
-			output = default;
-			return false;
+			return createConnectionType(socket);
 		}
 	}
 }

@@ -1,9 +1,7 @@
-﻿
-using Server_Library.Authorization;
-using Server_Library.Connection_Types.Async;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Server_Library.Connection_Types;
 using Socket_Library;
 
 namespace Remote_Server.Crestron {
@@ -28,7 +26,7 @@ namespace Remote_Server.Crestron {
 		/// <param name="bytes"></param>
 		/// <returns>Task</returns>
 		public async Task sendAsync(byte[] bytes) {
-			await NetworkingOperations.sendBytesAsync(connectionNetworkStream, bytes);
+			await SocketOperation.sendBytesAsync(connectionNetworkStream, bytes);
 		}
 
 		/// <summary>
@@ -36,7 +34,7 @@ namespace Remote_Server.Crestron {
 		/// </summary>
 		/// <returns>Byte array task</returns>
 		public async Task<byte[]> receiveAsync() {
-			byte[] receivedBytes = await NetworkingOperations.receiveBytesAsync(connectionNetworkStream);
+			byte[] receivedBytes = await SocketOperation.receiveBytesAsync(connectionNetworkStream);
 			return receivedBytes;
 		}
 

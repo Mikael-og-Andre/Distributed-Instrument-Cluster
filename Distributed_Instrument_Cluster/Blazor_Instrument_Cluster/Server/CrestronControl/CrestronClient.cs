@@ -1,7 +1,5 @@
 ﻿using Blazor_Instrument_Cluster.Server.CrestronControl.Interface;
 using Socket_Library;
-using Server_Library.Authorization;
-using Server_Library.Socket_Clients.Async;
 using System;
 using System.Linq;
 using System.Net;
@@ -9,6 +7,7 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Server_Library.Socket_Clients;
 
 namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 
@@ -33,7 +32,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// </summary>
 		public bool isConnected { get; set; }
 
-		public CrestronClient(string ip, int port, AccessToken accessToken) : base(ip, port) {
+		public CrestronClient(string ip, int port) : base(ip, port) {
 			controlMutex = new Mutex();
 			isConnected = false;
 		}
@@ -69,7 +68,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// <param name="bytes"></param>
 		/// <returns></returns>
 		private async Task sendAsync(byte[] bytes) {
-			await NetworkingOperations.sendBytesAsync(connectionNetworkStream, bytes);
+			await SocketOperation.sendBytesAsync(connectionNetworkStream, bytes);
 		}
 
 		/// <summary>
@@ -77,7 +76,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// </summary>
 		/// <returns>Task byte array</returns>
 		private async Task<byte[]> receiveAsync() {
-			byte[] receivedBytes = await NetworkingOperations.receiveBytesAsync(connectionNetworkStream);
+			byte[] receivedBytes = await SocketOperation.receiveBytesAsync(connectionNetworkStream);
 			return receivedBytes;
 		}
 

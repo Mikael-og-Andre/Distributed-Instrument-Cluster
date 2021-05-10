@@ -5,9 +5,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Server_Library.Authorization;
-using Server_Library.Connection_Types.Async;
-using Server_Library.Server_Listeners.Async;
+using Server_Library.Connection_Types;
+using Server_Library.Server_Listeners;
 
 namespace Remote_Server.Crestron {
 	/// <summary>

@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Net;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
-using Server_Library.Authorization;
 
-namespace Server_Library.Socket_Clients.Async {
+namespace Server_Library.Socket_Clients {
 
 	/// <summary>
 	/// Base class for communicator classes, intended to be on the remote side of the instrument cluster

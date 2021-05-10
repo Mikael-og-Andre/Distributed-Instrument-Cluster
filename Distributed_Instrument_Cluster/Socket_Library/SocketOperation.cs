@@ -10,7 +10,7 @@ namespace Socket_Library {
 	/// <summary>
 	/// Class with different Socket operations
 	/// </summary>
-	public static class NetworkingOperations {
+	public static class SocketOperation {
 
 		#region String
 
@@ -207,7 +207,7 @@ namespace Socket_Library {
 				//deserialize
 				string json = JsonSerializer.Serialize(obj);
 				//Send string
-				await NetworkingOperations.sendStringAsync(json, networkStream);
+				await SocketOperation.sendStringAsync(json, networkStream);
 			}
 			catch (Exception) {
 				throw;
@@ -223,7 +223,7 @@ namespace Socket_Library {
 		public static async Task<T> receiveObjectAsJson<T>(NetworkStream networkStream) {
 			try {
 				//Receive string
-				string json = await NetworkingOperations.receiveStringAsync(networkStream);
+				string json = await SocketOperation.receiveStringAsync(networkStream);
 				//deserialize
 				T obj = JsonSerializer.Deserialize<T>(json);
 				return obj;

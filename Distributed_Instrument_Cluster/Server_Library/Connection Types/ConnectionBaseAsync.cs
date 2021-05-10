@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Text;
+﻿using System.Net.Sockets;
 using System.Threading;
-using Server_Library.Authorization;
 
-namespace Server_Library.Connection_Types.Async {
+namespace Server_Library.Connection_Types {
 	public abstract class ConnectionBaseAsync {
 		
 		/// <summary>

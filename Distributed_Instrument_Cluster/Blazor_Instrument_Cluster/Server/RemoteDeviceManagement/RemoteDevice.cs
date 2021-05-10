@@ -1,8 +1,6 @@
 ﻿using Blazor_Instrument_Cluster.Server.CrestronControl;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
-using Server_Library.Authorization;
-using Server_Library.Connection_Types.Async;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,11 +61,6 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		public string type { get; private set; }
 
 		/// <summary>
-		/// Access token sent when establishing a connection
-		/// </summary>
-		public AccessToken accessToken { get; private set; }
-
-		/// <summary>
 		/// Handles control of the crestronClient
 		/// </summary>
 		private CrestronUserHandler crestronUserHandler { get; set; }
@@ -103,7 +96,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			this.location = location;
 			this.type = type;
 			this._hasCrestron = true;
-			this.crestronClient = new CrestronClient(ip,crestronPort,accessToken);
+			this.crestronClient = new CrestronClient(ip,crestronPort);
 			this.crestronUserHandler = new CrestronUserHandler(crestronClient);
 		}
 

@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Server_Library.Authorization;
-using Server_Library.Connection_Classes;
-using Server_Library.Connection_Types.Async;
+using Server_Library.Connection_Types;
 
-namespace Server_Library.Server_Listeners.Async {
+namespace Server_Library.Server_Listeners {
 	public abstract class ListenerBaseAsync : IDisposable {
 		/// <summary>
 		/// The Ip EndPoint of the listener
@@ -31,7 +28,8 @@ namespace Server_Library.Server_Listeners.Async {
 		/// </summary>
 		protected readonly CancellationTokenSource cancellationTokenSource;
 
-		/// List of all started Tasks for handling connected devices
+		/// <summary>
+		/// List of tasks and their connection
 		/// </summary>
 		public List<(Task,ConnectionBaseAsync)> connectionTasksList { get; set; }
 
@@ -67,7 +65,7 @@ namespace Server_Library.Server_Listeners.Async {
 				Socket newSocket = await listeningSocket.AcceptAsync();
 
 				//Authorize and setup connection
-				ConnectionBaseAsync newClientConnection = await setupConnectionAsync(newSocket);
+				ConnectionBaseAsync newClientConnection = setupConnection(newSocket);
 
 				//Creates a new Task to run a client communication on
 				Task connectionTask = handleIncomingConnectionAsync(newClientConnection);
@@ -96,7 +94,6 @@ namespace Server_Library.Server_Listeners.Async {
 		/// Function for so each childClass can create a connection of the type they want
 		/// </summary>
 		/// <param name="socket">Socket Of the incoming connection</param>
-		/// <param name="accessToken">String used to identify the connector</param>
 		/// <returns> a Connection of one of the child types of ConnectionBase</returns>
 		protected abstract ConnectionBaseAsync createConnectionType(Socket socket);
 
@@ -105,7 +102,7 @@ namespace Server_Library.Server_Listeners.Async {
 		/// </summary>
 		/// <param name="socket"></param>
 		/// <returns>Connection object</returns>
-		private async Task<ConnectionBaseAsync> setupConnectionAsync(Socket socket) {
+		private ConnectionBaseAsync setupConnection(Socket socket) {
 			//Create connection with overriden method from child
 			return createConnectionType(socket);
 		}

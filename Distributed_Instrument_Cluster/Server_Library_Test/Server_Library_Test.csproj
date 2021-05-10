@@ -14,6 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Blazor_Instrument_Cluster\Server\Blazor_Instrument_Cluster.Server.csproj" />
+    <ProjectReference Include="..\Remote_Server\Remote_Server.csproj" />
     <ProjectReference Include="..\Server_Library\Server_Library.csproj" />
   </ItemGroup>
 

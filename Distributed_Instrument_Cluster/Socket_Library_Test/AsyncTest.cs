@@ -28,9 +28,9 @@ namespace Networking_Library_Test {
 			Task<byte[]> serverTask = Task.Run(async () => {
 				Socket connectedClient = await listenerSocket.AcceptAsync();
 				NetworkStream stream = new NetworkStream(connectedClient);
-				byte[] receivedData = await NetworkingOperations.receiveBytesAsync(stream);
+				byte[] receivedData = await SocketOperation.receiveBytesAsync(stream);
 				
-				await NetworkingOperations.sendBytesAsync(stream, listenerData);
+				await SocketOperation.sendBytesAsync(stream, listenerData);
 				return receivedData;
 			});
 
@@ -38,9 +38,9 @@ namespace Networking_Library_Test {
 				Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 				await client.ConnectAsync(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9897));
 				NetworkStream clientStream = new NetworkStream(client);
-				await NetworkingOperations.sendBytesAsync(clientStream, clientData);
+				await SocketOperation.sendBytesAsync(clientStream, clientData);
 
-				byte[] receivedListenerData = await NetworkingOperations.receiveBytesAsync(clientStream);
+				byte[] receivedListenerData = await SocketOperation.receiveBytesAsync(clientStream);
 				return receivedListenerData;
 			});
 			
@@ -96,12 +96,12 @@ know no wise remedy how to avoid it.";
 				Socket connectedClient = await listenerSocket.AcceptAsync();
 				NetworkStream stream = new NetworkStream(connectedClient);
 
-				await NetworkingOperations.sendStringAsync(s,stream);
-				string receivedSS = await NetworkingOperations.receiveStringAsync(stream);
+				await SocketOperation.sendStringAsync(s,stream);
+				string receivedSS = await SocketOperation.receiveStringAsync(stream);
 				Assert.AreEqual(receivedSS,ss);
 
-				await NetworkingOperations.sendStringAsync(longShakespear, stream);
-				await NetworkingOperations.sendStringAsync(sss, stream);
+				await SocketOperation.sendStringAsync(longShakespear, stream);
+				await SocketOperation.sendStringAsync(sss, stream);
 
 			});
 
@@ -110,13 +110,13 @@ know no wise remedy how to avoid it.";
 				await client.ConnectAsync(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9028));
 				NetworkStream clientStream = new NetworkStream(client);
 
-				string receivedS = await NetworkingOperations.receiveStringAsync(clientStream);
-				await NetworkingOperations.sendStringAsync(ss,clientStream);
+				string receivedS = await SocketOperation.receiveStringAsync(clientStream);
+				await SocketOperation.sendStringAsync(ss,clientStream);
 				Assert.AreEqual(receivedS,s);
 
-				string receivedLongShake = await NetworkingOperations.receiveStringAsync(clientStream);
+				string receivedLongShake = await SocketOperation.receiveStringAsync(clientStream);
 				Assert.AreEqual(receivedLongShake,longShakespear);
-				string receivedSSS = await NetworkingOperations.receiveStringAsync(clientStream);
+				string receivedSSS = await SocketOperation.receiveStringAsync(clientStream);
 				Assert.AreEqual(receivedSSS,sss);
 			});
 
@@ -147,10 +147,10 @@ know no wise remedy how to avoid it.";
 				Socket connectedClient = await listenerSocket.AcceptAsync();
 				NetworkStream stream = new NetworkStream(connectedClient);
 
-				await NetworkingOperations.sendObjectAsJsonAsync(stream,jsonObject1);
-				await NetworkingOperations.sendObjectAsJsonAsync(stream, jsonObject2);
+				await SocketOperation.sendObjectAsJsonAsync(stream,jsonObject1);
+				await SocketOperation.sendObjectAsJsonAsync(stream, jsonObject2);
 
-				TestJsonObject rTestObj = await NetworkingOperations.receiveObjectAsJson<TestJsonObject>(stream);
+				TestJsonObject rTestObj = await SocketOperation.receiveObjectAsJson<TestJsonObject>(stream);
 				Assert.AreEqual(rTestObj.address,jsonObject3.address);
 				Assert.AreEqual(rTestObj.age,jsonObject3.age);
 				Assert.AreEqual(rTestObj.name,jsonObject3.name);
@@ -162,12 +162,12 @@ know no wise remedy how to avoid it.";
 				await client.ConnectAsync(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9043));
 				NetworkStream clientStream = new NetworkStream(client);
 
-				TestJsonObject obj1 = await NetworkingOperations.receiveObjectAsJson<TestJsonObject>(clientStream);
+				TestJsonObject obj1 = await SocketOperation.receiveObjectAsJson<TestJsonObject>(clientStream);
 				Assert.AreEqual(obj1.address,jsonObject1.address);
 				Assert.AreEqual(obj1.age,jsonObject1.age);
 				Assert.AreEqual(obj1.name,jsonObject1.name);
 
-				TestJsonObject obj2 = await NetworkingOperations.receiveObjectAsJson<TestJsonObject>(clientStream);
+				TestJsonObject obj2 = await SocketOperation.receiveObjectAsJson<TestJsonObject>(clientStream);
 				Assert.AreEqual(obj2.address,jsonObject2.address);
 				Assert.AreEqual(obj2.age,jsonObject2.age);
 				Assert.AreEqual(obj2.name,jsonObject2.name);

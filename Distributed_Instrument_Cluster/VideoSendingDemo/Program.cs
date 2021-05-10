@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Server_Library;
-using Server_Library.Authorization;
 using Server_Library.Socket_Clients;
 using Packet_Classes;
 
