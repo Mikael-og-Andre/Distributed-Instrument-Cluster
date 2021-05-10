@@ -14,11 +14,6 @@ namespace Server_Library_Test {
 	public class DuplexAsyncTest {
 
 		[TestMethod]
-		public async Task authTokenTest() {
-			throw new NotImplementedException();
-		}
-
-		[TestMethod]
 		public async Task duplexReadingBytesTest() {
 			throw new NotImplementedException();
 		}
