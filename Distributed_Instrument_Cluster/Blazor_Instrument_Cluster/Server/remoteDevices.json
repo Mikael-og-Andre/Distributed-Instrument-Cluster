@@ -1,0 +1,64 @@
+{
+  "RemoteDevices": [
+    {
+      "ip": "192.168.164",
+      "name": "andre",
+      "location": "location 1 andre",
+      "type": "type 1 andre",
+      "VideoDevices": 1,
+      "VideoBasePort": 8080,
+      "hasCrestron": true,
+      "CrestronBasePort": 6981
+    },
+    {
+      "ip": "ooof.asuscomm.com",
+      "name": "andre",
+      "location": "location 2 andre",
+      "type": "type 2 andre",
+      "VideoDevices": 1,
+      "VideoBasePort": 8080,
+      "hasCrestron": true,
+      "CrestronBasePort": 6981
+    },
+    {
+      "ip": "ooof.asuscomm.com",
+      "name": "andre",
+      "location": "location 3 andre",
+      "type": "Double Video",
+      "VideoDevices": 2,
+      "VideoBasePort": 8080,
+      "hasCrestron": true,
+      "CrestronBasePort": 6981
+    },
+    {
+      "ip": "192.168.1.172",
+      "name": "andre 2",
+      "location": "location 4 andre",
+      "type": "idk",
+      "VideoDevices": 1,
+      "VideoBasePort": 8080,
+      "hasCrestron": true,
+      "CrestronBasePort": 6981
+    },
+    {
+      "ip": "zretzy.asuscomm.com",
+      "name": "mikael laptop",
+      "location": "stue",
+      "type": "double video crestron",
+      "VideoDevices": 2,
+      "VideoBasePort": 8080,
+      "hasCrestron": true,
+      "CrestronBasePort": 6981
+    },
+    {
+      "ip": "zretzy.asuscomm.com",
+      "name": "mikael desktop",
+      "location": "stue",
+      "type": "video",
+      "VideoDevices": 1,
+      "VideoBasePort": 7080,
+      "hasCrestron": true,
+      "CrestronBasePort": 7981
+    }
+  ]
+}

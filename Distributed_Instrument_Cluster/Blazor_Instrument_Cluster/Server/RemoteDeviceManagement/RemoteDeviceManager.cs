@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement.JsonReading;
 using Microsoft.Extensions.Configuration;
 using Video_Library;
 
@@ -42,13 +43,10 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			this.logger = logger;
 			listRemoteDevices = new List<RemoteDevice>();
 
-			//TODO: HARDCODED RemoteDevice
-			addRemoteDevice(1,"192.168.1.164",6981,8080,1,"andre","Hardcoded location", "Hardcoded type");
-			addRemoteDevice(2, "ooof.asuscomm.com", 6981, 8080, 1, "andre", "Hardcoded location", "Hardcoded type");
-			addRemoteDevice(3, "ooof.asuscomm.com", 6981, 8080, 2, "andre", "Hardcoded location", "2 devices");
-			addRemoteDevice(4, "192.168.1.172", 6981, 8080, 1, "andre", "Hardcoded location", "Hardcoded type");
-			addRemoteDevice(5,"zretzy.asuscomm.com",6981,8080,2,"mikael laptop","Stua", "crestron");
-			addRemoteDevice(6,"zretzy.asuscomm.com",7981,7080,1,"mikael desktop","rom", "crestron");
+			List<RemoteDevice> remoteDevices = RemoteDeviceLoader.getRemoteDevicesFromJsonFile("./remoteDevices.json");
+			foreach (var device in remoteDevices) {
+				addRemoteDevice(device);
+			}
 		}
 
 		/// <summary>
@@ -87,6 +85,15 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			}
 		}
 
+		/// <summary>
+		/// Adds a Remote device to the list of devices
+		/// </summary>
+		/// <param name="device">Device to add</param>
+		public void addRemoteDevice(RemoteDevice device) {
+			lock (listRemoteDevices) {
+				listRemoteDevices.Add(device);
+			}
+		}
 		/// <summary>
 		/// Get a list of remote devices
 		/// </summary>
