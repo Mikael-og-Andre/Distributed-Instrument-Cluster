@@ -12,6 +12,9 @@ using System;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
+using Blazor_Instrument_Cluster.Server.Database;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 
 namespace Blazor_Instrument_Cluster.Server {
 
@@ -40,24 +43,27 @@ namespace Blazor_Instrument_Cluster.Server {
 		/// <param name="services"></param>
 		public void configureServices(IServiceCollection services) {
 			
-			//MJPEG stream manager.
-			//services.AddSingleton<MJPEGStreamManager>();
-			//Add Remote device connection tracker
 			services.AddSingleton<RemoteDeviceManager>();
-
-			//Start Connection listeners as background services
-			//services.AddHostedService<VideoListenerService>();
-			//services.AddHostedService<CrestronListenerService>();
-			//services.AddHostedService<RemoteDeviceMonitorService>();
-			//Add singletons for web socket handling
 			services.AddSingleton<CrestronWebsocketHandler>();
+
 
 			//Use controller
 			services.AddControllers();
+
+			services.AddEntityFrameworkSqlServer().AddDbContext<DICDbContext>();
+
+			services.AddAuthentication(options => {
+				options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+			}).AddCookie();
+
+
 			services.AddResponseCompression(opts => {
 				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
 					new[] { "application/octet-stream" });
 			});
+
+
+
 		}
 
 		/// <summary>
@@ -74,18 +80,20 @@ namespace Blazor_Instrument_Cluster.Server {
 			else {
 				app.UseExceptionHandler("/Error");
 				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-				//app.UseHsts();
+				app.UseHsts();
 			}
 			//Websocket setup
 			var webSocketOptions = new WebSocketOptions() {
 				KeepAliveInterval = TimeSpan.FromSeconds(360),
 			};
-			//HTTPS
-			//app.UseHttpsRedirection();
+
+			app.UseHttpsRedirection();
+			app.UseBlazorFrameworkFiles();
+			app.UseStaticFiles();
+			app.UseAuthentication();
 
 			app.UseWebSockets(webSocketOptions);
-
-			//Do this when a web socket connects
+			//Websocket middelware
 			app.Use(async (context, next) => {
 				if (context.Request.Path == "/crestronControl") {
 					if (context.WebSockets.IsWebSocketRequest) {
@@ -107,8 +115,6 @@ namespace Blazor_Instrument_Cluster.Server {
 				}
 			});
 
-			app.UseBlazorFrameworkFiles();
-			app.UseStaticFiles();
 			app.UseRouting();
 
 			app.UseEndpoints(endpoints => {

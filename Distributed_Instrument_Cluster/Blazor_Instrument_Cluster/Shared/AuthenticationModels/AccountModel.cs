@@ -6,12 +6,15 @@ namespace Blazor_Instrument_Cluster.Shared.AuthenticationModels {
 	/// Model used when logging in to the system
 	/// <Author>Mikael Nilssen</Author>
 	/// </summary>
-	public class LoginModel {
+	public class AccountModel {
 
 		[Required]
-		public string username { get; set; }
+		[EmailAddress]
+		[DataType(DataType.EmailAddress)]
+		public string email { get; set; }
 
 		[Required]
+		[DataType(DataType.Password)]
 		public string password { get; set; }
 
 	}

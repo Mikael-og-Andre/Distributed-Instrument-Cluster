@@ -47,8 +47,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server_Library_Test", "Serv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crestron_Test", "Crestron_Test\Crestron_Test.csproj", "{D9FD71E0-51FD-4C18-96C7-4C3E7D2A6DBA}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{623231A7-8D12-4D4E-BEC3-C5460E5554ED}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Video_Library", "Video_Library\Video_Library.csproj", "{7B7AFEA1-EC18-4B3F-B708-93CFE198E559}"
 EndProject
 Global
@@ -113,10 +111,6 @@ Global
 		{D9FD71E0-51FD-4C18-96C7-4C3E7D2A6DBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9FD71E0-51FD-4C18-96C7-4C3E7D2A6DBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9FD71E0-51FD-4C18-96C7-4C3E7D2A6DBA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{623231A7-8D12-4D4E-BEC3-C5460E5554ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{623231A7-8D12-4D4E-BEC3-C5460E5554ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{623231A7-8D12-4D4E-BEC3-C5460E5554ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{623231A7-8D12-4D4E-BEC3-C5460E5554ED}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7B7AFEA1-EC18-4B3F-B708-93CFE198E559}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7B7AFEA1-EC18-4B3F-B708-93CFE198E559}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B7AFEA1-EC18-4B3F-B708-93CFE198E559}.Release|Any CPU.ActiveCfg = Release|Any CPU
