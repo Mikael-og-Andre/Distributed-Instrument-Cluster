@@ -2,19 +2,23 @@
 @using System.Text.Json
 @inject HttpClient client
 
-
-@foreach (var keyRow in keyList) {
-    <div style="margin-bottom: -0.5em">
-        @foreach (var key in keyRow) {
-            <KeyboardKey key="@key" keyEvent="@keyEventHandler"></KeyboardKey>
-        }
+<div class="container m-2 mt-4">
+    <div class="row m-1 mb-4">
+        <button class="btn btn-dark" @onclick="toggleKeyboard">Toggle Keyboard</button>
     </div>
-}
-
-
-
-
-
+    
+    @if (showKeyboards) {
+        <div class="row">
+            @foreach (var keyRow in keyList) {
+                <div style="margin-bottom: -0.5em">
+                    @foreach (var key in keyRow) {
+                        <KeyboardKey key="@key" keyEvent="@keyEventHandler"></KeyboardKey>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
 
 @code {
 
@@ -23,6 +27,8 @@
 
 
     List<List<KeyProperties>> keyList = new();
+
+    protected bool showKeyboards = false;
 
 
     protected override async Task OnInitializedAsync() {
@@ -33,6 +39,10 @@
 
     private async void keyEventHandler(string s) {
         await keyEvent.InvokeAsync(s);
+    }
+
+    private void toggleKeyboard() {
+        showKeyboards = !showKeyboards;
     }
 
 }

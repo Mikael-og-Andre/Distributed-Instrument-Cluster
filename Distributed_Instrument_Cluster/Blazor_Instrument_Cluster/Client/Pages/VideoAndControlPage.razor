@@ -2,11 +2,11 @@
 @page "/VideoAndControl/{urlDeviceJson}"
 @layout TopBarLayout
 
-<div style="width: 90%; height: 90%; position: relative" class="container">
-    <div class="row" style="width: 75%; height: 75%;">
+<div style="position: relative" class="container h-auto w-auto bg-light">
+    <div class="row h-75 m-1" style="position: relative">
         <VideoMJPEG urlDeviceJson="@urlDeviceJson"></VideoMJPEG>
     </div>
-    <div class="row">
+    <div class="row h-25 w-auto">
         <KeyboardMouse urlDeviceJson="@urlDeviceJson" @ref="keyboardMouse"></KeyboardMouse>
         <VirtualKeyboard keyEvent="@handleKeyEvent"></VirtualKeyboard>
     </div>

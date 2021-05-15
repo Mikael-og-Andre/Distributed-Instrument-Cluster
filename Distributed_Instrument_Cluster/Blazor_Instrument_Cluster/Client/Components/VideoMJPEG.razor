@@ -2,7 +2,7 @@
 
 <div class="container border-info">
     <div class="row">
-        <div class="col">
+        <div class="col dropdown">
             <select @bind="@uri">
                 @{ int i = 0;}
                 @foreach (Uri uri in uris) {
@@ -13,6 +13,6 @@
         </div>
     </div>
     <div class="row">
-        <img src="@uri" style="width: 100%; height: 100%; position: relative; top: 0; left: 0" alt="Failed to load video stream" />
+        <img class="rounded float-left border border-dark" src="@uri" style="max-width: 888px; max-height: 500px; height: 100%; width: 100%; position: relative;" alt="Failed to load video stream" />
     </div>
 </div>
