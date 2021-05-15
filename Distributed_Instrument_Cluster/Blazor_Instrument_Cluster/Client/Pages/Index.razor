@@ -1,51 +1,12 @@
 ﻿@page "/"
-@inject NavigationManager NavigationManager
+@inject NavigationManager navigationManager
 @layout TopBarLayout
-@using Microsoft.Extensions.Logging
-
-<h1>Blazor testing</h1>
-
-<button class="btn btn-primary" @onclick="NavigateToDeviceSelectionComponent">
-    Navigate to Device Select component
-</button>
-<br/> 
-<button class="btn btn-primary" @onclick="loginPage">
-    login
-</button>
-<br />
-<button class="btn btn-primary" @onclick="registerPage">
-    register
-</button>
 
 
 @code {
-    // Radar1 is just the static name to look for
 
-    private void NavigateToVideoComponent() {
-        NavigationManager.NavigateTo("video/Radar1");
-    }
-
-    private void NavigateToKeyboardMouseComponent() {
-        NavigationManager.NavigateTo("mouse/Radar1");
-    }
-
-    private void NavigateToCombinedComponent() {
-        NavigationManager.NavigateTo("VideoAndControl/Radar1");
-    }
-    private void NavigateToDeviceSelectionComponent() {
-        NavigationManager.NavigateTo("DeviceSelect");
-    }
-
-    private void test() {
-        NavigationManager.NavigateTo("/test");
-    }
-
-    private void loginPage() {
-        NavigationManager.NavigateTo("/login");
-    }
-
-    private void registerPage() {
-        NavigationManager.NavigateTo("/register");
+    protected override void OnInitialized() {
+        navigationManager.NavigateTo("/DeviceSelect");
     }
 
 }
