@@ -27,7 +27,7 @@ Using a docker container with HTTPS Requires you to import your local dev certif
 Dev certification doc: https://docs.microsoft.com/en-us/dotnet/core/additional-tools/self-signed-certificates-guide
 ASP.NET with https in docker: https://docs.microsoft.com/en-us/aspnet/core/security/docker-https?view=aspnetcore-5.0
 
-!There is a bug with kestrel where it expects the name of the .PFX file to match the Assebly .DLL file.
+!There is a bug with kestrel where it expects the name of the .PFX file to match the Assembly .DLL file name of the asp.net project.
 
 ### Remote Device Json
 Remote Devices are defined on the ASP.NET Server and sent to all connecting clients when they go to the Remote Device selection page. Remote Devices stored and loaded from a Json file, where Ip, and other metadata is defined about the remote device, including what the video port for the remote device is. The ports of the video streams are incrementally generated from what we call the base port, if the base port is 8080, and there are 5 devices, the 5th device will be on port 8084, because there are 4 additional devices, $8080+4=8084$. If the device does not have a Crestron connection it can be defined here, and if it does have a Crestron the port must also be specified.
