@@ -68,8 +68,8 @@ Example:
 4.  Edit Config.json with port information, and video information, and crestron cable information
 5.  Open the Distributed Insturment Cluster Solution File - .SLN
 6.  Build as either release or debug
-7.  Launch the project called Blazor_Instrument_Cluster.Server from visual studio. or navigate to the folder and launch from the .exe file directly.
-8.  Connect to localhost 5001 in your browser (This might not be the same for you, you can change it in the launch settings or launch profile in visual studio).
+7.  Launch the project called Remote_Server from visual studio. or navigate to the folder and launch from the .exe file directly.
+8.  Confirm that all usb connections were setup correctly from the command line- if not retry.
 
 ### Third Party Devices hardware
 #### Crestron Cable
