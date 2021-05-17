@@ -56,3 +56,52 @@ Example:
     }]}
 
 
+## Remote Server
+
+### Launching Remote Server
+
+#### Visual Studio
+
+1.  Download Visual Studio 2019
+2.  Install all extensions related to .NET - ASP.NET, Blazor
+3.  Install Database features
+4.  Edit Config.json with port information, and video information, and crestron cable information
+5.  Open the Distributed Insturment Cluster Solution File - .SLN
+6.  Build as either release or debug
+7.  Launch the project called Blazor_Instrument_Cluster.Server from visual studio. or navigate to the folder and launch from the .exe file directly.
+8.  Connect to localhost 5001 in your browser (This might not be the same for you, you can change it in the launch settings or launch profile in visual studio).
+
+### Third Party Devices hardware
+#### Crestron Cable
+For the remote Server to control a device you need to connect a Crestron cable to a usb port on the remote server, and connect the other end to the device you wish to control.
+The crestron cable is not required, you can specify that a device does not have a crestron cable on the ASP.NET server.
+#### Video Devices
+You can connect both video cameras, caputure cards, or other video devices to the system.
+
+### Remote Server Config.json
+
+The remote server requires you to specify how many video devices you have, and what port you want the incremntation to start at. If you define the videoPort to be 8080 like in the example, each video device will increment in port number from this port, so device number 2 will have port 8081. When launching the remote server you will get information about if the com port of the crestron is detected, in red text if there are any errors. The videoDevices can have their fps and quality Adjusted Individually in the json file.
+
+{
+  "serverSettings": {
+    "ip": "0.0.0.0",
+    "crestronPort": 6981,
+    "videoPort": 8080
+  },
+  "crestronCable": {
+    "portName": "com5",
+    "largeMagnitude": 20,
+    "smallMagnitude": 1,
+    "maxDelta": 1000
+  },
+  "videoDevices": [
+    {
+      "deviceIndex": 0,
+      "apiIndex": 700,
+      "width": 1920,
+      "height": 1080,
+      "quality": 40,
+      "fps": 30
+    }
+  ]
+}
