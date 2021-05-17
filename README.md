@@ -19,7 +19,7 @@ Visual Studio 2019. All .NET Extensions and Database extensions installed.
 5.  Open the Distributed Insturment Cluster Solution File - .SLN
 6.  Build
 7.  Launch the project called Blazor_Instrument_Cluster.Server
-8.  Connect to localhost 5001 in your browser (This might not be the same for you, you can cahnge it in the launch settings or launch profile in visual studio).
+8.  Connect to localhost 5001 in your browser (This might not be the same for you, you can change it in the launch settings or launch profile in visual studio).
 
 #### Docker
 If you want to use the docker image of the project, you can get it at https://hub.docker.com/repository/docker/zekael/distributed_instrument_cluster.
