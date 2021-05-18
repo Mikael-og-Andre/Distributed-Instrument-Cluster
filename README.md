@@ -14,7 +14,7 @@ Visual Studio 2019. All .NET Extensions and Database extensions installed.
 
 1.  Download Visual Studio 2019
 2.  Install all extensions related to .NET - ASP.NET, Blazor
-3.  Install Database features
+3.  Install extensions Database features
 4.  Edit RemoteDevices in the Remote Devices.json
 5.  Open the Distributed Insturment Cluster Solution File - .SLN
 6.  Build
