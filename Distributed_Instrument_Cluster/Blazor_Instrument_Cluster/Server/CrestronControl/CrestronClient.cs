@@ -12,7 +12,7 @@ using Server_Library.Socket_Clients;
 namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 
 	/// <summary>
-	/// Class for connecting to a server for controlling a crestron
+	/// Class for connecting to a remote server for controlling a crestron
 	/// <Author>Mikael Nilssen</Author>
 	/// </summary>
 	public class CrestronClient : ClientBaseAsync, IConnectionCommunicator {
@@ -25,7 +25,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// <summary>
 		/// Time the ping of a server will wait before timing out
 		/// </summary>
-		private const int PingTimeout = 5000;
+		private const int PingTimeout = 500;
 
 		/// <summary>
 		/// Is the crestron connected
@@ -43,7 +43,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		/// <returns></returns>
 		public async Task connect() {
 			if (ready()) {
-				Console.WriteLine("CrestronClient: Connect was called but socket was ready");
+				//Console.WriteLine("CrestronClient: Connect was called but socket was ready");
 				return;
 			}
 			connectToServer();
@@ -117,7 +117,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 				return false;
 			}
 			catch (Exception e) {
-				Console.WriteLine("Ping failed deu to exception: {0}",e);
+				//Console.WriteLine("Ping failed due to exception: {0}",e);
 				return false;
 			}
 		}

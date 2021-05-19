@@ -94,10 +94,13 @@ namespace Blazor_Instrument_Cluster.Server {
 						using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync()) {
 							var socketFinishedTcs = new TaskCompletionSource<object>();
 
+							Console.WriteLine("New websocket connection from client {0}",context.Connection.RemoteIpAddress);
+
 							var crestronWebsocketHandler = (CrestronWebsocketHandler)app.ApplicationServices.GetService<CrestronWebsocketHandler>();
 							crestronWebsocketHandler?.startProtocol(webSocket, socketFinishedTcs);
 
 							await socketFinishedTcs.Task;
+							Console.WriteLine("Websocket connection from {0} has finished",context.Connection.RemoteIpAddress);
 						}
 					}
 					else {

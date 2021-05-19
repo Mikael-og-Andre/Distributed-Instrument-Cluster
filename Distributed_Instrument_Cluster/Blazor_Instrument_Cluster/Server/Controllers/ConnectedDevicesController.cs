@@ -14,6 +14,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 
 	/// <summary>
 	/// Api Controller for accessing data about connected devices
+	/// <author>Mikael Nilssen</author>
 	/// https://docs.microsoft.com/en-us/aspnet/core/web-api/?view=aspnetcore-5.0
 	/// </summary>
 	[ApiController]
@@ -67,7 +68,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 
 						//check if it has a crestron
 						bool hasCrestron=device.hasCrestron();
-						bool pingResult = device.ping(2000);
+						bool pingResult = device.ping(500);
 
 						enumerableDeviceModels =
 							enumerableDeviceModels.Append(new DisplayRemoteDeviceModel(deviceIp,deviceName,deviceLocation,deviceType,videoPorts,hasCrestron,pingResult));

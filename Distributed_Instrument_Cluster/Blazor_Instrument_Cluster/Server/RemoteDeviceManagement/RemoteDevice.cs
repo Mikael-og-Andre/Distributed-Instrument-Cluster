@@ -16,8 +16,8 @@ using Video_Library;
 namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 
 	/// <summary>
-	/// A remote device connected to the server
-	/// Stores data about connections belonging to each device, and the providers
+	/// A remote device
+	/// Stores data about the identity belonging to each device, and endpoints.
 	/// </summary>
 	public class RemoteDevice{
 
@@ -170,7 +170,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 				return false;
 			}
 			catch (Exception e) {
-				Console.WriteLine($"Exception in remoteDevice ping: {e.Message}");
+				//Console.WriteLine($"Exception in remoteDevice ping: {e.Message}");
 				return false;
 			}
 		}

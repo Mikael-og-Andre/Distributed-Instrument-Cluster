@@ -100,8 +100,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 				}
 			}
 			catch (Exception e) {
-				Console.WriteLine("Exception in CrestronWebsocketBackend: {0}", e.Message);
-				
+				//Console.WriteLine("Exception in CrestronWebsocketBackend: {0}", e.Message);
 			}
 			//remove device from list if it exists
 			crestronUser?.delete();
@@ -268,7 +267,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			}
 			catch (Exception e) {
 				crestronUser?.delete();
-				Console.WriteLine("Exception in handle in control");
+				//Console.WriteLine("Exception in handle in control");
 				throw;
 			}
 		}

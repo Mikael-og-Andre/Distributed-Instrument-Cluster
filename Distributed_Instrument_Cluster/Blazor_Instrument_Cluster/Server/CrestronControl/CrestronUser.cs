@@ -51,7 +51,7 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		}
 
 		/// <summary>
-		/// Check if the connection to the remtoe device is okay, and if not checks if it can reconnect
+		/// Check if the connection to the remote device is okay, and if not checks if it can reconnect
 		/// </summary>
 		/// <returns></returns>
 		public bool checkConnectionAvailable() {
