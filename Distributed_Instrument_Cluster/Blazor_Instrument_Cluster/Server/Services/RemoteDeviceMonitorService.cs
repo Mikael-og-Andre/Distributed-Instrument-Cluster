@@ -8,6 +8,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace Blazor_Instrument_Cluster.Server.Services {
+	/// <summary>
+	/// Not implemented or used, intended for uptime checking
+	/// </summary>
 	public class RemoteDeviceMonitorService : BackgroundService {
 
 		private IServiceProvider services { get; }
@@ -22,7 +25,7 @@ namespace Blazor_Instrument_Cluster.Server.Services {
 		}
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
-			Console.WriteLine("Executing empty RemoteDeviceConnector");
+			Console.WriteLine("Executing empty Remote Monitor");
 		}
 	}
 }

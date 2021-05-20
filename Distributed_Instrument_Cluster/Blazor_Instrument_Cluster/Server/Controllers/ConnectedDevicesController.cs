@@ -30,7 +30,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		/// <summary>
 		/// Constructor, Injects Service provider and get remote device connection
 		/// </summary>
-		/// <param name="services"></param>
+		/// <param name="services">Service injection</param>
 		public ConnectedDevicesController(IServiceProvider services) {
 			this.remoteDeviceManager = (RemoteDeviceManager)services.GetService<RemoteDeviceManager>();
 		}
@@ -38,7 +38,6 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		/// <summary>
 		/// Get request for connected video Connections
 		/// </summary>
-		/// <returns></returns>
 		[HttpGet]
 		[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<DisplayRemoteDeviceModel>))]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -68,7 +67,7 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 
 						//check if it has a crestron
 						bool hasCrestron=device.hasCrestron();
-						bool pingResult = device.ping(500);
+						bool pingResult = device.ping(2000);
 
 						enumerableDeviceModels =
 							enumerableDeviceModels.Append(new DisplayRemoteDeviceModel(deviceIp,deviceName,deviceLocation,deviceType,videoPorts,hasCrestron,pingResult));
