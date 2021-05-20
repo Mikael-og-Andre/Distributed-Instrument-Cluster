@@ -3,7 +3,7 @@ using Crestron_Library;
 
 namespace Crestron_Demo {
 	/// <summary>
-	/// Demo fro testing command parser in crestron library.
+	/// Demo for testing command parser in crestron library.
 	/// </summary>
 	/// <author>Andre Helland</author>
 	internal class CommandParserDemo {
