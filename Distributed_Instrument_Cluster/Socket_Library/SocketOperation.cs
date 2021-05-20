@@ -9,6 +9,7 @@ namespace Socket_Library {
 
 	/// <summary>
 	/// Class with different Socket operations
+	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	public static class SocketOperation {
 

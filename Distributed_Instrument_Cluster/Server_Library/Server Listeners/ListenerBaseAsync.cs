@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using Server_Library.Connection_Types;
 
 namespace Server_Library.Server_Listeners {
+	/// <summary>
+	/// Base class for a listener that accepts and handles incoming connections, creating new connections
+	/// </summary>
 	public abstract class ListenerBaseAsync : IDisposable {
 		/// <summary>
 		/// The Ip EndPoint of the listener

@@ -13,6 +13,9 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 	/// </summary>
 	public class CrestronUser {
 
+		/// <summary>
+		/// The handler this user belongs to
+		/// </summary>
 		private CrestronUserHandler crestronUserHandler { get; set; }
 
 		/// <summary>

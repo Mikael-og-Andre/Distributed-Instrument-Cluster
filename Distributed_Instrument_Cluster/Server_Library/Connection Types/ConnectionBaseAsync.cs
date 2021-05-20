@@ -2,6 +2,10 @@
 using System.Threading;
 
 namespace Server_Library.Connection_Types {
+	/// <summary>
+	/// Base class for an asynchronous connection
+	/// <author>Mikael Nilssen</author>
+	/// </summary>
 	public abstract class ConnectionBaseAsync {
 		
 		/// <summary>

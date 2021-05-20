@@ -7,7 +7,7 @@ using Socket_Library;
 namespace Server_Library.Socket_Clients {
 
 	/// <summary>
-	/// Base class for communicator classes, intended to be on the remote side of the instrument cluster
+	/// Base class for communicator classes
 	/// <Author>Mikael Nilssen</Author>
 	/// </summary>
 	public abstract class ClientBase {

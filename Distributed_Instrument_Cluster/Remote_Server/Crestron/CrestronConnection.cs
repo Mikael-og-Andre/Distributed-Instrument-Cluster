@@ -8,6 +8,7 @@ namespace Remote_Server.Crestron {
 
 	/// <summary>
 	/// A connection for controlling a crestron
+	/// Inherits from ConnectionBaseAsync
 	/// <Author>Mikael Nilssen</Author>
 	/// </summary>
 	public class CrestronConnection : ConnectionBaseAsync {

@@ -17,10 +17,6 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 	/// </summary>
 	public class CrestronClient : ClientBaseAsync, IConnectionCommunicator {
 
-		/// <summary>
-		/// Mutex
-		/// </summary>
-		private Mutex controlMutex { get; set; }
 
 		/// <summary>
 		/// Time the ping of a server will wait before timing out
@@ -33,7 +29,6 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 		public bool isConnected { get; set; }
 
 		public CrestronClient(string ip, int port) : base(ip, port) {
-			controlMutex = new Mutex();
 			isConnected = false;
 		}
 

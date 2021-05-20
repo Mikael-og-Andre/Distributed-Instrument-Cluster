@@ -17,7 +17,7 @@ namespace Remote_Server.Crestron {
 
 		/// <summary>
 		/// List of connections currently running
-		/// Not threadsafe
+		/// Not thread-safe
 		/// </summary>
 		private List<CrestronConnection> crestronConnections { get; set; }
 

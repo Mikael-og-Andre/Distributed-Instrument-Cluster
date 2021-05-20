@@ -12,10 +12,19 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 	/// <author>Mikael Nilssen</author>
 	/// </summary>
 	public class CrestronUserHandler {
+		/// <summary>
+		/// Identifier for the user
+		/// </summary>
 		public Guid id { get; set; }
 
+		/// <summary>
+		/// Interface for communicating with a crestron
+		/// </summary>
 		private IConnectionCommunicator connection { get; set; }
 
+		/// <summary>
+		/// List of users
+		/// </summary>
 		private List<CrestronUser> crestronUsers { get; set; }
 
 		public CrestronUserHandler(IConnectionCommunicator connection) {
