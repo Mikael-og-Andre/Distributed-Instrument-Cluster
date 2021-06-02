@@ -1,78 +1,86 @@
-﻿@page "/Register"
-@layout TopBarLayout
-@using Blazor_Instrument_Cluster.Shared.AuthenticationModels
-@inject NavigationManager navigationManager
+﻿@page "/register"
+@using System.Security.Cryptography
+@using System.Text
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
 
-<div class="container">
+<h1>Register</h1>
 
-    <div class="row">
-        <div class="col">
-            <h1 class="alert">Register</h1>
-        </div>
+@if (ShowErrors)
+{
+    <div class="alert alert-danger" role="alert">
+        @foreach (var error in Errors)
+        {
+            <p>@error</p>
+        }
     </div>
+}
 
-    <div class="row">
-        <div class="col">
-            <EditForm Model="@registrationAttempt" OnValidSubmit="() => { Task.FromResult(SubmitRegistrationAttempt(registrationAttempt)); }">
-                <DataAnnotationsValidator></DataAnnotationsValidator>
-                <ValidationSummary></ValidationSummary>
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Please enter your details</h5>
+        <EditForm Model="RegisterModel" OnValidSubmit="HandleRegistration">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
 
-                <div class="container">
-                    
-                    <div class="row">
-                        <div class="col-4">
-                            <label for="email">Email:</label>
-                        </div>
-                        <div class="col-8">
-                            <InputText id="email" placeholder="Email@whatever.com" @bind-Value="registrationAttempt.email"></InputText>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-4">
-                            <label for="password">Password:</label>
-                        </div>
-                        <div class="col-8">
-                            <InputText id="password" type="password" placeholder="Password" @bind-Value="registrationAttempt.password"></InputText>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-4">
-                            <label for="retype">Confirm Password:</label>
-                        </div>
-                        <div class="col-8">
-                            <InputText id="retype" type="password" placeholder="Password" @bind-Value="registrationAttempt.ConfirmPassword"></InputText>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="container">
-                    <div class="row">
-                        <div class="col">
-                            <button class="btn btn-success" type="submit">Submit</button>
-                            <button type="reset" class="btn btn-dark">Reset</button>
-                        </div>
-                        <div class="col">
-                            <button class="btn btn-dark float-right" @onclick="navigateLogin">Back</button>
-                        </div>
-                    </div>
-                </div>
-            </EditForm>
-        </div>
+            <div class="form-group">
+                <label for="email">Email address</label>
+                <InputText Id="email" class="form-control" @bind-Value="RegisterModel.Email" />
+                <ValidationMessage For="@(() => RegisterModel.Email)" />
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText Id="password" type="password" class="form-control" @bind-Value="RegisterModel.Password" />
+                <ValidationMessage For="@(() => RegisterModel.Password)" />
+            </div>
+            <div class="form-group">
+                <label for="password">Confirm Password</label>
+                <InputText Id="password" type="password" class="form-control" @bind-Value="RegisterModel.ConfirmPassword" />
+                <ValidationMessage For="@(() => RegisterModel.ConfirmPassword)" />
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <button @onclick="NavLogin" type="button" class="btn btn-dark">Back</button>
+        </EditForm>
     </div>
 </div>
 
 @code {
 
-    private RegistrationModel registrationAttempt = new RegistrationModel();
+    private RegisterModel RegisterModel = new RegisterModel();
+    private bool ShowErrors;
+    private IEnumerable<string> Errors;
 
-    private async Task SubmitRegistrationAttempt(RegistrationModel registrationAttempt) {
+    private async Task HandleRegistration()
+    {
+        ShowErrors = false;
 
+        var crypt = new SHA256Managed();
+        var hash = new StringBuilder();
+        byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(RegisterModel.Password));
+        foreach (byte theByte in crypto) {
+            hash.Append(theByte.ToString("x2"));
+        }
+        string hashString = hash.ToString();
+
+        var registerModelHashed = new RegisterModel();
+        registerModelHashed.Email = RegisterModel.Email;
+        registerModelHashed.Password = hashString;
+        registerModelHashed.ConfirmPassword = hashString;
+
+        var result = await AuthService.Register(registerModelHashed);
+
+        if (result.Successful)
+        {
+            NavigationManager.NavigateTo("/Login");
+        }
+        else
+        {
+            Errors = result.Errors;
+            ShowErrors = true;
+        }
     }
 
-    private void navigateLogin() {
-        navigationManager.NavigateTo("/login");
+    private void NavLogin() {
+        NavigationManager.NavigateTo("/Login");
     }
-
 }

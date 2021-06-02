@@ -1,4 +1,25 @@
 ﻿@page "/"
+@inject NavigationManager navigationManager
 
-<button>Login</button>
-<button>Guest</button>
+<div class="container">
+    
+    <h1 class="display-3 text-center text-primary">Distributed Instrument Cluster</h1>
+
+    <div class="col-md-12 text-center mt-lg-5">
+        <button @onclick="NavLogin" class="btn btn-primary btn-lg">Login</button>
+        <button @onclick="NavGuest" class="btn btn-lg btn-dark">Guest</button>
+    </div>
+     
+</div>
+
+
+@code{
+
+    protected void NavLogin() {
+        navigationManager.NavigateTo("/login");
+    }
+
+    protected void NavGuest() {
+        navigationManager.NavigateTo("/DeviceSelect");
+    }
+}

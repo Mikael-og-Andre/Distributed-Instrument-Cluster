@@ -18,10 +18,10 @@ namespace Blazor_Instrument_Cluster.Client {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
 
-            builder.Services.AddScoped<IAuthenticationService,AuthenticationService>();
             builder.Services.AddBlazoredLocalStorage();
-            builder.Services.AddAuthorizationCore();
-            builder.Services.AddScoped<AuthenticationStateProvider,AuthStateProvider>();
+			builder.Services.AddAuthorizationCore();
+			builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
+			builder.Services.AddScoped<IAuthService, AuthService>();
 
 			builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 

@@ -1,0 +1,36 @@
+﻿@page "/Manage"
+@inject HttpClient httpClient
+@inject AuthService authService
+@attribute [Authorize(Roles = "Admin")]
+
+
+<div class="container container-fluid">
+    
+    <h1 class="display-1">List of accounts</h1>
+    
+    @foreach (var user in users) {
+        <UserComponent userDataModel="@user"></UserComponent>
+    }
+
+</div>
+
+
+@code {
+
+    private List<UserDataModel> users { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+
+        users = await getUsers();
+    }
+
+    private async Task<List<UserDataModel>> getUsers() {
+        var fetchedUsers = await httpClient.GetFromJsonAsync<IEnumerable<UserDataModel>>("api/Admin/GetAllUsers");
+        List<UserDataModel> list = new List<UserDataModel>();
+        if (fetchedUsers is null) return list;
+
+        foreach (var user in fetchedUsers) list.Add(user);
+        return list;
+    }
+
+}

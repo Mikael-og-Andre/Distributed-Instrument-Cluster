@@ -3,61 +3,50 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using Blazor_Instrument_Cluster.Server.Database;
-using Blazor_Instrument_Cluster.Server.Database.Models;
 using Blazor_Instrument_Cluster.Shared.AuthenticationModels;
-using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+
 
 namespace Blazor_Instrument_Cluster.Server.Controllers {
-	/// <summary>
-	/// https://www.youtube.com/watch?v=B9jKf-Dn0Yg&t=46s
-	/// youtube tutorial
-	/// </summary>
-	[Route("/Account")]
+	[Route("api/Accounts")]
 	[ApiController]
 	public class AccountController : ControllerBase {
 
-		private DICDbContext dbContext { get; set; }
+		//private static UserModel LoggedOutUser = new UserModel { IsAuthenticated = false };
 
-		public AccountController(DICDbContext dbContext) {
-			this.dbContext = dbContext;
+		private readonly UserManager<IdentityUser> _userManager;
+		private readonly ILogger<AccountController> logger;
+
+		public AccountController(UserManager<IdentityUser> userManager, ILogger<AccountController> logger) {
+			_userManager = userManager;
+			this.logger = logger;
 		}
 
-		[HttpPost("loginAccount")]
-		public async Task<ActionResult<Account>> loginAccount(Login login) {
+		[HttpPost]
+		public async Task<IActionResult> Register([FromBody] RegisterModel model) {
+			try {
+				var newUser = new IdentityUser { UserName = model.Email, Email = model.Email };
 
-			Account account = dbContext.accounts.FirstOrDefault(acc => acc.email == login.email && acc.passwordHash == login.passwordHash);
-			
-			if (account != null) {
+				var result = await _userManager.CreateAsync(newUser, model.Password);
 
-				//Create claim
-				var claim = new Claim(ClaimTypes.Name, account.email);
-				//Create claimsPrincipal
-				var claimsIdentity = new ClaimsIdentity(new[] {claim},"serverAuth");
-				//create claimsPrincipal
-				var claimsPrincipel = new ClaimsPrincipal(claimsIdentity);
-				//sign in
-				await HttpContext.SignInAsync(claimsPrincipel);
+				if (!result.Succeeded) {
+					var errors = result.Errors.Select(x => x.Description);
+
+					return Ok(new RegisterResult { Successful = false, Errors = errors });
+
+				}
+				
+				var roleResult = await _userManager.AddToRoleAsync(newUser, "User");
+
+
+				return Ok(new RegisterResult { Successful = true });
 			}
-
-
-			return await Task.FromResult(account);
+			catch (Exception e) {
+				logger.LogInformation("Exception in Account Controller: {0}",e.Message);
+				return BadRequest();
+			}
 		}
-
-		[HttpGet("logoutAccount")]
-		public async Task<ActionResult<string>> logoutAccount() {
-
-			await HttpContext.SignOutAsync();
-			return "Success";
-		}
-
-		[HttpGet("getCurrentAccount")]
-		public async Task<ActionResult<Account>> getCurrentAccount() {
-			throw new NotImplementedException();
-		}
-
 	}
 }

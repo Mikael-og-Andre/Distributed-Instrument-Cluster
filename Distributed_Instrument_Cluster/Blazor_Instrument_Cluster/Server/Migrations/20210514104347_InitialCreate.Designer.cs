@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Blazor_Instrument_Cluster.Server.Migrations
 {
-    [DbContext(typeof(DICDbContext))]
+    [DbContext(typeof(AppDbContext))]
     [Migration("20210514104347_InitialCreate")]
     partial class InitialCreate
     {

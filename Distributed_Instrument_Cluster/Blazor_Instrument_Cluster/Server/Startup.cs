@@ -11,10 +11,15 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Text;
 using System.Threading.Tasks;
 using Blazor_Instrument_Cluster.Server.Database;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Blazor_Instrument_Cluster.Server {
 
@@ -42,19 +47,34 @@ namespace Blazor_Instrument_Cluster.Server {
 		/// </summary>
 		/// <param name="services"></param>
 		public void configureServices(IServiceCollection services) {
-			
-			services.AddSingleton<RemoteDeviceManager>();
-			services.AddSingleton<CrestronWebsocketHandler>();
 
+			services.AddDbContext<AppDbContext>(options => {
+				options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+			});
+
+			services.AddDefaultIdentity<IdentityUser>(options => {
+					options.User.RequireUniqueEmail = true;
+					options.Password.RequireUppercase = false;
+					options.Password.RequireNonAlphanumeric = false;
+			}).AddRoles<IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
+
+			
 
 			//Use controller
 			services.AddControllers();
 
-			services.AddEntityFrameworkSqlServer().AddDbContext<DICDbContext>();
 
-			services.AddAuthentication(options => {
-				options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-			}).AddCookie();
+			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer("JwtBearer", jwtBearerOptions => {
+				jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = Configuration["JwtIssuer"],
+                ValidAudience = Configuration["JwtAudience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtSecurityKey"]))
+            };
+			});
 
 
 			services.AddResponseCompression(opts => {
@@ -62,7 +82,8 @@ namespace Blazor_Instrument_Cluster.Server {
 					new[] { "application/octet-stream" });
 			});
 
-
+			services.AddSingleton<RemoteDeviceManager>();
+			services.AddSingleton<CrestronWebsocketHandler>();
 
 		}
 
@@ -71,7 +92,22 @@ namespace Blazor_Instrument_Cluster.Server {
 		/// </summary>
 		/// <param name="app"></param>
 		/// <param name="env"></param>
-		public void configure(IApplicationBuilder app, IWebHostEnvironment env) {
+		public void configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider service, ILogger<Startup> logger) {
+
+			var context = service.GetService<AppDbContext>();
+			//check db
+			if (!context.Database.CanConnect()) {
+				logger.LogCritical("No Database found");
+				//Database does not exist error
+				Environment.Exit(1065);
+			}
+
+			if (Configuration.GetValue<bool>("DeleteDB")) {
+				context.Database.EnsureDeleted();
+			}
+
+			context.Database.EnsureCreated();
+
 			app.UseResponseCompression();
 			if (env.IsDevelopment()) {
 				app.UseDeveloperExceptionPage();
@@ -82,16 +118,19 @@ namespace Blazor_Instrument_Cluster.Server {
 				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 				app.UseHsts();
 			}
-			//Websocket setup
-			var webSocketOptions = new WebSocketOptions() {
-				KeepAliveInterval = TimeSpan.FromSeconds(360),
-			};
+			
 
 			app.UseHttpsRedirection();
 			app.UseBlazorFrameworkFiles();
 			app.UseStaticFiles();
+			app.UseRouting();
 			app.UseAuthentication();
+			app.UseAuthorization();
 
+			//Websocket setup
+			var webSocketOptions = new WebSocketOptions() {
+				KeepAliveInterval = TimeSpan.FromSeconds(360),
+			};
 			app.UseWebSockets(webSocketOptions);
 			//Websocket middelware
 			app.Use(async (context, next) => {
@@ -114,8 +153,6 @@ namespace Blazor_Instrument_Cluster.Server {
 					await next();
 				}
 			});
-
-			app.UseRouting();
 
 			app.UseEndpoints(endpoints => {
 				endpoints.MapControllers();

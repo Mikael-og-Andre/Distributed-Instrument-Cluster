@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Blazor_Instrument_Cluster.Shared.AuthenticationModels {
-	public class Login {
+	public class UserDataModel {
 		public string email { get; set; }
-		public string passwordHash { get; set; }
+		public List<string> roleList { get; set; }
 	}
 }

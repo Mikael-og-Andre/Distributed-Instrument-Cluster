@@ -1,67 +1,85 @@
 ﻿@page "/Login"
-@layout TopBarLayout
-@inject NavigationManager navigationManager
+@using System.Security.Cryptography
+@using System.Text
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
 
+<h1>Login</h1>
 
-<div class="container">
-
-    <div class="row">
-        <div class="col">
-            <h1 class="alert">Login</h1>
-        </div>
+@if (ShowErrors)
+{
+    <div class="alert alert-danger" role="alert">
+        <p>@Error</p>
     </div>
+}
 
-    <div class="row">
-        <div class="col">
-            <EditForm Model="@loginAttempt" OnValidSubmit="() => { Task.FromResult(SubmitLoginAttempt(loginAttempt)); }">
-                <DataAnnotationsValidator></DataAnnotationsValidator>
-                <ValidationSummary></ValidationSummary>
-                <div class="container">
-                    <div class="row">
-                        <div class="col-4">
-                            <label for="email">Email:</label>
-                        </div>
-                        <div class="col-8">
-                            <InputText id="email" placeholder="email" @bind-Value="loginAttempt.email"></InputText>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            <label for="password">Password:</label>
-                        </div>
-                        <div class="col-8">
-                            <InputText id="password" type="password" placeholder="Password" @bind-Value="loginAttempt.password"></InputText>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            <button class="btn btn-success" type="submit">Submit</button>
-                            <button type="reset" class="btn btn-dark">Reset</button>
-                        </div>
-                        <div class="col">
-                            <button class="btn btn-info float-right" @onclick="navigateRegister">Register</button>
-                        </div>
-                    </div>
-                </div>
-            </EditForm>
-        </div>
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Please enter your details</h5>
+        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="email">Email address</label>
+                <InputText Id="email" Class="form-control" @bind-Value="loginModel.Email" />
+                <ValidationMessage For="@(() => loginModel.Email)" />
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText Id="password" type="password" Class="form-control" @bind-Value="loginModel.Password" />
+                <ValidationMessage For="@(() => loginModel.Password)" />
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <button @onclick="NavRegister" type="button" class="btn btn-dark">Register</button>
+            <button @onclick="NavBack" type="button" class="btn btn-dark">Back</button>
+        </EditForm>
     </div>
 </div>
 
 @code {
 
-    private AccountModel loginAttempt = new AccountModel();
+    private LoginModel loginModel = new LoginModel();
+    private bool ShowErrors;
+    private string Error = "";
 
-    private async Task SubmitLoginAttempt(AccountModel loginAttempt) {
+    private async Task HandleLogin()
+    {
+        ShowErrors = false;
 
-       
+        var crypt = new SHA256Managed();
+        var hash = new StringBuilder();
+        byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(loginModel.Password));
+        foreach (byte theByte in crypto)
+        {
+            hash.Append(theByte.ToString("x2"));
+        }
+        string hashString = hash.ToString();
 
-        navigationManager.NavigateTo("/DeviceSelect");
+        var hashedModel = new LoginModel();
+        hashedModel.Email = loginModel.Email;
+        hashedModel.Password = hashString;
+        hashedModel.RememberMe = loginModel.RememberMe;
 
+        var result = await AuthService.Login(hashedModel);
+
+        if (result.Successful)
+        {
+            NavigationManager.NavigateTo("/DeviceSelect");
+        }
+        else
+        {
+            Error = result.Error;
+            ShowErrors = true;
+        }
     }
 
-    private void navigateRegister() {
-        navigationManager.NavigateTo("/Register");
+    private void NavRegister() {
+        NavigationManager.NavigateTo("/Register");
+    }
+
+    private void NavBack() {
+        NavigationManager.NavigateTo("/");
     }
 
 }
