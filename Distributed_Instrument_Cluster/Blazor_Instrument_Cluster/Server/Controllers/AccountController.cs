@@ -38,14 +38,13 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 
 				}
 				
-				var roleResult = await _userManager.AddToRoleAsync(newUser, "User");
-
-
 				return Ok(new RegisterResult { Successful = true });
 			}
 			catch (Exception e) {
 				logger.LogInformation("Exception in Account Controller: {0}",e.Message);
-				return BadRequest();
+				var errors = new List<string> { e.Message}.AsEnumerable();
+				return BadRequest(new RegisterResult { Successful = false, Errors = errors});
+
 			}
 		}
 	}

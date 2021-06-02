@@ -27,8 +27,8 @@ namespace Blazor_Instrument_Cluster.Client.Auth {
 
 		public async Task<RegisterResult> Register(RegisterModel registerModel) {
 			var modelAsJson = JsonSerializer.Serialize(registerModel);
-			var result = await _httpClient.PostAsync("api/accounts", new StringContent(modelAsJson,Encoding.UTF8,"application/json"));
-			RegisterResult registerResult=JsonSerializer.Deserialize<RegisterResult>(await result.Content.ReadAsStringAsync());
+			var result = await _httpClient.PostAsync("api/Accounts", new StringContent(modelAsJson,Encoding.UTF8,"application/json"));
+			RegisterResult registerResult=JsonSerializer.Deserialize<RegisterResult>(await result.Content.ReadAsStringAsync(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 			return registerResult;
 		}
 

@@ -1,17 +1,12 @@
-﻿@page "/register"
-@using System.Security.Cryptography
-@using System.Text
-@inject IAuthService AuthService
-@inject NavigationManager NavigationManager
-
+﻿@page "/Register"
+@inherits Blazor_Instrument_Cluster.Client.Code.Authentication.RegistrationPage
 <h1>Register</h1>
 
-@if (ShowErrors)
+@if (ShowErrors && Errors is not null)
 {
     <div class="alert alert-danger" role="alert">
-        @foreach (var error in Errors)
-        {
-            <p>@error</p>
+        @foreach (var error in Errors) {
+                <p>@error</p>
         }
     </div>
 }
@@ -43,44 +38,3 @@
         </EditForm>
     </div>
 </div>
-
-@code {
-
-    private RegisterModel RegisterModel = new RegisterModel();
-    private bool ShowErrors;
-    private IEnumerable<string> Errors;
-
-    private async Task HandleRegistration()
-    {
-        ShowErrors = false;
-
-        var crypt = new SHA256Managed();
-        var hash = new StringBuilder();
-        byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(RegisterModel.Password));
-        foreach (byte theByte in crypto) {
-            hash.Append(theByte.ToString("x2"));
-        }
-        string hashString = hash.ToString();
-
-        var registerModelHashed = new RegisterModel();
-        registerModelHashed.Email = RegisterModel.Email;
-        registerModelHashed.Password = hashString;
-        registerModelHashed.ConfirmPassword = hashString;
-
-        var result = await AuthService.Register(registerModelHashed);
-
-        if (result.Successful)
-        {
-            NavigationManager.NavigateTo("/Login");
-        }
-        else
-        {
-            Errors = result.Errors;
-            ShowErrors = true;
-        }
-    }
-
-    private void NavLogin() {
-        NavigationManager.NavigateTo("/Login");
-    }
-}
