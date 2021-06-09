@@ -1,23 +1,32 @@
 ﻿
 <div class="container container-fluid border border-dark">
     <div class="row">
-        <div class="col">
-            <label>Email: </label>
-            @userDataModel.email
-        </div>
-        <div class="col">
-            <label>Roles:</label>
-            @foreach (var role in userDataModel.roleList) {
-                @role
-            }
-        </div>
         
+        @if (loading) {
+            <p>Loading</p>
+        }
+        else {
+            <div class="col">
+                <label>Email: </label>
+                @userDataModel.email
+            </div>
+            <div class="col">
+                <label>Roles:</label>
+                @foreach (var role in userDataModel.roleList) {
+                    @role
+                }
+            </div>
+        }
     </div>
 </div>
 
 @code {
 
+    public bool loading = false;
+
     [Parameter]
     public UserDataModel userDataModel { get; set; }
+
+    
 
 }

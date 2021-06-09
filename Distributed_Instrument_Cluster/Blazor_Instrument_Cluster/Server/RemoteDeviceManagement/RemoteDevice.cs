@@ -24,41 +24,41 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <summary>
 		/// Device id
 		/// </summary>
-		public int id { get; set; }
+		public int RemoteDeviceID { get; set; }
 		
 		/// <summary>
 		/// Internet address of the remote device
 		/// </summary>
-		public string ip { get; private set; }
+		public string ip { get;  set; }
 		/// <summary>
 		/// Port where the crestron server is located
 		/// </summary>
-		private int crestronPort { get; set; }
+		public int crestronPort { get; set; }
 
 		/// <summary>
 		/// List of ports where mjpeg servers are located
 		/// </summary>
-		public int videoPort { get; private set; }
+		public int videoPort { get;  set; }
 
 		/// <summary>
 		/// The number of video devices
 		/// </summary>
-		public int videoDeviceNumber { get; private set; }
+		public int videoDeviceNumber { get;  set; }
 
 		/// <summary>
 		/// name of the device
 		/// </summary>
-		public string name { get; private set; }
+		public string name { get;  set; }
 
 		/// <summary>
 		/// location of the device
 		/// </summary>
-		public string location { get; private set; }
+		public string location { get;  set; }
 
 		/// <summary>
 		/// type of the device
 		/// </summary>
-		public string type { get; private set; }
+		public string type { get;  set; }
 
 		/// <summary>
 		/// Handles control of the crestronClient
@@ -73,7 +73,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <summary>
 		/// Does the remote device have a crestron
 		/// </summary>
-		private bool _hasCrestron { get; set; }
+		public bool _hasCrestron { get; set; }
 
 		/// <summary>
 		/// Constructor with crestron
@@ -86,8 +86,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <param name="type"></param>
 		/// <param name="id"></param>
 		/// <param name="ip"></param>
-		public RemoteDevice(int id,string ip,int crestronPort,int videoPort,int videoDeviceNumber,string name, string location, string type) {
-			this.id = id;
+		public RemoteDevice(string ip,int crestronPort,int videoPort,int videoDeviceNumber,string name, string location, string type) {
 			this.ip = ip;
 			this.crestronPort = crestronPort;
 			this.videoPort = videoPort;
@@ -110,8 +109,7 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <param name="type"></param>
 		/// <param name="id"></param>
 		/// <param name="ip"></param>
-		public RemoteDevice(int id,string ip,int videoPort,int videoDeviceNumber,string name, string location, string type) {
-			this.id = id;
+		public RemoteDevice(string ip,int videoPort,int videoDeviceNumber,string name, string location, string type) {
 			this.ip = ip;
 			this.crestronPort = default;
 			this.videoPort = videoPort;
@@ -122,6 +120,10 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 			this._hasCrestron = false;
 			this.crestronClient = default;
 			this.crestronUserHandler = default;
+		}
+
+		public RemoteDevice() {
+			
 		}
 
 		/// <summary>
@@ -170,7 +172,6 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 				return false;
 			}
 			catch (Exception e) {
-				Console.WriteLine($"Exception in remoteDevice ping: {e.Message}");
 				return false;
 			}
 		}

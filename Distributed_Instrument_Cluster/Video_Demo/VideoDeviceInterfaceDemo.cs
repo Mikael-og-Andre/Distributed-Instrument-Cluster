@@ -1,15 +1,16 @@
-﻿using Video_Library;
-using OpenCvSharp;
+﻿using OpenCvSharp;
+using Video_Library;
 
 namespace Video_Demo {
+
 	/// <summary>
 	/// Demo for VideoLibrary.
 	/// </summary>
 	/// <author>Andre Helland</author>
-	class VideoDeviceInterfaceDemo {
+	internal class VideoDeviceInterfaceDemo {
 		private static readonly int deviceIndex = 0;
 
-		static void Main(string[] args) {
+		private static void Main(string[] args) {
 			_ = new VideoDeviceInterfaceDemo();
 		}
 

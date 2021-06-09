@@ -153,7 +153,6 @@
       "keyValue": "- (Num)"
     },
 
-
     {
       "keyCode": "Tab",
       "keyValue": "Tab",
@@ -398,7 +397,7 @@
     {
       "keyCode": "ContextMenu",
       "keyValue": "Win APL",
-      "breaks": true 
+      "breaks": true
     },
     {
       "keyCode": "ControlRight",
@@ -419,7 +418,7 @@
     {
       "keyCode": "Numpad0",
       "keyValue": "0 (Num)"
-    }, 
+    },
     {
       "keyCode": "NumpadEnter",
       "keyValue": "Enter (Num)"

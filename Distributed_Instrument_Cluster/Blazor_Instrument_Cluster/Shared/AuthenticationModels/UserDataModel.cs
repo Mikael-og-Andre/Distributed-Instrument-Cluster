@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 namespace Blazor_Instrument_Cluster.Shared.AuthenticationModels {
 	public class UserDataModel {
 		public string email { get; set; }
-		public List<string> roleList { get; set; }
+		public string[] roleList { get; set; }
+
+		public UserDataModel() {
+			
+		}
 	}
 }

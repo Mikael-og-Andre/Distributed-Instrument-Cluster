@@ -1,7 +1,8 @@
-﻿using System;
-using Crestron_Library;
+﻿using Crestron_Library;
+using System;
 
 namespace Crestron_Demo {
+
 	/// <summary>
 	/// Demo fro testing command parser in crestron library.
 	/// </summary>
@@ -16,7 +17,7 @@ namespace Crestron_Demo {
 			var commandParser = new CommandParser(pickPort());
 
 			while (true) {
-				var line  = Console.ReadLine();
+				var line = Console.ReadLine();
 
 				try {
 					commandParser.pars(line);
@@ -26,15 +27,13 @@ namespace Crestron_Demo {
 			}
 		}
 
-
 		private static SerialPortInterface pickPort() {
-
-			Console.WriteLine($"Available ports: {string.Join(",",SerialPortInterface.GetAvailablePorts())}");
+			Console.WriteLine($"Available ports: {string.Join(",", SerialPortInterface.GetAvailablePorts())}");
 			var portName = Console.ReadLine();
 
 			try {
 				Console.WriteLine($"Connected to port: {portName}");
-				 return new SerialPortInterface(portName);
+				return new SerialPortInterface(portName);
 			} catch {
 				Console.WriteLine($"Failed to connect to port: {portName}");
 				pickPort();
@@ -43,4 +42,3 @@ namespace Crestron_Demo {
 		}
 	}
 }
-

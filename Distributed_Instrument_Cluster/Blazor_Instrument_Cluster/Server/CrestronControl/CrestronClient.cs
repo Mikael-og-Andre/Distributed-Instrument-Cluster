@@ -117,7 +117,6 @@ namespace Blazor_Instrument_Cluster.Server.CrestronControl {
 				return false;
 			}
 			catch (Exception e) {
-				Console.WriteLine("Ping failed deu to exception: {0}",e);
 				return false;
 			}
 		}

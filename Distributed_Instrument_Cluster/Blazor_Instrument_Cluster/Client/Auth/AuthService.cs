@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Blazor_Instrument_Cluster.Shared.AuthenticationModels;
+using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Blazor_Instrument_Cluster.Shared.AuthenticationModels;
-using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Blazor_Instrument_Cluster.Client.Auth {
+
 	public class AuthService : IAuthService {
 		private readonly HttpClient _httpClient;
 		private readonly AuthenticationStateProvider _authenticationStateProvider;
@@ -27,11 +24,16 @@ namespace Blazor_Instrument_Cluster.Client.Auth {
 
 		public async Task<RegisterResult> Register(RegisterModel registerModel) {
 			var modelAsJson = JsonSerializer.Serialize(registerModel);
-			var result = await _httpClient.PostAsync("api/Accounts", new StringContent(modelAsJson,Encoding.UTF8,"application/json"));
-			RegisterResult registerResult=JsonSerializer.Deserialize<RegisterResult>(await result.Content.ReadAsStringAsync(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+			var result = await _httpClient.PostAsync("api/Accounts", new StringContent(modelAsJson, Encoding.UTF8, "application/json"));
+			RegisterResult registerResult = JsonSerializer.Deserialize<RegisterResult>(await result.Content.ReadAsStringAsync(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 			return registerResult;
 		}
 
+		/// <summary>
+		/// Login and get token
+		/// </summary>
+		/// <param name="loginModel"></param>
+		/// <returns></returns>
 		public async Task<LoginResult> Login(LoginModel loginModel) {
 			var loginAsJson = JsonSerializer.Serialize(loginModel);
 			var response = await _httpClient.PostAsync("api/Login", new StringContent(loginAsJson, Encoding.UTF8, "application/json"));
@@ -48,6 +50,10 @@ namespace Blazor_Instrument_Cluster.Client.Auth {
 			return loginResult;
 		}
 
+		/// <summary>
+		/// Logout from authentication
+		/// </summary>
+		/// <returns></returns>
 		public async Task Logout() {
 			await _localStorage.RemoveItemAsync("authToken");
 			((ApiAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();

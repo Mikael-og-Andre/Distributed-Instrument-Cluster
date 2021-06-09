@@ -23,6 +23,7 @@ namespace Blazor_Instrument_Cluster.Client.Code.Authentication {
 		protected async Task HandleRegistration() {
 			try {
 				ShowErrors = false;
+				Errors = new List<string>() { }.AsEnumerable();
 
 				var crypt = new SHA256Managed();
 				var hash = new StringBuilder();
@@ -47,7 +48,8 @@ namespace Blazor_Instrument_Cluster.Client.Code.Authentication {
 					Errors = result.Errors;
 				}
 			} catch (Exception e) {
-				
+				ShowErrors = true;
+				Errors = new List<string>() { "Something went wrong"}.AsEnumerable();
 			}
 		}
 

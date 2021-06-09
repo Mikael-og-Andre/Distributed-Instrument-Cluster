@@ -1,25 +1,22 @@
+using Blazor_Instrument_Cluster.Server.Database;
 using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
-using Blazor_Instrument_Cluster.Server.Services;
-using Blazor_Instrument_Cluster.Server.Stream;
 using Blazor_Instrument_Cluster.Server.WebSockets;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
-using Blazor_Instrument_Cluster.Server.Database;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Blazor_Instrument_Cluster.Server {
 
@@ -47,44 +44,41 @@ namespace Blazor_Instrument_Cluster.Server {
 		/// </summary>
 		/// <param name="services"></param>
 		public void configureServices(IServiceCollection services) {
-
 			services.AddDbContext<AppDbContext>(options => {
 				options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
 			});
 
 			services.AddDefaultIdentity<IdentityUser>(options => {
-					options.User.RequireUniqueEmail = true;
-					options.Password.RequireUppercase = false;
-					options.Password.RequireNonAlphanumeric = false;
+				options.User.RequireUniqueEmail = true;
+				options.Password.RequireUppercase = false;
+				options.Password.RequireNonAlphanumeric = false;
 			}).AddRoles<IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
-
-			
 
 			//Use controller
 			services.AddControllers();
 
-
-			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer("JwtBearer", jwtBearerOptions => {
+			services.AddAuthentication(configureOptions => {
+				configureOptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+				configureOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+			}).AddJwtBearer(authenticationScheme: JwtBearerDefaults.AuthenticationScheme, jwtBearerOptions => {
 				jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = Configuration["JwtIssuer"],
-                ValidAudience = Configuration["JwtAudience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtSecurityKey"]))
-            };
+					ValidateIssuer = true,
+					ValidateLifetime = true,
+					ValidateAudience = true,
+					ValidateIssuerSigningKey = true,
+					ValidIssuer = Configuration["JwtIssuer"],
+					ValidAudience = Configuration["JwtAudience"],
+					IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtSecurityKey"]))
+				};
 			});
-
 
 			services.AddResponseCompression(opts => {
 				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
 					new[] { "application/octet-stream" });
 			});
 
-			services.AddSingleton<RemoteDeviceManager>();
+			services.AddTransient<RemoteDeviceManager>();
 			services.AddSingleton<CrestronWebsocketHandler>();
-
 		}
 
 		/// <summary>
@@ -92,8 +86,7 @@ namespace Blazor_Instrument_Cluster.Server {
 		/// </summary>
 		/// <param name="app"></param>
 		/// <param name="env"></param>
-		public void configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider service, ILogger<Startup> logger) {
-
+		public void configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider service, ILogger<Startup> logger, UserManager<IdentityUser> userManager, IConfiguration configuration) {
 			var context = service.GetService<AppDbContext>();
 			//check db
 			if (!context.Database.CanConnect()) {
@@ -107,18 +100,21 @@ namespace Blazor_Instrument_Cluster.Server {
 			}
 
 			context.Database.EnsureCreated();
+			var awaiter = SeedUser.SeedAdmin(userManager, configuration).GetAwaiter();
+			awaiter.GetResult();
+
+			//var awaiter2 = SeedUser.SeedDevices(context).GetAwaiter();
+			//awaiter2.GetResult();
 
 			app.UseResponseCompression();
 			if (env.IsDevelopment()) {
 				app.UseDeveloperExceptionPage();
 				app.UseWebAssemblyDebugging();
-			}
-			else {
+			} else {
 				app.UseExceptionHandler("/Error");
 				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 				app.UseHsts();
 			}
-			
 
 			app.UseHttpsRedirection();
 			app.UseBlazorFrameworkFiles();
@@ -144,12 +140,10 @@ namespace Blazor_Instrument_Cluster.Server {
 
 							await socketFinishedTcs.Task;
 						}
-					}
-					else {
+					} else {
 						context.Response.StatusCode = 400;
 					}
-				}
-				else {
+				} else {
 					await next();
 				}
 			});

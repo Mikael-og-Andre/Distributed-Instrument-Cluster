@@ -127,7 +127,7 @@ namespace Blazor_Instrument_Cluster.Server.WebSockets {
 			}
 
 			//List of remote devices
-			List<RemoteDevice> listOfRemoteDevices = remoteDeviceManager.getListOfRemoteDevices();
+			List<RemoteDevice> listOfRemoteDevices = await remoteDeviceManager.getListOfRemoteDevices();
 			RemoteDevice remoteDevice = default;
 			//check if device exists
 			lock (listOfRemoteDevices) {

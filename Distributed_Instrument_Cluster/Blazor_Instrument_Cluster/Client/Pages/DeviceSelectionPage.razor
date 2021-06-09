@@ -3,6 +3,7 @@
 @inject NavigationManager navigationManager
 
 @page "/DeviceSelect"
+@using System.Text.Json
 
 <div class="container alert">
     <div class="row">
@@ -27,14 +28,12 @@
                 @foreach (DisplayRemoteDeviceModel device in devices) {
                     <DeviceComponent displayRemoteDeviceInfo="device"></DeviceComponent>
                 }
-            }
-            else {
+            } else {
                 <p class="list-group-item container">No device connected</p>
             }
         </ul>
     </div>
-}
-else {
+} else {
     <div class="container">
         <p>Loading</p>
     </div>
@@ -44,8 +43,8 @@ else {
 
     private bool loading = false;
 
-    public string pathToApi = "api/ConnectedDevices";
-    IEnumerable<DisplayRemoteDeviceModel> devices = null;
+    public string pathToApi = "api/ConnectedDevices/devices";
+    List<DisplayRemoteDeviceModel> devices = null;
 
     protected override async Task OnInitializedAsync() {
         await fetchData();
@@ -57,10 +56,11 @@ else {
         string uriBase = navigationManager.BaseUri;
         string path = uriBase + pathToApi;
         try {
-            devices = await Http.GetFromJsonAsync<IEnumerable<DisplayRemoteDeviceModel>>(new Uri(path));
-        }
-        catch (Exception ex) {
-            Console.WriteLine("Exception thrown: " + ex.Message);
+            var result = await Http.GetAsync(new Uri(path));
+            List<DisplayRemoteDeviceModel> remoteDevices = JsonSerializer.Deserialize<List<DisplayRemoteDeviceModel>>(await result.Content.ReadAsStringAsync());
+            devices = remoteDevices;
+        } catch (Exception ex) {
+            Console.WriteLine("Exception thrown in device selection page: " + ex.Message);
             loading = false;
         }
         loading = false;

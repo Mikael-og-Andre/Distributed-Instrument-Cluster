@@ -4,14 +4,16 @@ using Blazor_Instrument_Cluster.Server.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Blazor_Instrument_Cluster.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class DICDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210609140835_DbRemote")]
+    partial class DbRemote
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

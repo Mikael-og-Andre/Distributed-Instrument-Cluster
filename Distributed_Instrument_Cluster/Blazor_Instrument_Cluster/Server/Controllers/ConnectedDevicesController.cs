@@ -1,14 +1,14 @@
-﻿using Blazor_Instrument_Cluster.Shared;
-using Server_Library;
+﻿using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
+using Blazor_Instrument_Cluster.Shared.AuthenticationModels;
+using Blazor_Instrument_Cluster.Shared.DeviceSelection;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Blazor_Instrument_Cluster.Server.RemoteDeviceManagement;
-using Blazor_Instrument_Cluster.Shared.DeviceSelection;
-using Packet_Classes;
+using System.Threading.Tasks;
 
 namespace Blazor_Instrument_Cluster.Server.Controllers {
 
@@ -18,8 +18,8 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 	/// </summary>
 	[ApiController]
 	[Route("/api/ConnectedDevices")]
-	[Produces("application/json")]
 	public class ConnectedDevicesController : ControllerBase {
+
 		/// <summary>
 		/// Remote Device connections
 		/// <author>Mikael Nilssen</author>
@@ -38,50 +38,81 @@ namespace Blazor_Instrument_Cluster.Server.Controllers {
 		/// Get request for connected video Connections
 		/// </summary>
 		/// <returns></returns>
+		[Route("Devices")]
 		[HttpGet]
+		[Produces("application/json")]
 		[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<DisplayRemoteDeviceModel>))]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		public IEnumerable<DisplayRemoteDeviceModel> getRemoteDevices() {
-
+		public async Task<ActionResult<List<DisplayRemoteDeviceModel>>> getRemoteDevices() {
 			//Get list of video connections
-			List<RemoteDevice> listOfRemoteDevices = remoteDeviceManager.getListOfRemoteDevices();
+			List<RemoteDevice> listOfRemoteDevices = await remoteDeviceManager.getListOfRemoteDevices();
 			if (listOfRemoteDevices.Any()) {
 				//Create an IEnumerable with device models
-				IEnumerable<DisplayRemoteDeviceModel> enumerableDeviceModels = Array.Empty<DisplayRemoteDeviceModel>();
+				List<DisplayRemoteDeviceModel> displayRemoteDeviceModels = new List<DisplayRemoteDeviceModel>();
 				//Lock unsafe list
 				lock (listOfRemoteDevices) {
 					foreach (var device in listOfRemoteDevices) {
-
 						string deviceIp = device.ip;
 						string deviceName = device.name;
 						string deviceLocation = device.location;
 						string deviceType = device.type;
+						int deviceCrestronPort = device.crestronPort;
 
 						//Create ports list, each server is incremented by 1 from the base port
 						int basePort = device.videoPort;
 						int numDevices = device.videoDeviceNumber;
 						List<int> videoPorts = new List<int>();
 						for (int i = 0; i < numDevices; i++) {
-							videoPorts.Add(basePort+i);
+							videoPorts.Add(basePort + i);
 						}
 
 						//check if it has a crestron
-						bool hasCrestron=device.hasCrestron();
+						bool hasCrestron = device.hasCrestron();
 						bool pingResult = device.ping(2000);
 
-						enumerableDeviceModels =
-							enumerableDeviceModels.Append(new DisplayRemoteDeviceModel(deviceIp,deviceName,deviceLocation,deviceType,videoPorts,hasCrestron,pingResult));
+						displayRemoteDeviceModels.Add(new DisplayRemoteDeviceModel(deviceIp, deviceName, deviceLocation, deviceType, videoPorts, hasCrestron, deviceCrestronPort, pingResult));
 					}
 				}
 
-				//Return items and status code 200 for success
-				Response.StatusCode = 200;
-				return enumerableDeviceModels;
+				return Ok(displayRemoteDeviceModels);
+			} else {
+				return NoContent();
 			}
-			else {
-				//Return empty and set status code to 204 for no items
-				Response.StatusCode = 204;
-				return null;
+		}
+
+		[Authorize(Roles = "Admin")]
+		[Route("add")]
+		[HttpPost]
+		public async Task<IActionResult> addDevice([FromBody] RegisterRemoteDeviceModel rdm) {
+			try {
+				if (rdm.hasCrestron) {
+					await remoteDeviceManager.addRemoteDevice(rdm.ip, rdm.crestronPort, rdm.videoBasePort,
+						rdm.videoDeviceNumber, rdm.name, rdm.location, rdm.type);
+				} else {
+					await remoteDeviceManager.addRemoteDevice(rdm.ip, rdm.videoBasePort, rdm.videoDeviceNumber, rdm.name,
+						rdm.location, rdm.type);
+				}
+
+				var result = new RegisterResult();
+				result.Successful = true;
+
+				return Ok(result);
+			} catch (Exception e) {
+				return BadRequest(new RegisterResult().Successful = false);
+			}
+		}
+
+		[Authorize(Roles = "Admin")]
+		[Route("remove")]
+		[HttpPost]
+		public async Task<IActionResult> removeDevice([FromBody] DisplayRemoteDeviceModel rdm) {
+			try {
+				await remoteDeviceManager.removeDevice(new RemoteDevice(rdm.ip, rdm.videoPorts[0], rdm.videoPorts.Count, rdm.name,
+					rdm.location, rdm.type));
+
+				return Ok();
+			} catch (Exception e) {
+				return BadRequest();
 			}
 		}
 	}

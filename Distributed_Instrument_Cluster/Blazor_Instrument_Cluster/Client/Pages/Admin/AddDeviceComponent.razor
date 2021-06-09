@@ -1,0 +1,103 @@
+﻿@using System.Text.Json
+@inject HttpClient httpClient
+@attribute [Authorize(Roles = "Admin")]
+
+<div class="container container-fluid bg-light m-3 rounded border border-dark">
+    <div class="row">
+        @if (successful) {
+            <p class="text-success">Success</p>
+        } else {
+            @if (errors is not null) {
+                foreach (var error in errors) {
+                    <p class="text-danger">@error</p>
+                }
+            }
+        }
+    </div>
+
+    <div class="row center">
+        <h3 class="display-5 col-auto">Add a Device</h3>
+    </div>
+
+    <div class="container container-fluid m-3">
+        <EditForm Model="@remoteDeviceModel" OnValidSubmit="@HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="row">
+                <div class="col-4"><label for="name">Name: </label></div>
+                <div class="col-auto"><InputText id="name" @bind-Value="remoteDeviceModel.name" /></div>
+            </div>
+            <div class="row">
+                <div class="col-4"><label for="location">Location: </label></div>
+                <div class="col-auto"><InputText id="location" @bind-Value="remoteDeviceModel.location" /></div>
+            </div>
+            <div class="row">
+                <div class="col-4"><label for="type">Type: </label></div>
+                <div class="col-auto"><InputText id="type" @bind-Value="remoteDeviceModel.type" /></div>
+            </div>
+
+            <div class="row">
+                <div class="col-4"><label for="ip">Ip Address: </label></div>
+                <div class="col-auto"><InputText id="ip" @bind-Value="remoteDeviceModel.ip" /></div>
+            </div>
+
+            <div class="row">
+                <div class="col-4"><label for="videoPort">Video Base Port:</label></div>
+                <div class="col-auto"><InputNumber id="videoPort" @bind-Value="remoteDeviceModel.videoBasePort"></InputNumber></div>
+            </div>
+            <div class="row">
+                <div class="col-4"><label for="videoNumber">Number of video devices: </label></div>
+                <div class="col-auto"><InputNumber id="videoNumber" @bind-Value="remoteDeviceModel.videoDeviceNumber"></InputNumber></div>
+            </div>
+
+            <div class="row">
+                <div class="col-4"><label for="hasCrestron">Does the device have a crestron: </label></div>
+                <div class="col-auto"><InputCheckbox id="hasCrestron" @bind-Value="remoteDeviceModel.hasCrestron"></InputCheckbox></div>
+            </div>
+            <div class="row">
+                <div class="col-4"><label for="crestronPort">Crestron port:</label></div>
+                <div class="col-auto"><InputNumber id="crestronPort" @bind-Value="remoteDeviceModel.crestronPort"></InputNumber></div>
+            </div>
+
+            <button class="btn btn-dark" type="submit">Submit</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+
+    private RegisterRemoteDeviceModel remoteDeviceModel = new RegisterRemoteDeviceModel();
+    private const string path = "/api/ConnectedDevices/add";
+
+    private bool successful = false;
+    private List<string> errors = null;
+
+    private async Task HandleValidSubmit() {
+
+        try {
+            successful = false;
+
+            var response = await httpClient.PostAsJsonAsync(path, remoteDeviceModel, new JsonSerializerOptions {
+                AllowTrailingCommas = true,
+                PropertyNameCaseInsensitive = true,
+            });
+
+            RegisterResult result = JsonSerializer.Deserialize<RegisterResult>(await response.Content.ReadAsStringAsync(), new JsonSerializerOptions { AllowTrailingCommas = true, PropertyNameCaseInsensitive = true });
+
+            if (result.Successful) {
+
+                successful = result.Successful;
+                remoteDeviceModel = new RegisterRemoteDeviceModel();
+            } else {
+                successful = false;
+            }
+
+        }
+        catch (Exception e) {
+            Console.WriteLine(e.Message);
+            successful = false;
+        }
+    }
+
+}

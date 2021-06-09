@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Video_Library;
 
-
 namespace Video_Demo {
-	class FFMPEG_Demo {
+
+	internal class FFMPEG_Demo {
 
 		public static void Main(string[] args) {
 			var ffmpeg = new FFMPEG_Streamer();
@@ -17,6 +13,5 @@ namespace Video_Demo {
 			Console.WriteLine(ffmpeg.launchArgs);
 			ffmpeg.start();
 		}
-
 	}
 }

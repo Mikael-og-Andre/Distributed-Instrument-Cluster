@@ -15,18 +15,21 @@ namespace Blazor_Instrument_Cluster.Shared.DeviceSelection {
 
 		public List<int> videoPorts { get; set; }
 		public bool hasCrestron { get; set; }
+
+		public int crestronPort { get; set; }
 		public bool pingResult { get; set; }
 
 		public DisplayRemoteDeviceModel() {
 	        
         }
-		public DisplayRemoteDeviceModel(string ip,string name, string location, string type,List<int> videoPorts ,bool hasCrestron,bool pingResult) {
+		public DisplayRemoteDeviceModel(string ip,string name, string location, string type,List<int> videoPorts ,bool hasCrestron,int crestronPort,bool pingResult) {
 			this.ip = ip;
 			this.name = name;
 			this.location = location;
 			this.type = type;
 			this.videoPorts = videoPorts;
 			this.hasCrestron = hasCrestron;
+			this.crestronPort = crestronPort;
 			this.pingResult = pingResult;
 		}
 		

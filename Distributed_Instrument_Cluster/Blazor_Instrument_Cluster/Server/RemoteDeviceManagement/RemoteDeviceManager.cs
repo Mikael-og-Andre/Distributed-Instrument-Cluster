@@ -1,12 +1,12 @@
-﻿using Blazor_Instrument_Cluster.Server.Stream;
+﻿using Blazor_Instrument_Cluster.Server.Database;
+using Blazor_Instrument_Cluster.Shared.DeviceSelection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Video_Library;
+using Microsoft.EntityFrameworkCore;
 
 namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 
@@ -21,15 +21,12 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// </summary>
 		private IServiceProvider services;
 
+		private readonly AppDbContext dbContext;
+
 		/// <summary>
 		/// Logger
 		/// </summary>
 		private ILogger<RemoteDeviceManager> logger;
-
-		/// <summary>
-		/// List of remote devices
-		/// </summary>
-		private List<RemoteDevice> listRemoteDevices;
 
 		/// <summary>
 		/// Constructor, Injects logger and service provider
@@ -37,18 +34,10 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <param name="logger"></param>
 		/// <param name="services"></param>
 		/// <param name="configuration"></param>
-		public RemoteDeviceManager(ILogger<RemoteDeviceManager> logger, IServiceProvider services, IConfiguration configuration) {
+		public RemoteDeviceManager(ILogger<RemoteDeviceManager> logger, IServiceProvider services, IConfiguration configuration, AppDbContext dbContext) {
 			this.services = services;
+			this.dbContext = dbContext;
 			this.logger = logger;
-			listRemoteDevices = new List<RemoteDevice>();
-
-			//TODO: HARDCODED RemoteDevice
-			addRemoteDevice(1,"192.168.1.164",6981,8080,1,"andre","Hardcoded location", "Hardcoded type");
-			addRemoteDevice(2, "ooof.asuscomm.com", 6981, 8080, 1, "andre", "Hardcoded location", "Hardcoded type");
-			addRemoteDevice(3, "ooof.asuscomm.com", 6981, 8080, 2, "andre", "Hardcoded location", "2 devices");
-			addRemoteDevice(4, "192.168.1.172", 6981, 8080, 1, "andre", "Hardcoded location", "Hardcoded type");
-			addRemoteDevice(5,"zretzy.asuscomm.com",6981,8080,2,"mikael laptop","Stua", "crestron");
-			addRemoteDevice(6,"zretzy.asuscomm.com",7981,7080,1,"mikael desktop","rom", "crestron");
 		}
 
 		/// <summary>
@@ -62,11 +51,20 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <param name="name"></param>
 		/// <param name="location"></param>
 		/// <param name="type"></param>
-		public void addRemoteDevice(int id,string ip,int videoPort,int videoDeviceNumber,string name,string location, string type) {
-			RemoteDevice remoteDevice = new RemoteDevice(id,ip,videoPort,videoDeviceNumber,name,location,type);
-			lock (listRemoteDevices) {
-				listRemoteDevices.Add(remoteDevice);
-			}
+		public async Task addRemoteDevice(string ip, int videoPort, int videoDeviceNumber, string name, string location, string type) {
+			RemoteDevice remoteDevice = new RemoteDevice(ip, videoPort, videoDeviceNumber, name, location, type);
+			await dbContext.AddAsync(new RemoteDeviceDB() {
+				crestronPort = remoteDevice.crestronPort,
+				hasCrestron = remoteDevice._hasCrestron,
+				ip = remoteDevice.ip,
+				location = remoteDevice.location,
+				name = remoteDevice.name,
+				type = remoteDevice.type,
+				videoBasePort = remoteDevice.videoPort,
+				videoDeviceNumber = remoteDevice.videoDeviceNumber,
+			});
+
+			await dbContext.SaveChangesAsync();
 		}
 
 		/// <summary>
@@ -80,21 +78,54 @@ namespace Blazor_Instrument_Cluster.Server.RemoteDeviceManagement {
 		/// <param name="location">Location of the remote device</param>
 		/// <param name="type">type specification of the remote device</param>
 		/// <param name="crestronPort"></param>
-		public void addRemoteDevice(int id,string ip,int crestronPort,int videoPort,int videoDeviceNumber,string name,string location, string type) {
-			RemoteDevice remoteDevice = new RemoteDevice(id,ip,crestronPort,videoPort,videoDeviceNumber,name,location,type);
-			lock (listRemoteDevices) {
-				listRemoteDevices.Add(remoteDevice);
-			}
+		public async Task addRemoteDevice(string ip, int crestronPort, int videoPort, int videoDeviceNumber, string name, string location, string type) {
+			RemoteDevice remoteDevice = new RemoteDevice(ip, crestronPort, videoPort, videoDeviceNumber, name, location, type);
+			await dbContext.AddAsync(new RemoteDeviceDB() {
+				crestronPort = remoteDevice.crestronPort,
+				hasCrestron = remoteDevice._hasCrestron,
+				ip = remoteDevice.ip,
+				location = remoteDevice.location,
+				name = remoteDevice.name,
+				type = remoteDevice.type,
+				videoBasePort = remoteDevice.videoPort,
+				videoDeviceNumber = remoteDevice.videoDeviceNumber,
+			});
+
+			await dbContext.SaveChangesAsync();
 		}
 
 		/// <summary>
 		/// Get a list of remote devices
 		/// </summary>
 		/// <returns></returns>
-		public List<RemoteDevice> getListOfRemoteDevices() {
-			lock (listRemoteDevices) {
-				return listRemoteDevices;
+		public async Task<List<RemoteDevice>> getListOfRemoteDevices() {
+			var devicesDB = dbContext.devices.AsAsyncEnumerable();
+
+			List<RemoteDevice> devices = new List<RemoteDevice>();
+
+			await foreach (var d in devicesDB) {
+				devices.Add(new RemoteDevice() {
+					_hasCrestron = d.hasCrestron,
+					crestronPort = d.crestronPort,
+					ip = d.ip,
+					location = d.location,
+					name = d.name,
+					type = d.type,
+					videoDeviceNumber = d.videoDeviceNumber,
+					videoPort = d.videoBasePort,
+				});
 			}
+
+			return devices;
+		}
+
+		public async Task removeDevice(RemoteDevice device) {
+			var removeDev = dbContext.devices.FirstOrDefault(r => r.ip == device.ip && r.name == device.name && r.type == device.type && r.location == device.location);
+			if (removeDev is not null) {
+				dbContext.Remove(removeDev);
+			}
+
+			await dbContext.SaveChangesAsync();
 		}
 	}
 }

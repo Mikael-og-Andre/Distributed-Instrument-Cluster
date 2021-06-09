@@ -10,7 +10,6 @@ function setup() {
     document.addEventListener("mozpointerlockchange", lockChange, false);
 }
 
-
 function click() {
     canvas.requestPointerLock();
     return isLocked();
@@ -30,7 +29,6 @@ function lockChange() {
     }
 }
 
-
 var x = 0;
 var y = 0;
 function updatePosition(e) {
@@ -44,6 +42,6 @@ function getPositionChange() {
 
     x = 0;
     y = 0;
-    
+
     return [tempX, tempY];
 }

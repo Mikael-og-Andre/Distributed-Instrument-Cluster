@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
+﻿using OpenCvSharp;
+using System;
 using System.Threading;
 using Video_Library;
-using OpenCvSharp;
 
 namespace Video_Demo {
-	class MJPEG_Demo {
+
+	internal class MJPEG_Demo {
 
 		public static void Main(string[] args) {
 			var thread = new Thread(startServer);

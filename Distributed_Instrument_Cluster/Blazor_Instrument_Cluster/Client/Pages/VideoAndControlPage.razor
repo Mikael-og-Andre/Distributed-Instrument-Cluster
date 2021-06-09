@@ -6,10 +6,17 @@
     <div class="row" style="width: 75%; height: 75%;">
         <VideoMJPEG urlDeviceJson="@urlDeviceJson"></VideoMJPEG>
     </div>
-    <div class="row">
-        <KeyboardMouse urlDeviceJson="@urlDeviceJson" @ref="keyboardMouse"></KeyboardMouse>
-        <VirtualKeyboard keyEvent="@handleKeyEvent"></VirtualKeyboard>
-    </div>
+    <AuthorizeView Roles="Admin,Controler">
+        <Authorized>
+            <div class="row">
+                <KeyboardMouse urlDeviceJson="@urlDeviceJson" @ref="keyboardMouse"></KeyboardMouse>
+                <VirtualKeyboard keyEvent="@handleKeyEvent"></VirtualKeyboard>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+
+        </NotAuthorized>
+    </AuthorizeView>
 </div>
 
 

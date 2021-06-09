@@ -1,0 +1,64 @@
+﻿@using System.Text
+@using System.Text.Json
+@inject HttpClient httpClient
+@attribute [Authorize(Roles = "Admin")]
+
+<AuthorizeView>
+    <Authorized>
+        <div class="container container-fluid border-dark border m-2 rounded bg-light">
+            <div class="m-lg-1">
+                <div class="row mt-2 mb-2">
+                    @if (errors is not null) {
+                        foreach (var error in errors) {
+                            <p class="text-danger">@error</p>
+                        }
+                    }
+                </div>
+                <div class="row mt-2 mb-2">
+                    <div class="col"><b>Name: </b><p>@remoteDevice.name</p></div>
+                    <div class="col"><b>Location: </b><p>@remoteDevice.location</p></div>
+                    <div class="col"><b>Type: </b><p>@remoteDevice.type</p></div>
+                </div>
+                <div class="row mt-2 mb-2">
+                    <div class="col"><b>IP: </b><p>@remoteDevice.ip</p></div>
+                    <div class="col"><b>VideoPort: </b><p>@remoteDevice.videoPorts[0]</p></div>
+                    <div class="col"><b>VideoDeviceNumber: </b><p>@remoteDevice.videoPorts.Count</p></div>
+                </div>
+                <div class="row mt-2 mb-2">
+                    @if (remoteDevice.hasCrestron) {
+                        <div class="col"><b>Crestron: </b> <p class="text-success">Yes</p> </div>
+                        <div class="col"><b>CrestronPort: </b> <p>@remoteDevice.crestronPort</p></div>
+                    } else {
+                        <div class="col"><b>Crestron: </b> <p class="text-danger">No</p> </div>
+                    }
+                </div>
+                <div class="row mt-2 mb-2">
+                    <div class="col">
+                        <button class="btn-dark btn" @onclick="deleteDev">remove</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        Not Authorized
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+    [Parameter]
+    public DisplayRemoteDeviceModel remoteDevice { get; set; }
+
+    public List<string> errors { get; set; }
+
+    public async Task deleteDev() {
+        try {
+            string modelAsJson = JsonSerializer.Serialize(remoteDevice);
+            var result = await httpClient.PostAsync("/api/ConnectedDevices/remove", new StringContent(modelAsJson, Encoding.UTF8, "application/json"));
+
+        } catch (Exception e) {
+            errors = new List<string>() { "Failed" };
+        }
+    }
+}

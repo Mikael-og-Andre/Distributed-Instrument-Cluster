@@ -1,36 +1,85 @@
 ﻿@page "/Manage"
+@using System.Text.Json
 @inject HttpClient httpClient
-@inject AuthService authService
+@inject IAuthService authService
+@inject NavigationManager navigationManager
 @attribute [Authorize(Roles = "Admin")]
 
-
 <div class="container container-fluid">
-    
-    <h1 class="display-1">List of accounts</h1>
-    
-    @foreach (var user in users) {
-        <UserComponent userDataModel="@user"></UserComponent>
-    }
-
+    <div class="row">
+        <div class="col-6">
+            <div class="row">
+                <h3>Users</h3>
+            </div>
+            <div class="row m-3">
+                @if (users is not null && users.Any()) {
+                    foreach (var user in users) {
+                        <UserComponent userDataModel="@user"></UserComponent>
+                    }
+                } else {
+                    <div class="border border-dark m-2 center rounded">No users found</div>
+                }
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="row">
+                <h3>Devices</h3>
+            </div>
+            <div class="row m-3">
+                @if (devices is not null && devices.Any()) {
+                    foreach (var device in devices) {
+                        <DeviceEditComponent remoteDevice="@device"></DeviceEditComponent>
+                    }
+                } else {
+                    <div class="border border-dark rounded m-2 center">No devices found</div>
+                }
+            </div>
+            <div class="row"><AddDeviceComponent></AddDeviceComponent></div>
+        </div>
+    </div>
 </div>
-
 
 @code {
 
-    private List<UserDataModel> users { get; set; }
+    private const string pathDevices = "/api/ConnectedDevices/devices";
+
+    private List<UserDataModel> users { get; set; } = null;
+    private List<DisplayRemoteDeviceModel> devices { get; set; } = null;
+    private bool showForm = false;
 
     protected override async Task OnInitializedAsync() {
-
-        users = await getUsers();
+        await getUsers();
+        await getDevices();
     }
 
-    private async Task<List<UserDataModel>> getUsers() {
-        var fetchedUsers = await httpClient.GetFromJsonAsync<IEnumerable<UserDataModel>>("api/Admin/GetAllUsers");
-        List<UserDataModel> list = new List<UserDataModel>();
-        if (fetchedUsers is null) return list;
+    private async Task getUsers() {
+        try {
+            var fetchedUsers = await httpClient.GetFromJsonAsync<IEnumerable<UserDataModel>>("api/Admin/GetAllUsers");
+            List<UserDataModel> list = new List<UserDataModel>();
+            if (fetchedUsers is null) {
+                users = list;
+                return;
+            }
 
-        foreach (var user in fetchedUsers) list.Add(user);
-        return list;
+            foreach (var user in fetchedUsers) {
+                list.Add(user);
+            }
+            users = list;
+        } catch (Exception e) {
+            Console.WriteLine("Failed to load users, {0}", e.Message);
+            users = new List<UserDataModel>();
+        }
+    }
+
+    private async Task getDevices() {
+        try {
+            var result = await httpClient.GetAsync(pathDevices);
+            List<DisplayRemoteDeviceModel> remoteDevices = JsonSerializer.Deserialize<List<DisplayRemoteDeviceModel>>(await result.Content.ReadAsStringAsync());
+            devices = remoteDevices;
+        } catch (Exception e) {
+            Console.WriteLine("Failed to load devices, {0}",e.Message);
+            devices = new List<DisplayRemoteDeviceModel>();
+        }
     }
 
 }
